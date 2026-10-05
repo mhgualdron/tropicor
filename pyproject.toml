@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tropicor"
+version = "0.1.0"
+description = "TROPICOR: Tropical Correction and Orographic Resolution — AI framework for bias correction and spatial downscaling of global climate reanalyses across tropical complex terrains"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [
+  {name = "Mateo Hernandez Gualdron", email = "tropicor.project@gmail.com"}
+]
+keywords = ["climate", "ERA5", "downscaling", "bias-correction", "tropical", "geoscience"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Development Status :: 1 - Planning",
+]
+dependencies = [
+    "xarray>=2024.0",
+    "netcdf4>=1.6",
+    "cdsapi>=0.7",
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "scipy>=1.11",
+    "scikit-learn>=1.4",
+]
+
+[project.optional-dependencies]
+viz = ["matplotlib>=3.8", "cartopy>=0.22"]
+dev = ["pytest", "ruff", "mypy", "jupyter"]
+
+[project.urls]
+Homepage = "https://github.com/mhgualdron/tropicor"
+Repository = "https://github.com/mhgualdron/tropicor"
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["tropicor*"]
