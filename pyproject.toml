@@ -26,11 +26,12 @@ dependencies = [
     "numpy>=1.26",
     "scipy>=1.11",
     "scikit-learn>=1.4",
+    "openpyxl>=3.1",
 ]
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.8", "cartopy>=0.22"]
-dev = ["pytest", "ruff", "mypy", "jupyter"]
+dev = ["pytest", "ruff", "mypy", "pandas-stubs", "jupyter"]
 
 [project.urls]
 Homepage = "https://github.com/mhgualdron/tropicor"
@@ -46,3 +47,7 @@ select = ["E", "F", "I"]
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["tropicor*"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
