@@ -538,6 +538,11 @@ class StationCatalog:
             st.code: st for st in station_list
         }
 
+    @classmethod
+    def from_benchmark(cls) -> "StationCatalog":
+        """Instantiate catalog preloaded with canonical Colombian benchmark stations."""
+        return cls(BENCHMARK_STATIONS)
+
     def get_by_code(self, code: str) -> StationMetadata:
         """Retrieve station metadata by its 8-digit IDEAM code."""
         if code not in self._stations:
