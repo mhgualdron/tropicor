@@ -67,11 +67,14 @@ nav:
   - Getting Started: getting-started.md
   - User Guides:
       - ERA5 Extraction: guides/era5-extraction.md
+      - Orographic Correction: guides/orographic-correction.md
       - IDEAM DHIME Reader: guides/ideam-dhime.md
       - Station Catalog: guides/station-catalog.md
   - Science & Methodology:
       - Academic Heritage & Orography: science/overview.md
+      - Physical Lapse Rates: science/lapse-rate.md
       - Verification Metrics: science/metrics.md
   - API Reference:
       - tropicor.core: api/core.md
+      - tropicor.downscale: api/downscale.md
       - tropicor.io: api/io.md

@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software in academic research, please cite it as below."
+authors:
+  - family-names: "Hernández Gualdrón"
+    given-names: "Mateo"
+title: "TROPICOR: Tropical Correction and Orographic Resolution"
+version: 0.1.1
+date-released: 2026-10-07
+url: "https://github.com/mhgualdron/tropicor"
+repository-code: "https://github.com/mhgualdron/tropicor"
+license: MIT
+keywords:
+  - "climate downscaling"
+  - "orographic correction"
+  - "ERA5 reanalysis"
+  - "tropical Andes"
+  - "Colombia"
+  - "lapse rate"
+  - "bias correction"
+abstract: >-
+  TROPICOR is a Python framework for physics-based vertical downscaling and statistical
+  bias correction of global atmospheric reanalyses across complex tropical terrain.
+  This software implementation is based on algorithms originally developed during an
+  undergraduate geology thesis at Universidad Nacional de Colombia. The author gratefully
+  acknowledges the academic guidance and supervision provided by PhD Germán Andrés
+  Prieto Gómez and PhD Daniel Hernández Deckers during that original research.
