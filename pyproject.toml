@@ -31,7 +31,8 @@ dependencies = [
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.8", "cartopy>=0.22"]
-dev = ["pytest", "ruff", "mypy", "pandas-stubs", "jupyter"]
+grib = ["cfgrib>=0.9.10", "eccodes>=2.30"]
+dev = ["pytest", "ruff", "mypy", "pandas-stubs", "scipy-stubs", "jupyter"]
 docs = [
     "mkdocs>=1.6",
     "mkdocs-material>=9.5",

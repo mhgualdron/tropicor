@@ -221,3 +221,12 @@ __marimo__/
 
 # Local user test files
 local/
+
+# Climate data files and CDS credentials
+.cdsapirc
+*.nc
+*.grib
+*.grb
+*.grib2
+*.xlsx
+*.xls
