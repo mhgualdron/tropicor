@@ -1,5 +1,6 @@
-"""Input/Output module for station metadata and IDEAM DHIME ingestion."""
+"""Input/Output module for station metadata, IDEAM DHIME, and ERA5 ingestion."""
 
+from tropicor.io.era5 import ERA5Adapter
 from tropicor.io.ideam import IdeamAdapter
 from tropicor.io.stations import (
     BENCHMARK_STATIONS,
@@ -9,6 +10,7 @@ from tropicor.io.stations import (
 )
 
 __all__ = [
+    "ERA5Adapter",
     "IdeamAdapter",
     "NaturalRegion",
     "StationMetadata",

@@ -544,6 +544,12 @@ class StationCatalog:
             raise KeyError(f"Station code '{code}' not found in StationCatalog.")
         return self._stations[code]
 
+    def get(
+        self, code: str, default: Optional[StationMetadata] = None
+    ) -> Optional[StationMetadata]:
+        """Retrieve station metadata by code, or return default if not found."""
+        return self._stations.get(code, default)
+
     def filter_by_region(self, region: NaturalRegion | str) -> List[StationMetadata]:
         """Filter stations belonging to a specific natural region."""
         target_region = NaturalRegion(region) if isinstance(region, str) else region
