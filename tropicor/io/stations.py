@@ -42,8 +42,9 @@ class StationMetadata:
             raise ValueError(msg)
 
 
-# Canonical benchmark station catalog (40 stations evaluated across 6 natural regions)
-# Canonical benchmark station catalog (48 stations evaluated across 6 natural regions)
+# Catalog of 48 georeferenced Colombian stations across all 6 natural regions,
+# including the core benchmark network of 40 stations with continuous 30-year
+# observation records evaluated in the original UNAL thesis research.
 BENCHMARK_STATIONS: List[StationMetadata] = [
     StationMetadata(
         code="52055210",

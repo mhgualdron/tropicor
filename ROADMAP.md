@@ -106,7 +106,7 @@ graph TD
 
 | Sprint | Timeline & Status | Focus / Goal | Core Files | Deliverables & Acceptance Criteria | Version |
 | :---: | :---: | :--- | :--- | :--- | :---: |
-| **1** | Oct 2026<br/>✅ Completed | Station catalog & IDEAM parser | `tropicor/io/stations.py`<br/>`tropicor/io/ideam.py`<br/>`tests/test_io/test_ideam.py` | Full metadata of 40 stations parsed; synthetic IDEAM CSV parsed with zero datetime index errors. | `v0.1.1a1` |
+| **1** | Oct 2026<br/>✅ Completed | Station catalog & IDEAM parser | `tropicor/io/stations.py`<br/>`tropicor/io/ideam.py`<br/>`tests/test_io/test_ideam.py` | Full metadata of 48 georeferenced stations parsed (including 40 core benchmark stations); synthetic IDEAM CSV parsed with zero datetime index errors. | `v0.1.1a1` |
 | **2** | Oct 2026<br/>✅ Completed | ERA5 NetCDF & validation metrics | `tropicor/io/era5.py`<br/>`tropicor/core/metrics.py`<br/>`tests/test_core/test_metrics.py` | Slicing multi-file NetCDF without memory leak; Pearson, RMSE, and Euclidean distance match thesis numbers. | `v0.1.1rc1` |
 | **3** | Oct 2026<br/>✅ Released | Orographic lapse-rate & MVP release | `tropicor/downscale/orography.py`<br/>`CITATION.cff`<br/>`tests/test_downscale/test_orography.py` | UIS station test: $\Delta z = 1220\,\text{m} \to \sim 7.9^\circ\text{C}$ correction verified; `CITATION.cff` generated; Zenodo DOI minted; PyPI publish. | **v0.1.1 (MVP)** |
 | **4** | Oct 2026<br/>🚀 Up Next | Climatology & annual cycles | `tropicor/core/climatology.py`<br/>`tests/test_core/test_climatology.py` | 12-month mean profile computed; Euclidean distance between curves matches thesis formula. | `v0.1.2` |
@@ -124,13 +124,13 @@ graph TD
 #### Sprint 1 (October 2026 — Completed): Station Metadata Catalog & IDEAM DHIME Adapter
 * **Goal**: Establish the ground truth station taxonomy and build a fault-tolerant reader for raw IDEAM meteorological station exports.
 * **Files Created / Modified**:
-  - `tropicor/io/stations.py`: `StationMetadata`, `NaturalRegion` Enum, and `StationCatalog` with 40 benchmark stations.
+  - `tropicor/io/stations.py`: `StationMetadata`, `NaturalRegion` Enum, and `StationCatalog` with 48 georeferenced stations (encompassing the 40 core benchmark stations).
   - `tropicor/io/ideam.py`: `read_ideam_csv()` and `read_ideam_excel()` with header stripping and calendar alignment.
   - `tests/conftest.py`: Synthetic fixture generators for stations and IDEAM records.
   - `tests/test_io/test_stations.py`: Verifies spatial bounding boxes and region grouping.
   - `tests/test_io/test_ideam.py`: Tests column parsing, missing value coercion, and date resampling.
 * **Acceptance Criteria**:
-  - `StationCatalog` contains all 40 thesis stations with exact coordinates and elevations.
+  - `StationCatalog` contains all 48 georeferenced stations (including the 40 core thesis benchmark stations) with exact coordinates and elevations.
   - Reading a simulated messy DHIME CSV returns clean `pd.Series` with a strict `DatetimeIndex`.
   - Ruff linting and Mypy strict type checking pass with 0 errors.
 * **Commit Convention**: `feat(io): implement station catalog and ideam dhime parser`
@@ -241,7 +241,7 @@ graph TD
 * **Files Created / Modified**:
   - `tropicor/pipeline.py`: `TropicorPipeline` providing a 3-line Python API: `pipe = TropicorPipeline(...); pipe.fit(); results = pipe.evaluate()`.
   - `tropicor/cli.py`: Command-line interface (`tropicor audit`, `tropicor correct`) — *identified as a scope cushion; if time compresses, deferrable to v0.4.0 without impacting the core Python package API*.
-  - `benchmarks/run_benchmarks.py`: Full performance and memory benchmark across 40 stations.
+  - `benchmarks/run_benchmarks.py`: Full performance and memory benchmark across 48 georeferenced stations (and 40 core benchmark stations).
   - `README.md`: Complete documentation, API reference, benchmark tables, and research paper citation.
 * **Acceptance Criteria**:
   - Executing `TropicorPipeline.run()` executes full ingestion, lapse-rate adjustment, ML downscaling, and metric reporting in $< 2\text{s}$.
@@ -394,7 +394,7 @@ Every key empirical discovery from the thesis must have a corresponding test tha
 
 ```
 v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 – Jan 2027)
-├── ERA5 Point Extraction     ├── 40 Station Benchmark      ├── Topographic Feature Eng
+├── ERA5 Point Extraction     ├── 48 Stations (40 Benchmark)├── Topographic Feature Eng
 ├── IDEAM CSV Parsing         ├── Climatology Curves        ├── RandomForest Downscaler
 ├── Validation Metrics        ├── DTR & Double Difference   ├── GBDT Downscaler
 ├── Orographic Lapse Rate     ├── Quantile Mapping (EQM)    └── Unified Pipeline API
@@ -431,7 +431,7 @@ v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 �
 
 ### Version 0.2.0 (Full Research Suite — Target: November 2026)
 * **Required Functionality**:
-  - Pre-packaged `StationCatalog` containing 40 Colombian benchmark stations across all 6 natural regions.
+  - Pre-packaged `StationCatalog` containing 48 georeferenced Colombian stations across all 6 natural regions, including the core benchmark network of 40 stations.
   - Climatological 12-month annual cycle profiles and geometric curve distance.
   - Diurnal Temperature Range (DTR) and double-difference net thermal drift detection.
   - Standardized residual distribution diagnostics (skewness, kurtosis).
@@ -444,7 +444,7 @@ v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 �
   ```markdown
   ## [0.2.0] - 2026-11-15
   ### Added
-  - Built-in StationCatalog with 40 Colombian stations categorized across 6 natural regions.
+  - Built-in StationCatalog with 48 georeferenced Colombian stations (including 40 core benchmark stations) categorized across 6 natural regions.
   - Annual climatology curve extraction and Euclidean curve separation metrics.
   - Diurnal Temperature Range (DTR) and double-difference drift analysis.
   - Empirical Quantile Mapping (EQM) and Linear Scaling for precipitation and temperature.
@@ -529,7 +529,7 @@ To ensure scientific reproducibility and standard open-source research credit, T
 ### 4. Elevation / DEM External Service Reliance & Latency
 * **Risk**: Querying `api.open-elevation.com` in loops causes rate-limiting (HTTP 429), high network latency, and test instability.
 * **Mitigation**:
-  - Hardcode verified, ground-truth elevations for all 40 benchmark stations directly in `tropicor/io/stations.py`.
+  - Hardcode verified, ground-truth elevations for all 48 georeferenced stations directly in `tropicor/io/stations.py`.
   - For arbitrary user coordinates, integrate local DEM raster sampling via `rioxarray` reading offline GeoTIFF tiles (e.g., Copernicus 30m / SRTM), eliminating runtime web API dependencies.
 
 ### 5. Spatial Overfitting in Data-Sparse Basins (Amazonía / Pacífica)

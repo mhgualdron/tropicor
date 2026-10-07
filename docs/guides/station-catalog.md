@@ -1,6 +1,6 @@
 # Working with the Station Catalog
 
-The `StationCatalog` provides access to the 48 benchmark stations evaluated across Colombia's 6 natural regions.
+The `StationCatalog` provides access to 48 georeferenced Colombian stations across all 6 natural regions, including the core benchmark network of 40 stations with continuous 30-year observation records evaluated in the original UNAL thesis research.
 
 ---
 

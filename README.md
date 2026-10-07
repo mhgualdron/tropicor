@@ -26,7 +26,7 @@ Because temperature decreases with altitude at the environmental lapse rate ($\a
 - **Topographic Lapse-Rate Downscaling (`tropicor.downscale`)**: Physics-based vertical temperature adjustment resolving elevation discrepancies ($\Delta z = z_{\text{station}} - z_{\text{model}}$) using standard, dry, or moist adiabatic lapse rates.
 - **ERA5 NetCDF Adapter (`tropicor.io.era5`)**: Memory-efficient spatial extraction from multi-file NetCDF reanalyses with automated unit harmonization (Kelvin $\to$ °C, meters $\to$ mm) and geopotential elevation extraction.
 - **In-Situ Meteorological Ingestion (`tropicor.io.ideam`)**: Native parser for Colombian IDEAM DHIME meteorological time series.
-- **Canonical Station Catalog (`tropicor.io.stations`)**: Built-in metadata catalog of 48 Colombian benchmark stations across all 6 natural regions (Andina, Caribe, Pacífico, Orinoquía, Amazonía, Insular).
+- **Station Catalog (`tropicor.io.stations`)**: Built-in catalog of 48 georeferenced Colombian stations across all 6 natural regions (Andina, Caribe, Pacífico, Orinoquía, Amazonía, Insular), including the core benchmark network of 40 stations with continuous 30-year observation records evaluated in the original UNAL thesis.
 - **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson $r$, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), and Euclidean curve distance with epsilon near-zero guards.
 
 ---
