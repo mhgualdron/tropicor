@@ -1,11 +1,11 @@
 # TROPICOR Master Implementation Plan (ROADMAP.md)
 
 **Package**: TROPICOR (*Tropical Correction and Orographic Resolution*)  
-**PyPI**: [https://pypi.org/project/tropicor/](https://pypi.org/project/tropicor/) (Current: v0.1.0)  
+**PyPI**: [https://pypi.org/project/tropicor/](https://pypi.org/project/tropicor/) (Current: v0.1.1)  
 **Repository**: [https://github.com/mhgualdron/tropicor](https://github.com/mhgualdron/tropicor)  
 **Author & Lead Architect**: Mateo Hernández Gualdrón  
 **Academic Heritage**: Based on algorithms from an undergraduate thesis at Universidad Nacional de Colombia (author acknowledges past supervision by PhD Germán Andrés Prieto Gómez & PhD Daniel Hernández Deckers). This is an independent software project.
-**Scope**: 12-Month Master Engineering Blueprint (Sprints 1–10: MVP $\to$ v0.2.0 $\to$ v0.3.0)  
+**Scope**: Master Engineering Blueprint (Sprints 1–10: MVP $\to$ v0.2.0 $\to$ v0.3.0, Q4 2026 – Q1 2027)  
 
 ---
 
@@ -90,40 +90,38 @@ graph TD
 | **Layer 4** | `tropicor.pipeline` | All layers | End-to-end user facade: `TropicorPipeline.run()`. |
 | **Layer 4** | `tropicor.cli` | `tropicor.pipeline` | Terminal CLI tool (optional scope cushion, deferrable to v0.4.0). |
 
----
-
-## 2. Sprint-by-Sprint Breakdown (10 Sprints / 20 Weeks)
+## 2. Sprint-by-Sprint Breakdown (10 Sprints / Q4 2026 – Q1 2027)
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                        REALISTIC 2027 RELEASE SCHEDULE                                 │
+│                        RELEASE SCHEDULE (Q4 2026 – Q1 2027)                            │
 ├──────────────┬───────────────────────────────┬─────────────────────────────────────────┤
-│ Sprints 1–3  │ MVP Phase (v0.1.1)            │ March – April 2027 (Post-Graduation)    │
-│ Sprints 4–7  │ v0.2.0 Release Phase          │ May – July 2027                         │
-│ Sprints 8–10 │ v0.3.0 ML Downscaling Phase   │ August – November 2027                  │
+│ Sprints 1–3  │ MVP Phase (v0.1.1)            │ October 2026 (Completed & Released)     │
+│ Sprints 4–7  │ v0.2.0 Research Suite Phase   │ October – November 2026 (In Progress)   │
+│ Sprints 8–10 │ v0.3.0 ML Downscaling Phase   │ November 2026 – January 2027            │
 └──────────────┴───────────────────────────────┴─────────────────────────────────────────┘
 ```
 
 ### Sprint Master Matrix
 
-| Sprint | Timeline | Focus / Goal | Core Files | Deliverables & Acceptance Criteria | Version |
+| Sprint | Timeline & Status | Focus / Goal | Core Files | Deliverables & Acceptance Criteria | Version |
 | :---: | :---: | :--- | :--- | :--- | :---: |
-| **1** | Mar 2027<br/>(W1–2) | Station catalog & IDEAM parser | `tropicor/io/stations.py`<br/>`tropicor/io/ideam.py`<br/>`tests/test_io/test_ideam.py` | Full metadata of 40 stations parsed; synthetic IDEAM CSV parsed with zero datetime index errors. | `v0.1.1a1` |
-| **2** | Mar 2027<br/>(W3–4) | ERA5 NetCDF & validation metrics | `tropicor/io/era5.py`<br/>`tropicor/core/metrics.py`<br/>`tests/test_core/test_metrics.py` | Slicing multi-file NetCDF without memory leak; Pearson, RMSE, and Euclidean distance match thesis numbers. | `v0.1.1rc1` |
-| **3** | Apr 2027<br/>(W5–6) | Orographic lapse-rate & MVP release | `tropicor/downscale/orography.py`<br/>`CITATION.cff`<br/>`tests/test_downscale/test_orography.py` | UIS station test: $\Delta z = 1220\,\text{m} \to \sim 7.9^\circ\text{C}$ correction verified; `CITATION.cff` generated; Zenodo DOI minted; PyPI publish. | **v0.1.1 (MVP)** |
-| **4** | May 2027<br/>(W7–8) | Climatology & annual cycles | `tropicor/core/climatology.py`<br/>`tests/test_core/test_climatology.py` | 12-month mean profile computed; Euclidean distance between curves matches thesis formula. | `v0.1.2` |
-| **5** | May 2027<br/>(W9–10) | Diurnal Temperature Range & drift | `tropicor/core/dtr.py`<br/>`tests/test_core/test_dtr.py` | DTR and double-difference drift calculated; missing month alignment handled gracefully. | `v0.1.3` |
-| **6** | Jun 2027<br/>(W11–12) | Residual distribution diagnostics | `tropicor/core/diagnostics.py`<br/>`tests/test_core/test_diagnostics.py` | Standardized residual engine computes variance, skewness, and kurtosis matching thesis tables. | `v0.1.4` |
-| **7** | Jul 2027<br/>(W13–14) | Bias correction & viz suite | `tropicor/core/bias.py`<br/>`tropicor/viz/maps.py`<br/>`tropicor/viz/profiles.py` | Quantile mapping reduces precipitation bias; publication-grade Cartopy figures render; PyPI release. | **v0.2.0** |
-| **8** | Aug 2027<br/>(W15–16) | DEM terrain feature extraction | `tropicor/downscale/features.py`<br/>`tests/test_downscale/test_features.py` | Elevation, slope, aspect, and roughness extracted from synthetic DEM grid. | `v0.2.1` |
-| **9** | Sep–Oct 2027<br/>(W17–18) | Machine learning regressors | `tropicor/downscale/models.py`<br/>`tests/test_downscale/test_models.py` | `OrographicRegressor` achieves statistically significant error reduction relative to raw ERA5 baseline across regions. | `v0.2.2` |
-| **10** | Oct–Nov 2027<br/>(W19–20) | End-to-end facade & release | `tropicor/pipeline.py`<br/>`tropicor/cli.py` *(scope cushion)*<br/>`docs/`, `benchmarks/` | End-to-end execution in $<5\text{s}$; Zenodo release archive; PyPI v0.3.0 release. | **v0.3.0** |
+| **1** | Oct 2026<br/>✅ Completed | Station catalog & IDEAM parser | `tropicor/io/stations.py`<br/>`tropicor/io/ideam.py`<br/>`tests/test_io/test_ideam.py` | Full metadata of 40 stations parsed; synthetic IDEAM CSV parsed with zero datetime index errors. | `v0.1.1a1` |
+| **2** | Oct 2026<br/>✅ Completed | ERA5 NetCDF & validation metrics | `tropicor/io/era5.py`<br/>`tropicor/core/metrics.py`<br/>`tests/test_core/test_metrics.py` | Slicing multi-file NetCDF without memory leak; Pearson, RMSE, and Euclidean distance match thesis numbers. | `v0.1.1rc1` |
+| **3** | Oct 2026<br/>✅ Released | Orographic lapse-rate & MVP release | `tropicor/downscale/orography.py`<br/>`CITATION.cff`<br/>`tests/test_downscale/test_orography.py` | UIS station test: $\Delta z = 1220\,\text{m} \to \sim 7.9^\circ\text{C}$ correction verified; `CITATION.cff` generated; Zenodo DOI minted; PyPI publish. | **v0.1.1 (MVP)** |
+| **4** | Oct 2026<br/>🚀 Up Next | Climatology & annual cycles | `tropicor/core/climatology.py`<br/>`tests/test_core/test_climatology.py` | 12-month mean profile computed; Euclidean distance between curves matches thesis formula. | `v0.1.2` |
+| **5** | Oct 2026<br/>Upcoming | Diurnal Temperature Range & drift | `tropicor/core/dtr.py`<br/>`tests/test_core/test_dtr.py` | DTR and double-difference drift calculated; missing month alignment handled gracefully. | `v0.1.3` |
+| **6** | Nov 2026<br/>Upcoming | Residual distribution diagnostics | `tropicor/core/diagnostics.py`<br/>`tests/test_core/test_diagnostics.py` | Standardized residual engine computes variance, skewness, and kurtosis matching thesis tables. | `v0.1.4` |
+| **7** | Nov 2026<br/>Upcoming | Bias correction & viz suite | `tropicor/core/bias.py`<br/>`tropicor/viz/maps.py`<br/>`tropicor/viz/profiles.py` | Quantile mapping reduces precipitation bias; publication-grade Cartopy figures render; PyPI release. | **v0.2.0** |
+| **8** | Nov 2026<br/>Upcoming | DEM terrain feature extraction | `tropicor/downscale/features.py`<br/>`tests/test_downscale/test_features.py` | Elevation, slope, aspect, and roughness extracted from synthetic DEM grid. | `v0.2.1` |
+| **9** | Dec 2026<br/>Upcoming | Machine learning regressors | `tropicor/downscale/models.py`<br/>`tests/test_downscale/test_models.py` | `OrographicRegressor` achieves statistically significant error reduction relative to raw ERA5 baseline across regions. | `v0.2.2` |
+| **10** | Dec 2026 – Jan 2027<br/>Upcoming | End-to-end facade & release | `tropicor/pipeline.py`<br/>`tropicor/cli.py` *(scope cushion)*<br/>`docs/`, `benchmarks/` | End-to-end execution in $<5\text{s}$; Zenodo release archive; PyPI v0.3.0 release. | **v0.3.0** |
 
 ---
 
 ### Sprint Specifications
 
-#### Sprint 1 (Weeks 1–2, March 2027): Station Metadata Catalog & IDEAM DHIME Adapter
+#### Sprint 1 (October 2026 — Completed): Station Metadata Catalog & IDEAM DHIME Adapter
 * **Goal**: Establish the ground truth station taxonomy and build a fault-tolerant reader for raw IDEAM meteorological station exports.
 * **Files Created / Modified**:
   - `tropicor/io/stations.py`: `StationMetadata`, `NaturalRegion` Enum, and `StationCatalog` with 40 benchmark stations.
@@ -138,7 +136,7 @@ graph TD
 * **Commit Convention**: `feat(io): implement station catalog and ideam dhime parser`
 * **Version**: `0.1.1a1`
 
-#### Sprint 2 (Weeks 3–4, March 2027): ERA5 Ingestion Engine & Core Verification Metrics
+#### Sprint 2 (October 2026 — Completed): ERA5 Ingestion Engine & Core Verification Metrics
 * **Goal**: Enable memory-efficient spatial point extraction from NetCDF files and implement core statistical validation metrics.
 * **Files Created / Modified**:
   - `tropicor/io/era5.py`: `ERA5Adapter` wrapping `xarray.open_mfdataset()` with nearest/bilinear spatial interpolation.
@@ -151,7 +149,7 @@ graph TD
 * **Commit Convention**: `feat(core): implement era5 point extraction and validation metrics`
 * **Version**: `0.1.1rc1`
 
-#### Sprint 3 (Weeks 5–6, April 2027): Orographic Lapse-Rate Correction, CITATION.cff & MVP Release
+#### Sprint 3 (October 2026 — Completed & Released): Orographic Lapse-Rate Correction, CITATION.cff & MVP Release
 * **Goal**: Deliver the minimal viable product (MVP), implement citation infrastructure for early DOI minting, and publish to PyPI.
 * **Files Created / Modified**:
   - `tropicor/downscale/orography.py`: `lapse_rate_temperature_correction()` with regional lapse-rate defaults.
@@ -167,7 +165,7 @@ graph TD
 * **Commit Convention**: `release(core): v0.1.1 mvp with orographic lapse rate correction and citation metadata`
 * **Version**: `0.1.1` (MVP Milestone)
 
-#### Sprint 4 (Weeks 7–8, May 2027): Annual Climatology Curves & Seasonal Geometry
+#### Sprint 4 (October 2026 — Up Next): Annual Climatology Curves & Seasonal Geometry
 * **Goal**: Replicate the thesis's 12-month climatology curve analysis and geometric curve separation algorithms.
 * **Files Created / Modified**:
   - `tropicor/core/climatology.py`: `compute_monthly_climatology()`, `climatological_curve_distance()`, and `annual_cycle_amplitude()`.
@@ -178,7 +176,7 @@ graph TD
 * **Commit Convention**: `feat(core): implement annual climatology curves and curve distance`
 * **Version**: `0.1.2`
 
-#### Sprint 5 (Weeks 9–10, May 2027): Diurnal Temperature Range (DTR) & Double-Difference Drift
+#### Sprint 5 (October 2026): Diurnal Temperature Range (DTR) & Double-Difference Drift
 * **Goal**: Implement high-order thermal diagnostics to evaluate daily temperature extremes and net instrumentation drift.
 * **Files Created / Modified**:
   - `tropicor/core/dtr.py`: `compute_dtr()`, `compute_double_difference()`, and `detect_thermal_drift()`.
@@ -189,7 +187,7 @@ graph TD
 * **Commit Convention**: `feat(core): implement diurnal temperature range and double difference`
 * **Version**: `0.1.3`
 
-#### Sprint 6 (Weeks 11–12, June 2027): Standardized Residual Diagnostics & Normality Analysis
+#### Sprint 6 (November 2026): Standardized Residual Diagnostics & Normality Analysis
 * **Goal**: Migrate statistical moment tracking (skewness, kurtosis) and normality assessment from thesis notebooks 9 and 10.
 * **Files Created / Modified**:
   - `tropicor/core/diagnostics.py`: `standardize_residuals()`, `compute_distribution_moments()`, and `shapiro_normality_test()`.
@@ -200,7 +198,7 @@ graph TD
 * **Commit Convention**: `feat(core): implement residual standardization and distribution diagnostics`
 * **Version**: `0.1.4`
 
-#### Sprint 7 (Weeks 13–14, July 2027): Classical Bias Correction & Visualization Suite
+#### Sprint 7 (November 2026): Classical Bias Correction & Visualization Suite
 * **Goal**: Implement statistical bias correction (Quantile Mapping) and publication-grade Cartopy/matplotlib visualizers; release v0.2.0.
 * **Files Created / Modified**:
   - `tropicor/core/bias.py`: `EmpiricalQuantileMapping` and `LinearScalingCorrection`.
@@ -216,7 +214,7 @@ graph TD
 * **Commit Convention**: `release(core): v0.2.0 full analytical suite with quantile mapping and cartopy viz`
 * **Version**: `0.2.0` (Major Feature Release)
 
-#### Sprint 8 (Weeks 15–16, August 2027): Topographic Feature Engine (DEM Ingestion)
+#### Sprint 8 (November 2026): Topographic Feature Engine (DEM Ingestion)
 * **Goal**: Build raster tools to compute slope, aspect, terrain roughness, and valley depth indices from Digital Elevation Models.
 * **Files Created / Modified**:
   - `tropicor/downscale/features.py`: `TopographicFeatureExtractor` computing terrain slope, aspect, roughness index (TRI), and relative elevation from 2D elevation arrays.
@@ -227,7 +225,7 @@ graph TD
 * **Commit Convention**: `feat(downscale): implement topographic feature extraction engine`
 * **Version**: `0.2.1`
 
-#### Sprint 9 (Weeks 17–18, September–October 2027): Machine Learning Orographic Regressors
+#### Sprint 9 (December 2026): Machine Learning Orographic Regressors
 * **Goal**: Integrate supervised learning models to learn non-linear corrections combining atmospheric reanalysis with terrain features.
 * **Files Created / Modified**:
   - `tropicor/downscale/models.py`: `OrographicRegressor` wrapping `HistGradientBoostingRegressor` and `RandomForestRegressor`.
@@ -238,7 +236,7 @@ graph TD
 * **Commit Convention**: `feat(downscale): implement machine learning orographic regressors`
 * **Version**: `0.2.2`
 
-#### Sprint 10 (Weeks 19–20, October–November 2027): High-Level Pipeline Facade, Benchmark Suite & v0.3.0 Release
+#### Sprint 10 (December 2026 – January 2027): High-Level Pipeline Facade, Benchmark Suite & v0.3.0 Release
 * **Goal**: Unify all modules into a frictionless end-to-end user API, complete documentation, archive Zenodo DOI, and release v0.3.0.
 * **Files Created / Modified**:
   - `tropicor/pipeline.py`: `TropicorPipeline` providing a 3-line Python API: `pipe = TropicorPipeline(...); pipe.fit(); results = pipe.evaluate()`.
@@ -395,7 +393,7 @@ Every key empirical discovery from the thesis must have a corresponding test tha
 ### Release Roadmap Summary
 
 ```
-v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027)
+v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 – Jan 2027)
 ├── ERA5 Point Extraction     ├── 40 Station Benchmark      ├── Topographic Feature Eng
 ├── IDEAM CSV Parsing         ├── Climatology Curves        ├── RandomForest Downscaler
 ├── Validation Metrics        ├── DTR & Double Difference   ├── GBDT Downscaler
@@ -403,7 +401,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
 └── CITATION.cff + Zenodo DOI └── Cartopy Visualizations
 ```
 
-### Version 0.1.1 (MVP Milestone — Target: April 2027)
+### Version 0.1.1 (MVP Milestone — Released: October 2026)
 * **Required Functionality**:
   - `tropicor.io.era5.ERA5Adapter` extracts collocated point series.
   - `tropicor.io.ideam.read_ideam_csv` ingests DHIME records.
@@ -415,7 +413,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
   - Full docstrings following Google Python Style Guide with type signatures.
 * **CHANGELOG Entry**:
   ```markdown
-  ## [0.1.1] - 2027-04-15
+  ## [0.1.1] - 2026-10-07
   ### Added
   - ERA5Adapter for vectorized spatial point extraction from Copernicus NetCDF reanalyses.
   - Ingestion adapter for IDEAM DHIME meteorological station CSV exports.
@@ -431,7 +429,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
   uv publish --token $PYPI_API_TOKEN
   ```
 
-### Version 0.2.0 (Full Research Suite — Target: July 2027)
+### Version 0.2.0 (Full Research Suite — Target: November 2026)
 * **Required Functionality**:
   - Pre-packaged `StationCatalog` containing 40 Colombian benchmark stations across all 6 natural regions.
   - Climatological 12-month annual cycle profiles and geometric curve distance.
@@ -444,7 +442,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
   - Publication gallery showcasing generated Cartopy maps and climatology curves.
 * **CHANGELOG Entry**:
   ```markdown
-  ## [0.2.0] - 2027-07-20
+  ## [0.2.0] - 2026-11-15
   ### Added
   - Built-in StationCatalog with 40 Colombian stations categorized across 6 natural regions.
   - Annual climatology curve extraction and Euclidean curve separation metrics.
@@ -453,7 +451,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
   - Publication-grade visualization engine using Cartopy and Matplotlib.
   ```
 
-### Version 0.3.0 (Machine Learning Downscaling — Target: November 2027)
+### Version 0.3.0 (Machine Learning Downscaling — Target: December 2026 / January 2027)
 * **Required Functionality**:
   - Topographic feature engineering: slope, aspect, terrain roughness, relative elevation from DEM rasters.
   - `tropicor.downscale.models.OrographicRegressor` wrapping `HistGradientBoostingRegressor` and `RandomForestRegressor`.
@@ -463,7 +461,7 @@ v0.1.1 MVP (April 2027)      v0.2.0 (July 2027)            v0.3.0 (November 2027
   - Complete API reference generated with `mkdocs` or Sphinx.
 * **CHANGELOG Entry**:
   ```markdown
-  ## [0.3.0] - 2027-11-25
+  ## [0.3.0] - 2026-12-20
   ### Added
   - High-resolution DEM topographic feature engineering engine (slope, aspect, roughness).
   - Supervised machine learning orographic downscaling models for complex tropical terrains.
