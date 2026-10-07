@@ -82,10 +82,12 @@ p_adapter = IdeamAdapter("path/to/precip.xlsx")
 t_adapter = IdeamAdapter("path/to/temp.xlsx")
 
 # Merge into a single station dataframe
-df_station = pd.DataFrame({
-    "precipitation": p_adapter.get_series(),
-    "temperature": t_adapter.get_series(),
-})
+df_station = pd.DataFrame(
+    {
+        "precipitation": p_adapter.get_series(),
+        "temperature": t_adapter.get_series(),
+    }
+)
 
 print(df_station.head())
 ```

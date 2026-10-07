@@ -66,9 +66,12 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - User Guides:
+      - ERA5 Extraction: guides/era5-extraction.md
       - IDEAM DHIME Reader: guides/ideam-dhime.md
       - Station Catalog: guides/station-catalog.md
   - Science & Methodology:
       - Academic Heritage & Orography: science/overview.md
+      - Verification Metrics: science/metrics.md
   - API Reference:
+      - tropicor.core: api/core.md
       - tropicor.io: api/io.md

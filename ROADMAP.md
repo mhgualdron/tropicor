@@ -316,36 +316,44 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+
 @pytest.fixture
 def synthetic_era5_dataset(tmp_path) -> str:
     """Generates a synthetic 30-year monthly NetCDF dataset (1990-2019, 360 months)."""
     times = pd.date_range("1990-01-01", periods=360, freq="MS")
-    lats = np.linspace(15.0, -5.0, 81)   # Colombia bounding box
+    lats = np.linspace(15.0, -5.0, 81)  # Colombia bounding box
     lons = np.linspace(-85.0, -65.0, 81)
-    
+
     # Synthetic temperature: annual cycle + elevation lapse + noise
     t2m = np.zeros((len(times), len(lats), len(lons)), dtype=np.float32)
     for t_idx, t in enumerate(times):
         seasonal = 2.0 * np.sin(2 * np.pi * t.month / 12.0)
         t2m[t_idx, :, :] = 295.15 + seasonal  # ~22°C base
-    
-    tp = np.random.uniform(0.05, 0.35, size=(len(times), len(lats), len(lons))).astype(np.float32)
+
+    tp = np.random.uniform(0.05, 0.35, size=(len(times), len(lats), len(lons))).astype(
+        np.float32
+    )
 
     ds = xr.Dataset(
-        data_vars={"t2m": (("time", "latitude", "longitude"), t2m),
-                   "tp": (("time", "latitude", "longitude"), tp)},
-        coords={"time": times, "latitude": lats, "longitude": lons}
+        data_vars={
+            "t2m": (("time", "latitude", "longitude"), t2m),
+            "tp": (("time", "latitude", "longitude"), tp),
+        },
+        coords={"time": times, "latitude": lats, "longitude": lons},
     )
     nc_path = tmp_path / "synthetic_era5.nc"
     ds.to_netcdf(nc_path)
     return str(nc_path)
+
 
 @pytest.fixture
 def synthetic_station_series() -> tuple[pd.Series, pd.Series]:
     """Generates paired observed vs model series with controlled error."""
     idx = pd.date_range("1990-01-01", periods=360, freq="MS")
     t = np.linspace(0, 30 * 2 * np.pi, 360)
-    observed = pd.Series(25.0 + 5.0 * np.sin(t) + np.random.normal(0, 0.5, 360), index=idx)
+    observed = pd.Series(
+        25.0 + 5.0 * np.sin(t) + np.random.normal(0, 0.5, 360), index=idx
+    )
     # Model has phase alignment (high r) but massive -8°C bias (Andean case)
     model = pd.Series(17.0 + 5.0 * np.sin(t) + np.random.normal(0, 0.5, 360), index=idx)
     return observed, model

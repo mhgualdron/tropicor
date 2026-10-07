@@ -27,7 +27,9 @@ from tropicor.io import StationCatalog
 catalog = StationCatalog()
 
 min_lat, max_lat, min_lon, max_lon = catalog.bounding_box()
-print(f"Domain Extent: Lat [{min_lat:.2f}, {max_lat:.2f}], Lon [{min_lon:.2f}, {max_lon:.2f}]")
+print(
+    f"Domain Extent: Lat [{min_lat:.2f}, {max_lat:.2f}], Lon [{min_lon:.2f}, {max_lon:.2f}]"
+)
 ```
 
 ### Exporting to Pandas DataFrame
