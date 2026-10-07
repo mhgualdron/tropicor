@@ -2,11 +2,14 @@
 
 ## Research Origins
 
-TROPICOR originates from undergraduate geological and atmospheric research conducted at **Universidad Nacional de Colombia** (Bogotá), directed by:
+TROPICOR is an independent software implementation based on algorithms originally developed during an undergraduate geological and atmospheric research thesis at **Universidad Nacional de Colombia** (Bogotá). 
+
+The author gratefully acknowledges the academic guidance and supervision provided by:
 
 - **PhD Germán Andrés Prieto Gómez** (Department of Geosciences)
 - **PhD Daniel Hernández Deckers** (Department of Geosciences)
-- **Lead Author & Architect**: Mateo Hernández Gualdrón
+
+*Please note: This software is an independent engineering project by Mateo Hernández Gualdrón and does not imply official endorsement or ongoing participation from the mentioned professors or the university.*
 
 The investigation conducted a comprehensive 30-year empirical evaluation (1990–2019) comparing the European Centre for Medium-Range Weather Forecasts (**ECMWF**) ERA5 global reanalysis against in-situ station records from the **Instituto de Hidrología, Meteorología y Estudios Ambientales (IDEAM)** across Colombia's 6 natural regions.
 

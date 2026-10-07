@@ -4,7 +4,7 @@
 **PyPI**: [https://pypi.org/project/tropicor/](https://pypi.org/project/tropicor/) (Current: v0.1.0)  
 **Repository**: [https://github.com/mhgualdron/tropicor](https://github.com/mhgualdron/tropicor)  
 **Author & Lead Architect**: Mateo Hernández Gualdrón  
-**Academic Heritage**: Universidad Nacional de Colombia (Directed by PhD Germán Andrés Prieto Gómez & PhD Daniel Hernández Deckers)  
+**Academic Heritage**: Based on algorithms from an undergraduate thesis at Universidad Nacional de Colombia (author acknowledges past supervision by PhD Germán Andrés Prieto Gómez & PhD Daniel Hernández Deckers). This is an independent software project.
 **Scope**: 12-Month Master Engineering Blueprint (Sprints 1–10: MVP $\to$ v0.2.0 $\to$ v0.3.0)  
 
 ---
@@ -489,7 +489,7 @@ To ensure scientific reproducibility and standard open-source research credit, T
 ### Academic Attribution Framework
 * **GitHub Citation Integration**: The presence of `CITATION.cff` at the root of the repository generates GitHub's native "Cite this repository" interface, providing standardized BibTeX, APA, and Harvard citations.
 * **Zenodo Release Archiving**: Every GitHub release tag (`v0.1.1`, `v0.2.0`, `v0.3.0`) triggers Zenodo's automated webhook to mint a permanent, immutable Digital Object Identifier (DOI).
-* **Thesis Lineage**: Formal attribution to the undergraduate geology thesis conducted at Universidad Nacional de Colombia under PhD Germán Andrés Prieto Gómez and PhD Daniel Hernández Deckers.
+* **Thesis Lineage**: Formal acknowledgment of the undergraduate geology thesis conducted at Universidad Nacional de Colombia. The author acknowledges the past academic guidance of PhD Germán Andrés Prieto Gómez and PhD Daniel Hernández Deckers during that original research.
 
 ---
 
