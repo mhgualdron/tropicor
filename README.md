@@ -6,6 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Version](https://img.shields.io/badge/version-0.1.1-green.svg)](https://pypi.org/project/tropicor/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23219419.svg)](https://doi.org/10.5281/zenodo.23219419)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs--material-teal.svg)](https://mhgualdron.github.io/tropicor/)
 
 ---
@@ -93,7 +94,8 @@ If you use TROPICOR in your research, please cite it using the metadata in [`CIT
   title = {TROPICOR: Tropical Correction and Orographic Resolution},
   version = {0.1.1},
   year = {2026},
-  url = {https://github.com/mhgualdron/tropicor}
+  doi = {10.5281/zenodo.23219419},
+  url = {https://doi.org/10.5281/zenodo.23219419}
 }
 ```
 

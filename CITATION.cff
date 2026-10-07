@@ -5,6 +5,7 @@ authors:
     given-names: "Mateo"
 title: "TROPICOR: Tropical Correction and Orographic Resolution"
 version: 0.1.1
+doi: "10.5281/zenodo.23219419"
 date-released: 2026-10-07
 url: "https://github.com/mhgualdron/tropicor"
 repository-code: "https://github.com/mhgualdron/tropicor"
