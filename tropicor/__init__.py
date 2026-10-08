@@ -4,6 +4,14 @@ AI framework for bias correction and spatial downscaling
 of global climate reanalyses across tropical complex terrains.
 """
 
+from tropicor.core.climatology import (
+    annual_cycle_amplitude,
+    annual_cycle_peaks,
+    annual_cycle_phase,
+    classify_rainfall_regime,
+    climatological_curve_distance,
+    compute_monthly_climatology,
+)
 from tropicor.core.metrics import ValidationReport, compute_validation_metrics
 from tropicor.downscale.orography import (
     DRY_ADIABATIC_LAPSE_RATE,
@@ -21,7 +29,7 @@ from tropicor.io.stations import (
     StationMetadata,
 )
 
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 
 __all__ = [
     "BENCHMARK_STATIONS",
@@ -35,7 +43,13 @@ __all__ = [
     "StationMetadata",
     "ValidationReport",
     "__version__",
+    "annual_cycle_amplitude",
+    "annual_cycle_peaks",
+    "annual_cycle_phase",
+    "classify_rainfall_regime",
+    "climatological_curve_distance",
     "compute_elevation_offset",
+    "compute_monthly_climatology",
     "compute_validation_metrics",
     "lapse_rate_temperature_correction",
 ]

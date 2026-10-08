@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "tropicor"
-version = "0.1.1"
+version = "0.1.2"
 description = "TROPICOR: Tropical Correction and Orographic Resolution — AI framework for bias correction and spatial downscaling of global climate reanalyses across tropical complex terrains"
 readme = "README.md"
 license = {text = "MIT"}
