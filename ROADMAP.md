@@ -108,9 +108,8 @@ graph TD
 | :---: | :---: | :--- | :--- | :--- | :---: |
 | **1** | Oct 2026<br/>✅ Completed | Station catalog & IDEAM parser | `tropicor/io/stations.py`<br/>`tropicor/io/ideam.py`<br/>`tests/test_io/test_ideam.py` | Full metadata of 48 georeferenced stations parsed (including 40 core benchmark stations); synthetic IDEAM CSV parsed with zero datetime index errors. | `v0.1.1a1` |
 | **2** | Oct 2026<br/>✅ Completed | ERA5 NetCDF & validation metrics | `tropicor/io/era5.py`<br/>`tropicor/core/metrics.py`<br/>`tests/test_core/test_metrics.py` | Slicing multi-file NetCDF without memory leak; Pearson, RMSE, and Euclidean distance match thesis numbers. | `v0.1.1rc1` |
-| **3** | Oct 2026<br/>✅ Released | Orographic lapse-rate & MVP release | `tropicor/downscale/orography.py`<br/>`CITATION.cff`<br/>`tests/test_downscale/test_orography.py` | UIS station test: $\Delta z = 1220\,\text{m} \to \sim 7.9^\circ\text{C}$ correction verified; `CITATION.cff` generated; Zenodo DOI minted; PyPI publish. | **v0.1.1 (MVP)** |
-| **4** | Oct 2026<br/>🚀 Up Next | Climatology & annual cycles | `tropicor/core/climatology.py`<br/>`tests/test_core/test_climatology.py` | 12-month mean profile computed; Euclidean distance between curves matches thesis formula. | `v0.1.2` |
-| **5** | Oct 2026<br/>Upcoming | Diurnal Temperature Range & drift | `tropicor/core/dtr.py`<br/>`tests/test_core/test_dtr.py` | DTR and double-difference drift calculated; missing month alignment handled gracefully. | `v0.1.3` |
+| **4** | Oct 2026<br/>✅ Completed | Climatology & annual cycles | `tropicor/core/climatology.py`<br/>`tests/test_core/test_climatology.py` | 12-month profile computed; Euclidean distance (normalized); circular peak detection; bimodal/unimodal regime classification; Bogotá real validation verified. | `v0.1.2` |
+| **5** | Oct 2026<br/>🚀 Up Next | Diurnal Temperature Range & drift | `tropicor/core/dtr.py`<br/>`tests/test_core/test_dtr.py` | DTR and double-difference drift calculated; missing month alignment handled gracefully. | `v0.1.3` |
 | **6** | Nov 2026<br/>Upcoming | Residual distribution diagnostics | `tropicor/core/diagnostics.py`<br/>`tests/test_core/test_diagnostics.py` | Standardized residual engine computes variance, skewness, and kurtosis matching thesis tables. | `v0.1.4` |
 | **7** | Nov 2026<br/>Upcoming | Bias correction & viz suite | `tropicor/core/bias.py`<br/>`tropicor/viz/maps.py`<br/>`tropicor/viz/profiles.py` | Quantile mapping reduces precipitation bias; publication-grade Cartopy figures render; PyPI release. | **v0.2.0** |
 | **8** | Nov 2026<br/>Upcoming | DEM terrain feature extraction | `tropicor/downscale/features.py`<br/>`tests/test_downscale/test_features.py` | Elevation, slope, aspect, and roughness extracted from synthetic DEM grid. | `v0.2.1` |
@@ -165,15 +164,20 @@ graph TD
 * **Commit Convention**: `release(core): v0.1.1 mvp with orographic lapse rate correction and citation metadata`
 * **Version**: `0.1.1` (MVP Milestone)
 
-#### Sprint 4 (October 2026 — Up Next): Annual Climatology Curves & Seasonal Geometry
-* **Goal**: Replicate the thesis's 12-month climatology curve analysis and geometric curve separation algorithms.
+#### Sprint 4 (October 2026 — Completed): Annual Climatology Curves, Seasonal Geometry & Regime Classification
+* **Goal**: Replicate the thesis's 12-month climatology curve analysis, circular peak detection, and geometric curve separation algorithms.
 * **Files Created / Modified**:
-  - `tropicor/core/climatology.py`: `compute_monthly_climatology()`, `climatological_curve_distance()`, and `annual_cycle_amplitude()`.
-  - `tests/test_core/test_climatology.py`: Validates 12-month grouping and Euclidean curve distance.
+  - `tropicor/core/climatology.py`: `compute_monthly_climatology()`, `climatological_curve_distance()` (with normalized modes), `annual_cycle_amplitude()`, `annual_cycle_phase()`, `annual_cycle_peaks()` (circular 3x padding), and `classify_rainfall_regime()`.
+  - `tropicor/io/era5.py`: `get_point_series` ergonomic alias.
+  - `tests/test_core/test_climatology.py`: 16 comprehensive unit tests validating completeness thresholds, circular peaks, and curve distances.
+  - `examples/validate_bogota_climatology.py`: Scientific validation script on real IDEAM station 21205710 (Jardín Botánico, Bogotá).
+  - `docs/guides/climatology.md`: Scientific user guide with mathematical formulas and real-world case study.
 * **Acceptance Criteria**:
-  - Computes 12-month mean profiles from 30-year monthly time series regardless of start/end months.
-  - Calculates Euclidean distance between ground-truth and reanalysis climatologies to quantify seasonal cycle phase distortion.
-* **Commit Convention**: `feat(core): implement annual climatology curves and curve distance`
+  - Computes 12-month mean profiles from monthly time series with `min_years=10` and `min_obs_per_month=5` completeness guards.
+  - Calculates Euclidean distance (raw and normalized by mean, amplitude, or std) between ground-truth and reanalysis climatologies.
+  - Circular boundary padding detects local maxima without calendar edge clipping (December/January).
+  - Classifies tropical rainfall regimes into unimodal and bimodal, validating the bimodal regime of Bogotá on real DHIME records.
+* **Commit Convention**: `feat(core): implement annual climatology curves, circular peak detection, and regime classifier`
 * **Version**: `0.1.2`
 
 #### Sprint 5 (October 2026): Diurnal Temperature Range (DTR) & Double-Difference Drift

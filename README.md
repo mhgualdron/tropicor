@@ -28,6 +28,7 @@ Because temperature decreases with altitude at the environmental lapse rate ($\a
 - **In-Situ Meteorological Ingestion (`tropicor.io.ideam`)**: Native parser for Colombian IDEAM DHIME meteorological time series.
 - **Station Catalog (`tropicor.io.stations`)**: Built-in catalog of 48 georeferenced Colombian stations across all 6 natural regions (Andina, Caribe, Pacífico, Orinoquía, Amazonía, Insular), including the core benchmark network of 40 stations with continuous 30-year observation records evaluated in the original UNAL thesis.
 - **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson $r$, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), and Euclidean curve distance with epsilon near-zero guards.
+- **Annual Climatology & Seasonal Geometry (`tropicor.core.climatology`)**: 12-month annual climatological normal profiles, normalized Euclidean curve separation metrics, circular boundary peak detection, and autonomous tropical rainfall regime classification (bimodal vs. unimodal).
 
 ---
 

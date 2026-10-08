@@ -68,6 +68,7 @@ nav:
   - User Guides:
       - ERA5 Extraction: guides/era5-extraction.md
       - Orographic Correction: guides/orographic-correction.md
+      - Annual Climatology & Seasonal Curves: guides/climatology.md
       - IDEAM DHIME Reader: guides/ideam-dhime.md
       - Station Catalog: guides/station-catalog.md
   - Science & Methodology:
