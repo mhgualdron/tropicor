@@ -267,6 +267,33 @@ class ERA5Adapter:
         )
         return series[~series.index.duplicated(keep="first")].sort_index()
 
+    def get_point_series(
+        self,
+        latitude: float,
+        longitude: float,
+        variable: str,
+        method: str = "nearest",
+    ) -> pd.Series:
+        """Extract a single time series at given coordinates with unit conversion.
+
+        Ergonomic alias for :meth:`get_series`.
+
+        Args:
+            latitude: Latitude coordinate.
+            longitude: Longitude coordinate.
+            variable: Variable name (e.g. 't2m', 'tp', 'temperature', 'precipitation').
+            method: Spatial extraction method ('nearest' or 'bilinear').
+
+        Returns:
+            pd.Series with DatetimeIndex normalized to Start-of-Month (1MS).
+        """
+        return self.get_series(
+            latitude=latitude,
+            longitude=longitude,
+            variable=variable,
+            method=method,
+        )
+
     def get_station_series(
         self,
         station: StationMetadata,
