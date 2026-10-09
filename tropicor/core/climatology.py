@@ -5,11 +5,11 @@ detection, and geometric curve separation algorithms from UNAL thesis Entregas 7
 """
 
 import warnings
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, Tuple, Union, overload
 
 import numpy as np
 import pandas as pd
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, peak_prominences
 
 EPSILON: float = 1e-6
 
@@ -238,10 +238,28 @@ def annual_cycle_phase(
         )
 
 
+@overload
 def annual_cycle_peaks(
     clim: pd.Series,
     min_prominence: Optional[float] = None,
-) -> List[int]:
+    return_prominences: Literal[False] = False,
+) -> List[int]: ...
+
+
+@overload
+def annual_cycle_peaks(
+    clim: pd.Series,
+    min_prominence: Optional[float] = None,
+    *,
+    return_prominences: Literal[True],
+) -> Tuple[List[int], List[float]]: ...
+
+
+def annual_cycle_peaks(
+    clim: pd.Series,
+    min_prominence: Optional[float] = None,
+    return_prominences: bool = False,
+) -> Union[List[int], Tuple[List[int], List[float]]]:
     """Detect all local maxima in a 12-month cycle using circular boundary padding.
 
     Treats the annual cycle as circular (December m=12 is adjacent to January m=1).
@@ -252,9 +270,17 @@ def annual_cycle_peaks(
         clim: 12-month climatological profile with index 1..12.
         min_prominence: Minimum topographic prominence required for a peak.
             If None, defaults to 10% of cycle amplitude (0.1 * (max - min)).
+        return_prominences: If False (default), return only the list of months,
+            exactly as in previous versions. If True, also return the absolute
+            prominence of each detected peak, in the same units as ``clim``
+            (e.g. mm/month for precipitation).
 
     Returns:
-        Sorted list of integer calendar months corresponding to local maxima.
+        By default, a sorted list of integer calendar months corresponding to
+        local maxima. If ``return_prominences`` is True, a tuple
+        ``(months, prominences)`` where ``prominences[i]`` belongs to
+        ``months[i]``. The prominence is measured on the circular cycle and
+        is an absolute value, not a fraction of the cycle amplitude.
 
     Raises:
         ValueError: If clim does not contain 12 non-NaN monthly means.
@@ -286,8 +312,18 @@ def annual_cycle_peaks(
 
     # Filter peaks that fall inside the middle replica [12, 23]
     # Map index i to calendar month (1..12): (i - 12) + 1
-    central_peaks = [int((p - 12) + 1) for p in peaks if 12 <= p < 24]
-    return sorted(central_peaks)
+    central_idx = [int(p) for p in peaks if 12 <= p < 24]
+    central_peaks = [(p - 12) + 1 for p in central_idx]
+
+    if not return_prominences:
+        return sorted(central_peaks)
+
+    if not central_idx:
+        return [], []
+
+    proms = peak_prominences(tiled_vals, np.asarray(central_idx))[0]
+    pairs = sorted(zip(central_peaks, (float(x) for x in proms)))
+    return [m for m, _ in pairs], [p for _, p in pairs]
 
 
 def classify_rainfall_regime(

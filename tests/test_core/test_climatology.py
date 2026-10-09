@@ -253,6 +253,82 @@ def test_classify_rainfall_regime_flat_and_multimodal() -> None:
     assert classify_rainfall_regime(multi, min_prominence=10.0) == "multimodal"
 
 
+# Explicit bimodal profile used for hand-computed prominences.
+# Month:        1   2    3    4    5   6   7   8   9   10   11  12
+_BIMODAL = [55, 70, 110, 140, 125, 75, 50, 50, 70, 125, 145, 80]
+
+
+def test_annual_cycle_peaks_default_return_type_unchanged() -> None:
+    """Default call still returns a plain list of months."""
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    peaks = annual_cycle_peaks(clim)
+    assert isinstance(peaks, list)
+    assert peaks == [4, 11]
+
+
+def test_annual_cycle_peaks_return_prominences_hand_computed() -> None:
+    """Prominences match values derived by hand on the circular cycle.
+
+    April (140): lowest base on the lower side is Jan (55), the other side
+    reaches Jul/Aug (50), so prominence = 140 - 55 = 85.
+    November (145, global max): both bases reach 50, so prominence = 95.
+    """
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    months, proms = annual_cycle_peaks(clim, return_prominences=True)
+    assert months == [4, 11]
+    assert proms == pytest.approx([85.0, 95.0])
+
+
+def test_annual_cycle_peaks_prominences_match_months_of_default_call() -> None:
+    """Months with and without prominences are identical."""
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    months, _ = annual_cycle_peaks(clim, return_prominences=True)
+    assert months == annual_cycle_peaks(clim)
+
+
+def test_annual_cycle_peaks_prominences_are_in_data_units() -> None:
+    """Scaling the climatology scales prominences, they are not fractions."""
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    _, proms = annual_cycle_peaks(clim, return_prominences=True)
+    _, proms_x10 = annual_cycle_peaks(clim * 10.0, return_prominences=True)
+    assert proms_x10 == pytest.approx([p * 10.0 for p in proms])
+
+
+def test_annual_cycle_peaks_prominences_respect_threshold() -> None:
+    """Every returned prominence is at least the requested minimum."""
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    months, proms = annual_cycle_peaks(
+        clim, min_prominence=90.0, return_prominences=True
+    )
+    assert months == [11]
+    assert proms == pytest.approx([95.0])
+    assert all(p >= 90.0 for p in proms)
+
+
+def test_annual_cycle_peaks_prominences_wrap_december_january() -> None:
+    """A peak at the calendar boundary keeps a circular prominence."""
+    vals = [100, 40, 20, 20, 20, 20, 20, 20, 20, 20, 40, 90]
+    clim = pd.Series(vals, index=range(1, 13), dtype=float)
+    months, proms = annual_cycle_peaks(clim, return_prominences=True)
+    assert months == [1]
+    assert proms == pytest.approx([80.0])
+
+
+def test_annual_cycle_peaks_prominences_empty_for_flat_cycle() -> None:
+    """A flat cycle has no peaks and returns two empty lists."""
+    flat = pd.Series(np.full(12, 100.0), index=range(1, 13))
+    months, proms = annual_cycle_peaks(flat, return_prominences=True)
+    assert months == [] and proms == []
+
+
+def test_annual_cycle_peaks_prominences_still_require_12_months() -> None:
+    """The completeness check applies to the new option as well."""
+    clim = pd.Series(_BIMODAL, index=range(1, 13), dtype=float)
+    clim.loc[3] = np.nan
+    with pytest.raises(ValueError, match="12 valid"):
+        annual_cycle_peaks(clim, return_prominences=True)
+
+
 def test_era5_adapter_get_point_series_alias(synthetic_era5_dataset: Path) -> None:
     """Test that ERA5Adapter.get_point_series matches get_series output."""
     adapter = ERA5Adapter(synthetic_era5_dataset)
