@@ -8,8 +8,10 @@ import pandas as pd
 import pytest
 
 from tropicor.core.metrics import (
+    TaylorStatistics,
     ValidationReport,
     compute_validation_metrics,
+    taylor_statistics,
 )
 
 
@@ -135,3 +137,81 @@ def test_validation_report_export(
     s = report.to_series()
     assert isinstance(s, pd.Series)
     assert s["n_samples"] == 360
+
+
+def test_taylor_statistics_identical(
+    synthetic_paired_series: Tuple[pd.Series, pd.Series],
+) -> None:
+    """Test Taylor statistics on identical series yield r=1 and CRMSE=0."""
+    observed, _ = synthetic_paired_series
+    stats = taylor_statistics(observed, observed)
+
+    assert isinstance(stats, TaylorStatistics)
+    assert not stats.normalized
+    assert stats.std_obs > 0.0
+    assert math.isclose(stats.std_obs, stats.std_model, rel_tol=1e-5)
+    assert math.isclose(stats.correlation, 1.0, rel_tol=1e-5)
+    assert math.isclose(stats.crmse, 0.0, abs_tol=1e-5)
+
+
+def test_taylor_statistics_geometric_law_of_cosines() -> None:
+    """Test that CRMSE rigorously satisfies Law of Cosines identity."""
+    rng = np.random.default_rng(42)
+    idx = pd.date_range("2000-01-01", periods=120, freq="MS")
+    s_obs = pd.Series(rng.normal(20.0, 5.0, size=120), index=idx)
+    s_mod = pd.Series(s_obs * 0.8 + rng.normal(0.0, 2.0, size=120), index=idx)
+
+    stats = taylor_statistics(s_obs, s_mod)
+
+    # Verification of Taylor (2001) geometric closure
+    expected_crmse = math.sqrt(
+        stats.std_obs**2
+        + stats.std_model**2
+        - 2.0 * stats.std_obs * stats.std_model * stats.correlation
+    )
+    assert math.isclose(stats.crmse, expected_crmse, rel_tol=1e-5)
+    assert 0.0 < stats.correlation < 1.0
+
+
+def test_taylor_statistics_normalized() -> None:
+    """Test normalized Taylor statistics where std_obs is fixed to 1.0."""
+    idx = pd.date_range("2000-01-01", periods=50, freq="MS")
+    s_obs = pd.Series(np.linspace(10.0, 30.0, 50), index=idx)
+    s_mod = pd.Series(np.linspace(5.0, 15.0, 50), index=idx)
+
+    unnorm = taylor_statistics(s_obs, s_mod, normalize=False)
+    norm = taylor_statistics(s_obs, s_mod, normalize=True)
+
+    assert norm.normalized
+    assert math.isclose(norm.std_obs, 1.0, rel_tol=1e-5)
+    assert math.isclose(norm.std_model, unnorm.std_model / unnorm.std_obs, rel_tol=1e-5)
+    assert math.isclose(norm.crmse, unnorm.crmse / unnorm.std_obs, rel_tol=1e-5)
+    assert math.isclose(norm.correlation, unnorm.correlation, rel_tol=1e-5)
+
+
+def test_taylor_statistics_export() -> None:
+    """Test dictionary and pandas Series serialization."""
+    idx = pd.date_range("2000-01-01", periods=10, freq="MS")
+    s1 = pd.Series(np.arange(10, dtype=float), index=idx)
+    s2 = pd.Series(np.arange(10, dtype=float) * 1.5, index=idx)
+
+    stats = taylor_statistics(s1, s2)
+    d = stats.to_dict()
+    assert "std_obs" in d
+    assert "crmse" in d
+    assert "correlation" in d
+
+    s = stats.to_series()
+    assert isinstance(s, pd.Series)
+    assert s.name == "taylor_statistics"
+    assert math.isclose(s["correlation"], 1.0, rel_tol=1e-5)
+
+
+def test_taylor_statistics_insufficient_samples() -> None:
+    """Test error handling when valid pairs are below min_valid_samples."""
+    idx = pd.date_range("2000-01-01", periods=3, freq="MS")
+    s1 = pd.Series([1.0, np.nan, np.nan], index=idx)
+    s2 = pd.Series([1.0, 2.0, 3.0], index=idx)
+
+    with pytest.raises(ValueError, match="Insufficient valid synchronous samples"):
+        taylor_statistics(s1, s2, min_valid_samples=3)

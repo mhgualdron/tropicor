@@ -132,9 +132,11 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
         latitude=7.811722,
         longitude=-74.935972,
         elevation=59.0,
+        # Located in Caucasia (Antioquia), situated in the Andina-Caribe ecotone /
+        # transition zone; maintained as ANDINA for historical benchmark consistency.
         region=NaturalRegion.ANDINA,
-        department="Cauca",
-        municipality="Cucasia",
+        department="Antioquia",
+        municipality="Caucasia",
     ),
     StationMetadata(
         code="23215030",
@@ -323,7 +325,7 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
         longitude=-76.673361,
         elevation=52.0,
         region=NaturalRegion.CARIBE,
-        department="Chocó",
+        department="Antioquia",
         municipality="Necoclí",
     ),
     StationMetadata(
@@ -403,7 +405,7 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
         longitude=-73.7,
         elevation=280.0,
         region=NaturalRegion.ORINOQUIA,
-        department="Arauca",
+        department="Meta",
         municipality="Fuente De Oro",
     ),
     StationMetadata(
@@ -413,7 +415,7 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
         longitude=-70.930111,
         elevation=173.0,
         region=NaturalRegion.ORINOQUIA,
-        department="Arauca",
+        department="Vichada",
         municipality="Cumaribo",
     ),
     StationMetadata(
@@ -468,7 +470,7 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
     ),
     StationMetadata(
         code="37055010",
-        name="AEROPUERTO SANTIAGO PÃ‰REZ",
+        name="AEROPUERTO SANTIAGO PÉREZ",
         latitude=7.069444,
         longitude=-70.738056,
         elevation=131.0,

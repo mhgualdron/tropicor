@@ -18,7 +18,12 @@ from tropicor.core.dtr import (
     compute_dtr,
     compute_monthly_extreme_range,
 )
-from tropicor.core.metrics import ValidationReport, compute_validation_metrics
+from tropicor.core.metrics import (
+    TaylorStatistics,
+    ValidationReport,
+    compute_validation_metrics,
+    taylor_statistics,
+)
 from tropicor.downscale.orography import (
     DRY_ADIABATIC_LAPSE_RATE,
     MOIST_ADIABATIC_LAPSE_RATE,
@@ -47,6 +52,7 @@ __all__ = [
     "STANDARD_LAPSE_RATE",
     "StationCatalog",
     "StationMetadata",
+    "TaylorStatistics",
     "ValidationReport",
     "__version__",
     "align_common_period",
@@ -62,4 +68,5 @@ __all__ = [
     "compute_monthly_extreme_range",
     "compute_validation_metrics",
     "lapse_rate_temperature_correction",
+    "taylor_statistics",
 ]

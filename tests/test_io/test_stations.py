@@ -122,3 +122,34 @@ def test_station_catalog_to_dataframe() -> None:
     }
     assert expected_cols.issubset(df.columns)
     assert (df["region"] == "ANDINA").any()
+
+
+def test_corrected_benchmark_station_departments() -> None:
+    """Verify catalog corrections for departments and municipalities."""
+    catalog = StationCatalog.from_benchmark()
+
+    # CASERI (27045020): Located in Caucasia (Antioquia), was mislabeled as Cauca
+    caseri = catalog["27045020"]
+    assert caseri.department == "Antioquia"
+    assert caseri.municipality == "Caucasia"
+    assert caseri.region == NaturalRegion.ANDINA
+
+    # MELLITO EL (12025030): Located in Necoclí (Antioquia), was mislabeled as Chocó
+    mellito = catalog["12025030"]
+    assert mellito.department == "Antioquia"
+    assert mellito.municipality == "Necoclí"
+    assert mellito.region == NaturalRegion.CARIBE
+
+    # COOPERATIVA LA (32075060): Located in Fuente de Oro (Meta), was Arauca
+    cooperativa = catalog["32075060"]
+    assert cooperativa.department == "Meta"
+    assert cooperativa.municipality == "Fuente De Oro"
+
+    # LAS GAVIOTAS (34015010): Located in Cumaribo (Vichada), was Arauca
+    gaviotas = catalog["34015010"]
+    assert gaviotas.department == "Vichada"
+    assert gaviotas.municipality == "Cumaribo"
+
+    # Santiago Pérez name encoding
+    santiago = catalog["37055010"]
+    assert santiago.name == "AEROPUERTO SANTIAGO PÉREZ"

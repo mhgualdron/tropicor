@@ -30,7 +30,8 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-viz = ["matplotlib>=3.8", "cartopy>=0.22"]
+viz = ["matplotlib>=3.8"]
+viz-interactive = ["plotly>=5.20"]
 grib = ["cfgrib>=0.9.10", "eccodes>=2.30"]
 dev = [
     "pytest",
@@ -41,6 +42,8 @@ dev = [
     "jupyter",
     "ipykernel",
     "nbclient",
+    "matplotlib>=3.8",
+    "plotly>=5.20",
 ]
 docs = [
     "mkdocs>=1.6",
@@ -63,6 +66,10 @@ select = ["E", "F", "I"]
 where = ["."]
 include = ["tropicor*"]
 
+[tool.setuptools.package-data]
+tropicor = ["data/boundaries/*.geojson", "py.typed"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
