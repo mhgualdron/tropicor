@@ -4,9 +4,9 @@ authors:
   - family-names: "Hernández Gualdrón"
     given-names: "Mateo"
 title: "TROPICOR: Tropical Correction and Orographic Resolution"
-version: 0.1.2
+version: 0.1.3
 doi: "10.5281/zenodo.23219418"
-date-released: 2026-10-07
+date-released: 2026-10-08
 url: "https://github.com/mhgualdron/tropicor"
 repository-code: "https://github.com/mhgualdron/tropicor"
 license: MIT

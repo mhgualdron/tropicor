@@ -5358,7 +5358,7 @@ wheels = [
 
 [[package]]
 name = "tropicor"
-version = "0.1.2"
+version = "0.1.3"
 source = { editable = "." }
 dependencies = [
     { name = "cdsapi" },
@@ -5381,8 +5381,11 @@ dependencies = [
 
 [package.optional-dependencies]
 dev = [
+    { name = "ipykernel", version = "7.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "ipykernel", version = "7.4.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "jupyter" },
     { name = "mypy" },
+    { name = "nbclient" },
     { name = "pandas-stubs", version = "2.3.3.260113", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "pandas-stubs", version = "3.0.5.260914", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "pytest" },
@@ -5413,12 +5416,14 @@ requires-dist = [
     { name = "cdsapi", specifier = ">=0.7" },
     { name = "cfgrib", marker = "extra == 'grib'", specifier = ">=0.9.10" },
     { name = "eccodes", marker = "extra == 'grib'", specifier = ">=2.30" },
+    { name = "ipykernel", marker = "extra == 'dev'" },
     { name = "jupyter", marker = "extra == 'dev'" },
     { name = "matplotlib", marker = "extra == 'viz'", specifier = ">=3.8" },
     { name = "mkdocs", marker = "extra == 'docs'", specifier = ">=1.6" },
     { name = "mkdocs-material", marker = "extra == 'docs'", specifier = ">=9.5" },
     { name = "mkdocstrings", extras = ["python"], marker = "extra == 'docs'", specifier = ">=0.25" },
     { name = "mypy", marker = "extra == 'dev'" },
+    { name = "nbclient", marker = "extra == 'dev'" },
     { name = "netcdf4", specifier = ">=1.6" },
     { name = "numpy", specifier = ">=1.26" },
     { name = "openpyxl", specifier = ">=3.1" },
