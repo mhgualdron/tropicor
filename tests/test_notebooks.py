@@ -37,3 +37,7 @@ def test_quickstart_notebook_headless_execution() -> None:
     assert "Detected Peaks: [4, 11]" in combined_text
     assert "Classified Regime: BIMODAL" in combined_text
     assert "Mean Thermal Dampening" in combined_text
+    assert "Rendered national station network with dual insets." in combined_text
+    assert "Generated annual climatology profile with regime badge." in combined_text
+    assert "Computed Taylor stats:" in combined_text
+    assert "Generated diurnal thermal range" in combined_text

@@ -8,6 +8,14 @@ import pandas as pd
 import pytest
 import xarray as xr
 
+# Ensure matplotlib uses headless Agg backend in test suite
+try:
+    import matplotlib
+
+    matplotlib.use("Agg")
+except ImportError:
+    pass
+
 
 @pytest.fixture
 def synthetic_station_dict() -> Dict[str, Any]:
