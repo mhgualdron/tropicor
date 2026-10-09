@@ -24,7 +24,7 @@ Colombia exhibits sharp climatic contrasts partitioned into 6 natural geographic
 ```python
 from tropicor.io import StationCatalog
 
-catalog = StationCatalog()
+catalog = StationCatalog.from_benchmark()
 
 min_lat, max_lat, min_lon, max_lon = catalog.bounding_box()
 print(

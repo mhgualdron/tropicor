@@ -16,7 +16,7 @@ TROPICOR includes a canonical catalog of 48 benchmark stations across Colombia's
 from tropicor.io import StationCatalog, NaturalRegion
 
 # Load benchmark catalog
-catalog = StationCatalog()
+catalog = StationCatalog.from_benchmark()
 print(f"Total benchmark stations: {len(catalog)}")
 
 # Lookup a station by its 8-digit IDEAM code
