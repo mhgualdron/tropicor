@@ -4,6 +4,7 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23219418.svg)](https://doi.org/10.5281/zenodo.23219418)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mhgualdron/tropicor/blob/main/notebooks/tropicor_quickstart.ipynb)
 
 **TROPICOR** is a Python framework designed for bias correction, elevation lapse-rate adjustment, and topographic machine learning downscaling of global atmospheric reanalyses (such as **ERA5**) across complex tropical orography.
 
@@ -52,3 +53,20 @@ TROPICOR is structured around a strict Directed Acyclic Graph (DAG):
 ## 📖 Getting Started
 
 Ready to begin? Head to our [Getting Started Guide](getting-started.md) to explore station metadata and parse native IDEAM exports in under 5 minutes.
+
+---
+
+## 📚 Academic Citation
+
+If you use TROPICOR in your research, please cite:
+
+```bibtex
+@software{hernandez_gualdron_tropicor_2026,
+  author = {Hernández Gualdrón, Mateo},
+  title = {TROPICOR: Tropical Correction and Orographic Resolution},
+  version = {0.1.3},
+  year = {2026},
+  doi = {10.5281/zenodo.23219418},
+  url = {https://doi.org/10.5281/zenodo.23219418}
+}
+```

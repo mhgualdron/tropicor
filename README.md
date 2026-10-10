@@ -8,6 +8,7 @@
 [![Version](https://img.shields.io/badge/version-0.1.3-green.svg)](https://pypi.org/project/tropicor/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23219418.svg)](https://doi.org/10.5281/zenodo.23219418)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs--material-teal.svg)](https://mhgualdron.github.io/tropicor/)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mhgualdron/tropicor/blob/main/notebooks/tropicor_quickstart.ipynb)
 
 ---
 
@@ -48,6 +49,8 @@ pip install "tropicor[viz,docs]"
 ---
 
 ## Quickstart
+
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/mhgualdron/tropicor/blob/main/notebooks/tropicor_quickstart.ipynb)
 
 ```python
 import pandas as pd
