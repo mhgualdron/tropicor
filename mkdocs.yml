@@ -1,5 +1,5 @@
 site_name: TROPICOR
-site_description: Tropical Correction and Orographic Resolution — AI framework for bias correction and spatial downscaling of global climate reanalyses across tropical complex terrains
+site_description: Python framework for orographic bias correction and validation of global climate reanalyses in complex tropical terrain
 site_author: Mateo Hernández Gualdrón
 site_url: https://mhgualdron.github.io/tropicor/
 repo_name: mhgualdron/tropicor

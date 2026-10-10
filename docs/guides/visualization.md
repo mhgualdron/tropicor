@@ -72,6 +72,8 @@ plt.savefig("station_network_map.png", dpi=300, bbox_inches="tight")
 plt.show()
 ```
 
+![Station Network Map](../assets/gallery/gallery_fig1_station_network_map.png)
+
 ### 2. Precipitation Regimes & Disagreement Map (`plot_regime_map`)
 
 Visualizes annual rainfall regimes across the network. Only stations with explicit calculated regimes are drawn with classification symbols; uncomputed stations render in neutral grey (`#B0BEC5`) as "No data".
@@ -108,6 +110,9 @@ ax = plot_regime_map(
 plt.savefig("regimes_map.png", dpi=300, bbox_inches="tight")
 plt.show()
 ```
+
+![Precipitation Regimes Map](../assets/gallery/gallery_fig2_precipitation_regimes_map.png)
+
 
 ---
 
@@ -160,6 +165,8 @@ fig.savefig("climatologies_grid.png", dpi=300, bbox_inches="tight")
 plt.show()
 ```
 
+![Regional Climatologies Multiples](../assets/gallery/gallery_fig3_regional_climatologies.png)
+
 ### 3. Polar Taylor Diagram (`plot_taylor_diagram`)
 
 Synthesizes model performance following Karl E. Taylor (2001) in Cartesian space:
@@ -197,6 +204,9 @@ ax = plot_taylor_diagram(
 plt.savefig("taylor_diagram.png", dpi=300, bbox_inches="tight")
 plt.show()
 ```
+
+![Taylor Diagram](../assets/gallery/gallery_fig4_taylor_diagram_eval.png)
+
 
 ### 4. Thermal Range Diagnostic (`plot_thermal_range`)
 
