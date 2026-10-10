@@ -86,6 +86,7 @@ def plot_climatology_comparison(
     variable: Literal["precipitation", "temperature"] = "precipitation",
     variable_label: Optional[str] = None,
     station_name: Optional[str] = None,
+    obs_name: str = "IDEAM",
     model_name: str = "ERA5",
     ax: Optional["matplotlib.axes.Axes"] = None,
     show_regime: bool = True,
@@ -103,7 +104,8 @@ def plot_climatology_comparison(
         variable: Climate variable type ('precipitation' or 'temperature').
         variable_label: Custom axis label text. If None, default unit is selected.
         station_name: Optional station name for plot title.
-        model_name: Name of the reanalysis / model dataset.
+        obs_name: Name of the reference / observational source (default: 'IDEAM').
+        model_name: Name of the reanalysis / model dataset (default: 'ERA5').
         ax: Optional Matplotlib Axes. If None, creates a new Figure and Axes.
         show_regime: Whether to display regime badges when variable == 'precipitation'.
         show_legend: Whether to display individual panel legend. Defaults to True.
@@ -143,6 +145,8 @@ def plot_climatology_comparison(
             zorder=1,
         )
 
+    mod_cap = model_name.capitalize() if model_name.islower() else model_name
+
     if isinstance(modeled.index, pd.DatetimeIndex):
         mod_p10 = modeled.groupby(modeled.index.month).quantile(0.10)
         mod_p90 = modeled.groupby(modeled.index.month).quantile(0.90)
@@ -154,7 +158,7 @@ def plot_climatology_comparison(
             p90_mod,
             color=model_color,
             alpha=0.10,
-            label=f"{model_name} P10–P90",
+            label=f"{mod_cap} P10–P90",
             zorder=1,
         )
 
@@ -166,7 +170,7 @@ def plot_climatology_comparison(
         marker="o",
         markersize=6,
         linewidth=2.0,
-        label="Observed (IDEAM)",
+        label=f"Observed ({obs_name})",
         zorder=4,
     )
 
@@ -228,7 +232,7 @@ def plot_climatology_comparison(
             reg_obs = classify_rainfall_regime(obs_clim).capitalize()
             reg_mod = classify_rainfall_regime(mod_clim).capitalize()
             prefix = f"{station_name}\n" if station_name else ""
-            title_text = f"{prefix}Obs: {reg_obs} | {model_name}: {reg_mod}"
+            title_text = f"{prefix}Obs: {reg_obs} | {mod_cap}: {reg_mod}"
         except Exception:
             title_text = station_name or "Annual Climatological Cycle"
     elif station_name:
@@ -251,6 +255,7 @@ def plot_climatology_multiples(
     stations_data: Dict[str, Tuple[pd.Series, pd.Series]],
     variable: Literal["precipitation", "temperature"] = "precipitation",
     variable_label: Optional[str] = None,
+    obs_name: str = "IDEAM",
     model_name: str = "ERA5",
     ncols: int = 3,
     show_regime: bool = True,
@@ -262,7 +267,8 @@ def plot_climatology_multiples(
         stations_data: Dict mapping station identifier to (observed, modeled).
         variable: Climate variable ('precipitation' or 'temperature').
         variable_label: Optional y-axis label.
-        model_name: Name of reanalysis model.
+        obs_name: Name of reference / observational source (default: 'IDEAM').
+        model_name: Name of reanalysis model (default: 'ERA5').
         ncols: Number of columns in subplot grid.
         show_regime: Whether to display detected regime badges in titles.
         figsize: Optional figure size tuple. Defaults to dynamic calculation.
@@ -291,6 +297,7 @@ def plot_climatology_multiples(
             variable=variable,
             variable_label=variable_label if idx % ncols == 0 else "",
             station_name=st_name,
+            obs_name=obs_name,
             model_name=model_name,
             ax=ax,
             show_regime=show_regime,
@@ -310,6 +317,7 @@ def plot_climatology_multiples(
     model_color = (
         OKABE_ITO["blue"] if variable == "precipitation" else OKABE_ITO["vermilion"]
     )
+    mod_cap = model_name.capitalize() if model_name.islower() else model_name
 
     shared_handles = [
         mlines.Line2D(
@@ -319,7 +327,7 @@ def plot_climatology_multiples(
             marker="o",
             markersize=6,
             linewidth=2.0,
-            label="Observed (IDEAM)",
+            label=f"Observed ({obs_name})",
         ),
         mlines.Line2D(
             [],
@@ -341,7 +349,7 @@ def plot_climatology_multiples(
             facecolor=model_color,
             alpha=0.10,
             edgecolor="none",
-            label=f"{model_name} P10–P90",
+            label=f"{mod_cap} P10–P90",
         ),
     ]
 
@@ -368,7 +376,7 @@ def plot_climatology_multiples(
                     markeredgecolor="white",
                     markeredgewidth=0.8,
                     markersize=8,
-                    label=f"{model_name} Peak",
+                    label=f"{mod_cap} Peak",
                 ),
             ]
         )

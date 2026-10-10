@@ -48,11 +48,13 @@ Precipitation regimes map to distinct geometric symbols:
 
 ### 1. National Benchmark Station Network (`plot_station_map`)
 
-Draws the national Colombian meteorological network with automatic dual insets for offshore insular territories:
-- **San Andrés & Providencia** (Caribbean Sea, $\sim 12.5^\circ\text{N}, -81.7^\circ\text{W}$)
-- **Isla Malpelo** (Eastern Pacific Ocean, $\sim 3.98^\circ\text{N}, -81.60^\circ\text{W}$)
-
-Insets are positioned in open Pacific waters to ensure mainland stations (such as Urabá and the Pacific coast) remain completely visible.
+Draws the national Colombian meteorological network across all 6 natural regions using a colorblind-safe design system with dual offshore insets:
+- **Colorblind-Safe Regional Stratification**: Employs the Okabe-Ito barrier-free palette (`REGION_PALETTE`), ensuring high contrast and perceptual distinction across deuteranopia, protanopia, and tritanopia.
+- **Dual Offshore Insets**: Dynamically isolates distant insular territories without distorting the continental scale:
+  - **San Andrés & Providencia** (Caribbean Sea, $\sim 12.5^\circ\text{N}, -81.7^\circ\text{W}$)
+  - **Isla Malpelo** (Eastern Pacific Ocean, $\sim 3.98^\circ\text{N}, -81.60^\circ\text{W}$)
+- **Non-Obstructive Placement**: Both insets are placed in open Pacific waters off the western littoral to guarantee mainland stations (such as Urabá and the Pacific coast) remain completely visible.
+- **Cartographic Boundaries**: Renders natural administrative coastlines using Natural Earth 1:50m features with offline fallback geometry.
 
 ```python
 import matplotlib.pyplot as plt
@@ -65,7 +67,7 @@ ax = plot_station_map(
     stations=catalog,
     color_by_region=True,
     show_insets=True,
-    title="TROPICOR Benchmark Meteorological Stations (Colombia)",
+    title="TROPICOR station catalog",
     figsize=(8.5, 9.5),
 )
 plt.savefig("station_network_map.png", dpi=300, bbox_inches="tight")
@@ -73,6 +75,7 @@ plt.show()
 ```
 
 ![Station Network Map](../assets/gallery/gallery_fig1_station_network_map.png)
+*Figure 1: TROPICOR station catalog (48 benchmark stations). Features colorblind-safe regional stratification and dual offshore insets for San Andrés and Malpelo anchored in Pacific waters to preserve mainland visibility.*
 
 ### 2. Precipitation Regimes & Disagreement Map (`plot_regime_map`)
 
@@ -112,6 +115,7 @@ plt.show()
 ```
 
 ![Precipitation Regimes Map](../assets/gallery/gallery_fig2_precipitation_regimes_map.png)
+*Figure 2: Spatial distribution of rainfall regimes. The figure demonstrates regime classification markers and model disagreement overlays using synthetic illustrative demonstration data.*
 
 
 ---
@@ -166,6 +170,7 @@ plt.show()
 ```
 
 ![Regional Climatologies Multiples](../assets/gallery/gallery_fig3_regional_climatologies.png)
+*Figure 3: Climatological annual cycles across representative stations with P10–P90 variability envelopes and peak markers using synthetic demonstration data.*
 
 ### 3. Polar Taylor Diagram (`plot_taylor_diagram`)
 
