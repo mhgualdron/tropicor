@@ -164,6 +164,7 @@ def generate_all_gallery_figures(output_dir: Path) -> List[Path]:
         stations=catalog,
         regimes=regimes,
         disagreements=disagreements,
+        disagreement_label="Obs/model disagreement",
         show_insets=True,
         title=(
             "Precipitation Regimes by Station (Synthetic Demonstration)\n"
@@ -171,7 +172,7 @@ def generate_all_gallery_figures(output_dir: Path) -> List[Path]:
         ),
         figsize=(8.5, 9.5),
     )
-    ax_reg.figure.text(
+    footnote = ax_reg.figure.text(
         0.5,
         0.01,
         (
@@ -184,7 +185,12 @@ def generate_all_gallery_figures(output_dir: Path) -> List[Path]:
         style="italic",
     )
     p2 = output_dir / "gallery_fig2_precipitation_regimes_map.png"
-    ax_reg.figure.savefig(p2, dpi=300, bbox_inches="tight")
+    ax_reg.figure.savefig(
+        p2,
+        dpi=300,
+        bbox_inches="tight",
+        bbox_extra_artists=[*ax_reg.artists, footnote],
+    )
     generated.append(p2)
 
     print("[3/5] Generating Synthetic Regional Climatologies (Small Multiples)...")
@@ -194,7 +200,9 @@ def generate_all_gallery_figures(output_dir: Path) -> List[Path]:
         stations_data=series_data,
         variable="precipitation",
         obs_name="synthetic",
-        model_name="synthetic",
+        model_name="Model",
+        obs_label="Observed (synthetic)",
+        model_label="Modeled (synthetic)",
         ncols=2,
         show_regime=True,
         figsize=(9.5, 7.5),

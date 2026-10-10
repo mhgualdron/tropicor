@@ -88,6 +88,8 @@ def plot_climatology_comparison(
     station_name: Optional[str] = None,
     obs_name: str = "IDEAM",
     model_name: str = "ERA5",
+    obs_label: Optional[str] = None,
+    model_label: Optional[str] = None,
     ax: Optional["matplotlib.axes.Axes"] = None,
     show_regime: bool = True,
     show_legend: bool = True,
@@ -106,6 +108,8 @@ def plot_climatology_comparison(
         station_name: Optional station name for plot title.
         obs_name: Name of the reference / observational source (default: 'IDEAM').
         model_name: Name of the reanalysis / model dataset (default: 'ERA5').
+        obs_label: Custom legend label for observed curve.
+        model_label: Custom legend label for modeled curve.
         ax: Optional Matplotlib Axes. If None, creates a new Figure and Axes.
         show_regime: Whether to display regime badges when variable == 'precipitation'.
         show_legend: Whether to display individual panel legend. Defaults to True.
@@ -162,6 +166,9 @@ def plot_climatology_comparison(
             zorder=1,
         )
 
+    resolved_obs_label = obs_label or f"Observed ({obs_name})"
+    resolved_mod_label = model_label or f"Modeled ({model_name})"
+
     # Plot observed reference curve
     primary_ax.plot(
         months,
@@ -170,7 +177,7 @@ def plot_climatology_comparison(
         marker="o",
         markersize=6,
         linewidth=2.0,
-        label=f"Observed ({obs_name})",
+        label=resolved_obs_label,
         zorder=4,
     )
 
@@ -183,7 +190,7 @@ def plot_climatology_comparison(
         markersize=5,
         linewidth=1.8,
         linestyle="--",
-        label=f"Modeled ({model_name})",
+        label=resolved_mod_label,
         zorder=3,
     )
 
@@ -257,6 +264,8 @@ def plot_climatology_multiples(
     variable_label: Optional[str] = None,
     obs_name: str = "IDEAM",
     model_name: str = "ERA5",
+    obs_label: Optional[str] = None,
+    model_label: Optional[str] = None,
     ncols: int = 3,
     show_regime: bool = True,
     figsize: Optional[Tuple[float, float]] = None,
@@ -269,6 +278,8 @@ def plot_climatology_multiples(
         variable_label: Optional y-axis label.
         obs_name: Name of reference / observational source (default: 'IDEAM').
         model_name: Name of reanalysis model (default: 'ERA5').
+        obs_label: Custom legend label for observed curve.
+        model_label: Custom legend label for modeled curve.
         ncols: Number of columns in subplot grid.
         show_regime: Whether to display detected regime badges in titles.
         figsize: Optional figure size tuple. Defaults to dynamic calculation.
@@ -299,6 +310,8 @@ def plot_climatology_multiples(
             station_name=st_name,
             obs_name=obs_name,
             model_name=model_name,
+            obs_label=obs_label,
+            model_label=model_label,
             ax=ax,
             show_regime=show_regime,
             show_legend=False,
@@ -318,6 +331,8 @@ def plot_climatology_multiples(
         OKABE_ITO["blue"] if variable == "precipitation" else OKABE_ITO["vermilion"]
     )
     mod_cap = model_name.capitalize() if model_name.islower() else model_name
+    resolved_obs_label = obs_label or f"Observed ({obs_name})"
+    resolved_mod_label = model_label or f"Modeled ({model_name})"
 
     shared_handles = [
         mlines.Line2D(
@@ -327,7 +342,7 @@ def plot_climatology_multiples(
             marker="o",
             markersize=6,
             linewidth=2.0,
-            label=f"Observed ({obs_name})",
+            label=resolved_obs_label,
         ),
         mlines.Line2D(
             [],
@@ -337,7 +352,7 @@ def plot_climatology_multiples(
             markersize=5,
             linewidth=1.8,
             linestyle="--",
-            label=f"Modeled ({model_name})",
+            label=resolved_mod_label,
         ),
         mpatches.Patch(
             facecolor=OKABE_ITO["black"],

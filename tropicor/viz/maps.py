@@ -369,6 +369,7 @@ def plot_regime_map(
     stations: Union[StationCatalog, pd.DataFrame, List[StationMetadata]],
     regimes: Union[Dict[str, str], pd.Series],
     disagreements: Optional[Union[List[str], Set[str]]] = None,
+    disagreement_label: str = "Obs/ERA5 disagreement",
     ax: Optional["matplotlib.axes.Axes"] = None,
     show_insets: bool = True,
     title: Optional[str] = "Colombian Precipitation Regimes by Station",
@@ -385,6 +386,7 @@ def plot_regime_map(
         stations: StationCatalog, list of StationMetadata, or pandas DataFrame.
         regimes: Mapping from station code to regime name (dict or pd.Series).
         disagreements: Optional collection of station codes exhibiting regime mismatch.
+        disagreement_label: Label for the disagreement marker in the legend.
         ax: Optional Matplotlib Axes. If None, a new Figure and Axes are created.
         show_insets: Whether to generate geographic insets for outlying islands.
         title: Plot title text.
@@ -633,7 +635,7 @@ def plot_regime_map(
                 markeredgecolor="black",
                 markeredgewidth=2.2,
                 markersize=8,
-                label="Obs/ERA5 disagreement",
+                label=disagreement_label,
             )
         )
 
@@ -646,6 +648,7 @@ def plot_regime_map(
         fontsize=8,
         title_fontsize=9,
     )
+    leg_regime.set_clip_on(False)
     primary_ax.add_artist(leg_regime)
 
     # 2. Legend for Natural Regions (Colors)
@@ -667,7 +670,7 @@ def plot_regime_map(
         )
 
     if region_handles:
-        primary_ax.legend(
+        leg_region = primary_ax.legend(
             handles=region_handles,
             title="Natural Region",
             bbox_to_anchor=(1.02, 0.65),
@@ -676,6 +679,7 @@ def plot_regime_map(
             fontsize=8,
             title_fontsize=9,
         )
+        leg_region.set_clip_on(False)
 
     if title:
         primary_ax.set_title(title, fontsize=11, fontweight="bold", pad=12)
