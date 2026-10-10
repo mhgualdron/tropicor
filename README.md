@@ -5,7 +5,7 @@
 
 [![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Version](https://img.shields.io/badge/version-0.1.2-green.svg)](https://pypi.org/project/tropicor/)
+[![Version](https://img.shields.io/badge/version-0.1.3-green.svg)](https://pypi.org/project/tropicor/)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23219418.svg)](https://doi.org/10.5281/zenodo.23219418)
 [![Documentation](https://img.shields.io/badge/docs-mkdocs--material-teal.svg)](https://mhgualdron.github.io/tropicor/)
 
@@ -21,14 +21,15 @@ Because temperature decreases with altitude at the environmental lapse rate ($\a
 
 ---
 
-## Core Features (v0.1.1 MVP)
-
+## Core Features
+ 
 - **Topographic Lapse-Rate Downscaling (`tropicor.downscale`)**: Physics-based vertical temperature adjustment resolving elevation discrepancies ($\Delta z = z_{\text{station}} - z_{\text{model}}$) using standard, dry, or moist adiabatic lapse rates.
 - **ERA5 NetCDF Adapter (`tropicor.io.era5`)**: Memory-efficient spatial extraction from multi-file NetCDF reanalyses with automated unit harmonization (Kelvin $\to$ °C, meters $\to$ mm) and geopotential elevation extraction.
 - **In-Situ Meteorological Ingestion (`tropicor.io.ideam`)**: Native parser for Colombian IDEAM DHIME meteorological time series.
 - **Station Catalog (`tropicor.io.stations`)**: Built-in catalog of 48 georeferenced Colombian stations across all 6 natural regions (Andina, Caribe, Pacífico, Orinoquía, Amazonía, Insular), including the core benchmark network of 40 stations with continuous 30-year observation records evaluated in the original UNAL thesis.
-- **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson $r$, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), and Euclidean curve distance with epsilon near-zero guards.
+- **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson $r$, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), Euclidean curve distance, and `TaylorStatistics` with geometric closure.
 - **Annual Climatology & Seasonal Geometry (`tropicor.core.climatology`)**: 12-month annual climatological normal profiles, normalized Euclidean curve separation metrics, circular boundary peak detection, and autonomous tropical rainfall regime classification (bimodal vs. unimodal).
+- **Publication Visualizations & Station Maps (`tropicor.viz`)**: High-contrast, colorblind-safe (Okabe-Ito) static and interactive cartography with automatic dual insets (San Andrés and Malpelo), 12-month small multiples, and polar-Cartesian Taylor diagrams with zero heavy GIS dependencies.
 
 ---
 
@@ -93,7 +94,7 @@ If you use TROPICOR in your research, please cite it using the metadata in [`CIT
 @software{hernandez_gualdron_tropicor_2026,
   author = {Hernández Gualdrón, Mateo},
   title = {TROPICOR: Tropical Correction and Orographic Resolution},
-  version = {0.1.2},
+  version = {0.1.3},
   year = {2026},
   doi = {10.5281/zenodo.23219418},
   url = {https://doi.org/10.5281/zenodo.23219418}
