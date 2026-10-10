@@ -71,6 +71,7 @@ nav:
       - Annual Climatology & Seasonal Curves: guides/climatology.md
       - IDEAM DHIME Reader: guides/ideam-dhime.md
       - Station Catalog: guides/station-catalog.md
+      - Publication Visualizations & Maps: guides/visualization.md
   - Science & Methodology:
       - Academic Heritage & Orography: science/overview.md
       - Physical Lapse Rates: science/lapse-rate.md
@@ -79,3 +80,4 @@ nav:
       - tropicor.core: api/core.md
       - tropicor.downscale: api/downscale.md
       - tropicor.io: api/io.md
+      - tropicor.viz: api/viz.md

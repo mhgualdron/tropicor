@@ -1,7 +1,7 @@
 # TROPICOR Master Implementation Plan (ROADMAP.md)
 
 **Package**: TROPICOR (*Tropical Correction and Orographic Resolution*)  
-**PyPI**: [https://pypi.org/project/tropicor/](https://pypi.org/project/tropicor/) (Current: v0.1.1)  
+**PyPI**: [https://pypi.org/project/tropicor/](https://pypi.org/project/tropicor/) (Current: v0.1.3)  
 **Repository**: [https://github.com/mhgualdron/tropicor](https://github.com/mhgualdron/tropicor)  
 **Author & Lead Architect**: Mateo Hernández Gualdrón  
 **Academic Heritage**: Based on algorithms from an undergraduate thesis at Universidad Nacional de Colombia (author acknowledges past supervision by PhD Germán Andrés Prieto Gómez & PhD Daniel Hernández Deckers). This is an independent software project.
