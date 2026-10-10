@@ -87,19 +87,19 @@ def generate_synthetic_monthly_series() -> Tuple[
         return pd.Series(values, index=dates)
 
     series_data = {
-        "Synthetic Station J (Orinoquía)": (
+        "Synthetic Station J": (
             tile_with_noise(base_ori_obs, 25.0),
             tile_with_noise(base_ori_mod, 25.0),
         ),
-        "Synthetic Station D (Caribe)": (
+        "Synthetic Station D": (
             tile_with_noise(base_car_obs, 15.0),
             tile_with_noise(base_car_mod, 15.0),
         ),
-        "Synthetic Station G (Pacífico)": (
+        "Synthetic Station G": (
             tile_with_noise(base_pac_obs, 45.0),
             tile_with_noise(base_pac_mod, 45.0),
         ),
-        "Synthetic Station P (Insular)": (
+        "Synthetic Station P": (
             tile_with_noise(base_ins_obs, 35.0),
             tile_with_noise(base_ins_mod, 35.0),
         ),
@@ -214,14 +214,13 @@ def generate_all_gallery_figures(output_dir: Path) -> List[Path]:
     print("[4/5] Generating Synthetic Taylor Diagram...")
     stats_dict = {}
     colors_dict = {}
-    for full_name, (obs_clim, mod_clim) in clim_data.items():
-        short_name = full_name.split(" (")[0]
-        stats_dict[short_name] = taylor_statistics(
+    for st_name, (obs_clim, mod_clim) in clim_data.items():
+        stats_dict[st_name] = taylor_statistics(
             observed=obs_clim,
             modeled=mod_clim,
             normalize=True,
         )
-        colors_dict[short_name] = REGION_PALETTE[region_map[short_name]]
+        colors_dict[st_name] = REGION_PALETTE[region_map[st_name]]
 
     ax_taylor = plot_taylor_diagram(
         stats_list=stats_dict,
