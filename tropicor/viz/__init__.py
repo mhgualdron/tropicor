@@ -18,6 +18,7 @@ from tropicor.viz.palettes import (
     OKABE_ITO,
     REGIME_MARKERS,
     REGION_COLORS,
+    REGION_PALETTE,
     get_region_color,
 )
 from tropicor.viz.profiles import (
@@ -36,6 +37,7 @@ __all__ = [
     "OKABE_ITO",
     "REGIME_MARKERS",
     "REGION_COLORS",
+    "REGION_PALETTE",
     "SAN_ANDRES_EXTENT",
     "draw_cartographic_basemap",
     "get_region_color",

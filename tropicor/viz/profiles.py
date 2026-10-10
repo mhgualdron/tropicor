@@ -89,6 +89,7 @@ def plot_climatology_comparison(
     model_name: str = "ERA5",
     ax: Optional["matplotlib.axes.Axes"] = None,
     show_regime: bool = True,
+    show_legend: bool = True,
     figsize: Tuple[float, float] = (7.5, 4.5),
 ) -> "matplotlib.axes.Axes":
     """Plot observed vs modeled 12-month annual climatological cycle.
@@ -105,6 +106,7 @@ def plot_climatology_comparison(
         model_name: Name of the reanalysis / model dataset.
         ax: Optional Matplotlib Axes. If None, creates a new Figure and Axes.
         show_regime: Whether to display regime badges when variable == 'precipitation'.
+        show_legend: Whether to display individual panel legend. Defaults to True.
         figsize: Figure dimension tuple in inches.
 
     Returns:
@@ -239,7 +241,8 @@ def plot_climatology_comparison(
     primary_ax.set_xticklabels(MONTH_LABELS, fontsize=8.5)
     primary_ax.set_xlabel("Month", fontsize=9.5)
     primary_ax.grid(True, linestyle=":", alpha=0.6, color="#B0BEC5")
-    primary_ax.legend(frameon=True, fontsize=8.0, loc="best")
+    if show_legend:
+        primary_ax.legend(frameon=True, fontsize=8.0, loc="best")
 
     return primary_ax
 
@@ -291,6 +294,7 @@ def plot_climatology_multiples(
             model_name=model_name,
             ax=ax,
             show_regime=show_regime,
+            show_legend=False,
         )
         if idx % ncols != 0:
             ax.set_ylabel("")
@@ -299,7 +303,85 @@ def plot_climatology_multiples(
     for empty_idx in range(n_stations, len(axes_flat)):
         axes_flat[empty_idx].set_visible(False)
 
-    fig.tight_layout()
+    # Construct single unified shared legend outside panels
+    import matplotlib.lines as mlines
+    import matplotlib.patches as mpatches
+
+    model_color = (
+        OKABE_ITO["blue"] if variable == "precipitation" else OKABE_ITO["vermilion"]
+    )
+
+    shared_handles = [
+        mlines.Line2D(
+            [],
+            [],
+            color=OKABE_ITO["black"],
+            marker="o",
+            markersize=6,
+            linewidth=2.0,
+            label="Observed (IDEAM)",
+        ),
+        mlines.Line2D(
+            [],
+            [],
+            color=model_color,
+            marker="s",
+            markersize=5,
+            linewidth=1.8,
+            linestyle="--",
+            label=f"Modeled ({model_name})",
+        ),
+        mpatches.Patch(
+            facecolor=OKABE_ITO["black"],
+            alpha=0.15,
+            edgecolor="none",
+            label="Obs P10–P90",
+        ),
+        mpatches.Patch(
+            facecolor=model_color,
+            alpha=0.10,
+            edgecolor="none",
+            label=f"{model_name} P10–P90",
+        ),
+    ]
+
+    if variable == "precipitation":
+        shared_handles.extend(
+            [
+                mlines.Line2D(
+                    [],
+                    [],
+                    color="none",
+                    marker="*",
+                    markerfacecolor=OKABE_ITO["black"],
+                    markeredgecolor="white",
+                    markeredgewidth=1.0,
+                    markersize=11,
+                    label="Obs Peak",
+                ),
+                mlines.Line2D(
+                    [],
+                    [],
+                    color="none",
+                    marker="v",
+                    markerfacecolor=model_color,
+                    markeredgecolor="white",
+                    markeredgewidth=0.8,
+                    markersize=8,
+                    label=f"{model_name} Peak",
+                ),
+            ]
+        )
+
+    fig.legend(
+        handles=shared_handles,
+        loc="lower center",
+        bbox_to_anchor=(0.5, -0.04),
+        ncol=len(shared_handles) if len(shared_handles) <= 6 else 3,
+        frameon=True,
+        fontsize=8.5,
+    )
+    fig.tight_layout(rect=[0, 0.05, 1, 1])
     return fig, axes_flat
 
 
@@ -310,6 +392,7 @@ def plot_taylor_diagram(
     labels: Optional[List[str]] = None,
     ref_std: Optional[float] = None,
     normalize: bool = False,
+    colors: Optional[Union[List[str], Dict[str, str]]] = None,
     ax: Optional["matplotlib.axes.Axes"] = None,
     title: Optional[str] = "Taylor Diagram",
     figsize: Tuple[float, float] = (7.0, 7.0),
@@ -325,6 +408,7 @@ def plot_taylor_diagram(
         labels: Optional labels for each statistics record.
         ref_std: Reference standard deviation. Inferred from stats if None.
         normalize: Whether diagram represents normalized metrics (reference std = 1.0).
+        colors: Optional custom color mapping (dict of label to hex or list of colors).
         ax: Optional Matplotlib Axes. If None, creates a new Figure and Axes.
         title: Plot title text.
         figsize: Figure dimension tuple in inches.
@@ -494,18 +578,24 @@ def plot_taylor_diagram(
 
         x_pt = s_m * np.cos(theta_m)
         y_pt = s_m * np.sin(theta_m)
-        pt_color = palette_colors[idx % len(palette_colors)]
+
+        if isinstance(colors, dict):
+            pt_color = colors.get(label_txt, palette_colors[idx % len(palette_colors)])
+        elif isinstance(colors, list) and colors:
+            pt_color = colors[idx % len(colors)]
+        else:
+            pt_color = palette_colors[idx % len(palette_colors)]
 
         primary_ax.scatter(
             [x_pt],
             [y_pt],
             color=pt_color,
             marker="o",
-            s=64,
+            s=85,
             label=label_txt,
             zorder=8,
             edgecolors="black",
-            linewidths=0.5,
+            linewidths=0.8,
         )
 
     # Formatting axes

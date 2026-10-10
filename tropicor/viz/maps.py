@@ -415,10 +415,9 @@ def plot_regime_map(
     # Missing stations in catalog mapped to 'no_data'
     df["regime"] = df["code"].map(reg_map).fillna("no_data")
 
-    # If explicit disagreements provided, mark them
-    if disagreements is not None:
-        dis_set = {str(d) for d in disagreements}
-        df.loc[df["code"].isin(dis_set), "regime"] = "disagreement"
+    # If explicit disagreements provided, track them as boolean flag
+    dis_set = {str(d) for d in disagreements} if disagreements is not None else set()
+    df["is_disagreement"] = df["code"].isin(dis_set)
 
     # Render primary mainland basemap
     draw_cartographic_basemap(
@@ -481,22 +480,6 @@ def plot_regime_map(
                 linewidths=0.5,
                 zorder=4,
             )
-        elif regime_name == "disagreement":
-            color = get_region_color(region)
-            primary_ax.scatter(
-                row["longitude"],
-                row["latitude"],
-                marker="X",
-                color=color,
-                s=78,
-                edgecolors="black",
-                linewidths=0.8,
-                zorder=6,
-            )
-            if isinstance(region, NaturalRegion):
-                present_regions.add(region)
-            else:
-                present_regions.add(str(region))
         else:
             marker = REGIME_MARKERS.get(regime_name, "s")
             color = get_region_color(region)
@@ -510,6 +493,16 @@ def plot_regime_map(
                 linewidths=0.6,
                 zorder=5,
             )
+            if row["is_disagreement"]:
+                primary_ax.scatter(
+                    row["longitude"],
+                    row["latitude"],
+                    marker="x",
+                    color="black",
+                    s=55,
+                    linewidths=2.2,
+                    zorder=7,
+                )
             if isinstance(region, NaturalRegion):
                 present_regions.add(region)
             else:
@@ -533,22 +526,6 @@ def plot_regime_map(
                     linewidths=0.5,
                     zorder=4,
                 )
-            elif regime_name == "disagreement":
-                color = get_region_color(region)
-                inset_sa.scatter(
-                    row["longitude"],
-                    row["latitude"],
-                    marker="X",
-                    color=color,
-                    s=78,
-                    edgecolors="black",
-                    linewidths=0.8,
-                    zorder=6,
-                )
-                if isinstance(region, NaturalRegion):
-                    present_regions.add(region)
-                else:
-                    present_regions.add(str(region))
             else:
                 marker = REGIME_MARKERS.get(regime_name, "s")
                 color = get_region_color(region)
@@ -562,6 +539,16 @@ def plot_regime_map(
                     linewidths=0.6,
                     zorder=5,
                 )
+                if row["is_disagreement"]:
+                    inset_sa.scatter(
+                        row["longitude"],
+                        row["latitude"],
+                        marker="x",
+                        color="black",
+                        s=55,
+                        linewidths=2.2,
+                        zorder=7,
+                    )
                 if isinstance(region, NaturalRegion):
                     present_regions.add(region)
                 else:
@@ -584,22 +571,6 @@ def plot_regime_map(
                     linewidths=0.5,
                     zorder=4,
                 )
-            elif regime_name == "disagreement":
-                color = get_region_color(region)
-                inset_mal.scatter(
-                    row["longitude"],
-                    row["latitude"],
-                    marker="X",
-                    color=color,
-                    s=78,
-                    edgecolors="black",
-                    linewidths=0.8,
-                    zorder=6,
-                )
-                if isinstance(region, NaturalRegion):
-                    present_regions.add(region)
-                else:
-                    present_regions.add(str(region))
             else:
                 marker = REGIME_MARKERS.get(regime_name, "s")
                 color = get_region_color(region)
@@ -613,6 +584,16 @@ def plot_regime_map(
                     linewidths=0.6,
                     zorder=5,
                 )
+                if row["is_disagreement"]:
+                    inset_mal.scatter(
+                        row["longitude"],
+                        row["latitude"],
+                        marker="x",
+                        color="black",
+                        s=55,
+                        linewidths=2.2,
+                        zorder=7,
+                    )
                 if isinstance(region, NaturalRegion):
                     present_regions.add(region)
                 else:
@@ -623,9 +604,8 @@ def plot_regime_map(
         ("bimodal", "Bimodal", "o", "#455A64"),
         ("unimodal", "Unimodal", "^", "#455A64"),
         ("multimodal", "Multimodal", "D", "#455A64"),
-        ("disagreement", "Desacuerdo (Obs/ERA5)", "X", "#D55E00"),
         ("indeterminate", "Indeterminate", "s", "#455A64"),
-        ("no_data", "Sin datos (No data)", "o", "#B0BEC5"),
+        ("no_data", "No data", "o", "#B0BEC5"),
     ]
     regime_handles = [
         mlines.Line2D(
@@ -642,6 +622,20 @@ def plot_regime_map(
         for code, label_text, marker_shape, facecolor in regime_order
         if code in present_regimes
     ]
+
+    if df["is_disagreement"].any():
+        regime_handles.append(
+            mlines.Line2D(
+                [],
+                [],
+                color="none",
+                marker="x",
+                markeredgecolor="black",
+                markeredgewidth=2.2,
+                markersize=8,
+                label="Obs/ERA5 disagreement",
+            )
+        )
 
     leg_regime = primary_ax.legend(
         handles=regime_handles,

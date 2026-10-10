@@ -29,9 +29,10 @@ from tropicor.core.climatology import (
 )
 from tropicor.core.metrics import taylor_statistics
 from tropicor.io.ideam import IdeamAdapter
-from tropicor.io.stations import StationCatalog
+from tropicor.io.stations import NaturalRegion, StationCatalog
 from tropicor.viz import (
     FIGURE_DPI,
+    REGION_PALETTE,
     plot_climatology_multiples,
     plot_regime_map,
     plot_station_map,
@@ -221,9 +222,20 @@ def generate_all_figures() -> None:
         mod_c = compute_monthly_climatology(mod, min_years=5)
         taylor_stats[short_name] = taylor_statistics(obs_c, mod_c, normalize=True)
 
+    station_region_map = {
+        "Puerto Carreño": NaturalRegion.ORINOQUIA,
+        "Las Flores": NaturalRegion.CARIBE,
+        "Noanamá": NaturalRegion.PACIFICO,
+        "Gorgona": NaturalRegion.INSULAR,
+    }
+    taylor_colors = {
+        name: REGION_PALETTE[reg] for name, reg in station_region_map.items()
+    }
+
     ax4 = plot_taylor_diagram(
         stats_list=taylor_stats,
         normalize=True,
+        colors=taylor_colors,
         title=(
             "Taylor Diagram - Climatological Annual Cycle (12 Monthly Means)\n"
             "ERA5 Reanalysis vs IDEAM Ground Truth"

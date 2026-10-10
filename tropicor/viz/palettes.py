@@ -32,6 +32,9 @@ REGION_COLORS: Dict[NaturalRegion, str] = {
     NaturalRegion.INSULAR: OKABE_ITO["vermilion"],  # #D55E00
 }
 
+# Alias for compatibility with user plan terminology
+REGION_PALETTE = REGION_COLORS
+
 # String lookup map supporting string keys (e.g., 'ANDINA', 'Andina')
 REGION_COLORS_STR: Dict[str, str] = {k.value: v for k, v in REGION_COLORS.items()}
 
