@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.4] - 2026-10-11
+
+### Added
+- **Standardized Residual Diagnostics & Trend Drift Engine** (`tropicor.core.diagnostics`):
+  - Added `DistributionMoments`: computes sample mean, variance, sample standard deviation, unbiased Fisher-Pearson skewness ($g_1$), and excess kurtosis ($g_2$) with optional `bias=True` flag for historical thesis replication. Evaluates Shapiro-Wilk $W$ normality testing with physical boundary and extreme-value guards.
+  - Added `TrendDiagnostics`: non-parametric Sen's slope evaluated against decimal calendar years (units per year and per decade, invariant to missing months), Mann-Kendall score $S$, standardized $Z$, and two-sided p-value.
+  - Added Hamed & Rao (1998) variance correction with `max_lags=3` empirical calibration: controls Type I false positive inflation under autoregressive serial dependence while maintaining ~89% detection power.
+  - Added `lag1_autocorr` field to `TrendDiagnostics` reporting the sample lag-1 autocorrelation of detrended residuals on the calendar grid.
+  - Added automatic `UserWarning` when lag-1 autocorrelation exceeds 0.70, notifying users that corrected p-values may still be liberal (~20% false positives at $\phi=0.85$).
+  - Added `ResidualDiagnosticsReport`: unified immutable dataclass providing full series (`raw_residuals`, `monthly_climatology_residuals`, `deseasonalized_residuals`, `standardized_residuals`) and `.summary()` tabular DataFrame exporter.
+  - Added `compute_deseasonalized_residuals()`: isolates residual drift from annual climatology with sample size guards (`min_years=10`, `min_obs_per_month=5`) and optional `monthly_standardize=True` parameter to mitigate precipitation heteroscedasticity.
+  - Added `standardize_residuals()` for scaling series to zero mean and unit variance.
+  - Added top-level package exports in `tropicor` and `tropicor.core`.
+- **Validation Script & Real-Data Benchmarking** (`examples/validate_residual_diagnostics.py`):
+  - Phase 1: Replicates historical UNAL thesis calculations (Entrega 10) on raw standardized differences ($e_{\text{thesis}} = \text{IDEAM} - \text{ERA5}$), documenting the exact sign flip under modern convention ($e_{\text{tropicor}} = \text{ERA5} - \text{IDEAM}$).
+  - Phase 2: Comprehensive diagnostic audit across 4 Colombian benchmark stations (Puerto Carreño, Las Flores, Noanamá, Gorgona) for precipitation, TMin, and TMax, printing lag-1 autocorrelation for every series and exporting `local/residual_diagnostics_report.csv`.
+- **Documentation**:
+  - Added `docs/guides/residual-diagnostics.md`: mathematical formulations, empirical false positive calibration sweep table, statistical power preservation table, documentation of `max_lags=3` as an empirical choice, and Colombian benchmark results.
+  - Added API reference in `docs/api/core.md` and updated navigation in `mkdocs.yml`.
+
 ## [0.1.3] - 2026-10-09
 
 ### Fixed

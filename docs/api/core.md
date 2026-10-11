@@ -117,3 +117,78 @@ The `tropicor.core` package provides mathematical models, annual climatological 
     options:
       show_root_heading: true
       show_source: true
+
+---
+
+## Residual Diagnostics & Trend Drift Analysis
+
+### `compute_residual_diagnostics`
+
+::: tropicor.core.diagnostics.compute_residual_diagnostics
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `compute_deseasonalized_residuals`
+
+::: tropicor.core.diagnostics.compute_deseasonalized_residuals
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `compute_distribution_moments`
+
+::: tropicor.core.diagnostics.compute_distribution_moments
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `compute_mann_kendall_trend`
+
+::: tropicor.core.diagnostics.compute_mann_kendall_trend
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `standardize_residuals`
+
+::: tropicor.core.diagnostics.standardize_residuals
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `DistributionMoments`
+
+::: tropicor.core.diagnostics.DistributionMoments
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `TrendDiagnostics`
+
+::: tropicor.core.diagnostics.TrendDiagnostics
+    options:
+      show_root_heading: true
+      show_source: true
+
+---
+
+### `ResidualDiagnosticsReport`
+
+::: tropicor.core.diagnostics.ResidualDiagnosticsReport
+    options:
+      show_root_heading: true
+      show_source: true
+
