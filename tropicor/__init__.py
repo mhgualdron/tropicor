@@ -13,6 +13,16 @@ from tropicor.core.climatology import (
     climatological_curve_distance,
     compute_monthly_climatology,
 )
+from tropicor.core.diagnostics import (
+    DistributionMoments,
+    ResidualDiagnosticsReport,
+    TrendDiagnostics,
+    compute_deseasonalized_residuals,
+    compute_distribution_moments,
+    compute_mann_kendall_trend,
+    compute_residual_diagnostics,
+    standardize_residuals,
+)
 from tropicor.core.dtr import (
     compute_double_difference,
     compute_dtr,
@@ -40,19 +50,22 @@ from tropicor.io.stations import (
     StationMetadata,
 )
 
-__version__ = "0.1.3"
+__version__ = "0.1.4"
 
 __all__ = [
     "BENCHMARK_STATIONS",
     "DRY_ADIABATIC_LAPSE_RATE",
+    "DistributionMoments",
     "ERA5Adapter",
     "IdeamAdapter",
     "MOIST_ADIABATIC_LAPSE_RATE",
     "NaturalRegion",
+    "ResidualDiagnosticsReport",
     "STANDARD_LAPSE_RATE",
     "StationCatalog",
     "StationMetadata",
     "TaylorStatistics",
+    "TrendDiagnostics",
     "ValidationReport",
     "__version__",
     "align_common_period",
@@ -61,12 +74,17 @@ __all__ = [
     "annual_cycle_phase",
     "classify_rainfall_regime",
     "climatological_curve_distance",
+    "compute_deseasonalized_residuals",
+    "compute_distribution_moments",
     "compute_double_difference",
     "compute_dtr",
     "compute_elevation_offset",
+    "compute_mann_kendall_trend",
     "compute_monthly_climatology",
     "compute_monthly_extreme_range",
+    "compute_residual_diagnostics",
     "compute_validation_metrics",
     "lapse_rate_temperature_correction",
+    "standardize_residuals",
     "taylor_statistics",
 ]

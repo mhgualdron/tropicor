@@ -9,6 +9,16 @@ from tropicor.core.climatology import (
     climatological_curve_distance,
     compute_monthly_climatology,
 )
+from tropicor.core.diagnostics import (
+    DistributionMoments,
+    ResidualDiagnosticsReport,
+    TrendDiagnostics,
+    compute_deseasonalized_residuals,
+    compute_distribution_moments,
+    compute_mann_kendall_trend,
+    compute_residual_diagnostics,
+    standardize_residuals,
+)
 from tropicor.core.dtr import (
     compute_double_difference,
     compute_dtr,
@@ -20,6 +30,9 @@ from tropicor.core.metrics import (
 )
 
 __all__ = [
+    "DistributionMoments",
+    "ResidualDiagnosticsReport",
+    "TrendDiagnostics",
     "ValidationReport",
     "align_common_period",
     "annual_cycle_amplitude",
@@ -27,9 +40,14 @@ __all__ = [
     "annual_cycle_phase",
     "classify_rainfall_regime",
     "climatological_curve_distance",
+    "compute_deseasonalized_residuals",
+    "compute_distribution_moments",
     "compute_double_difference",
     "compute_dtr",
+    "compute_mann_kendall_trend",
     "compute_monthly_climatology",
     "compute_monthly_extreme_range",
+    "compute_residual_diagnostics",
     "compute_validation_metrics",
+    "standardize_residuals",
 ]
