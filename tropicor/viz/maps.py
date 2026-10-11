@@ -5,7 +5,7 @@ colorblind-safe styling, and dynamic coordinate-based insets for San Andrés and
 """
 
 from dataclasses import asdict
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Set, Tuple, Union
 
 import pandas as pd
 
@@ -45,7 +45,7 @@ def _normalize_stations_frame(
         df = stations.to_dataframe()
     elif isinstance(stations, list):
         records = [
-            asdict(s) if hasattr(s, "__dataclass_fields__") else dict(s)
+            asdict(s) if isinstance(s, StationMetadata) else dict(s)  # type: ignore[call-overload]
             for s in stations
         ]
         df = pd.DataFrame(records)
@@ -166,7 +166,8 @@ def plot_station_map(
                 val_map = {str(k): float(v) for k, v in values.items()}
                 df["_metric_val"] = df["code"].map(val_map).astype(float)
             else:
-                df["_metric_val"] = pd.to_numeric(values.values, errors="coerce")
+                s_vals = pd.Series(values.values)
+                df["_metric_val"] = pd.to_numeric(s_vals, errors="coerce")
 
         calc_vmin = vmin if vmin is not None else float(df["_metric_val"].min())
         calc_vmax = vmax if vmax is not None else float(df["_metric_val"].max())
@@ -463,8 +464,8 @@ def plot_regime_map(
         inset_mal.set_yticks([])
 
     # Plot stations by (regime, region) combinations
-    present_regimes = set()
-    present_regions = set()
+    present_regimes: Set[str] = set()
+    present_regions: Set[Any] = set()
 
     for _, row in df_main.iterrows():
         regime_name = row["regime"]

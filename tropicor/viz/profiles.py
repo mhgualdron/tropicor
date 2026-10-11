@@ -60,7 +60,7 @@ def _extract_monthly_climatology_curve(series: pd.Series) -> pd.Series:
         or list(series.index) == list(range(12))
     ):
         s = series.copy()
-        s.index = range(1, 13)
+        s.index = pd.Index(range(1, 13))
         return s
 
     # Multi-year DatetimeIndex series

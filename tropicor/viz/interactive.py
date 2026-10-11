@@ -10,7 +10,7 @@ from tropicor.viz._common import require_plotly
 from tropicor.viz.palettes import get_region_color
 
 if TYPE_CHECKING:
-    import plotly.graph_objects as go
+    import plotly.graph_objects as go  # type: ignore[import-untyped]
 
 
 def _normalize_interactive_stations(
@@ -21,7 +21,7 @@ def _normalize_interactive_stations(
         df = stations.to_dataframe()
     elif isinstance(stations, list):
         records = [
-            asdict(s) if hasattr(s, "__dataclass_fields__") else dict(s)
+            asdict(s) if isinstance(s, StationMetadata) else dict(s)  # type: ignore[call-overload]
             for s in stations
         ]
         df = pd.DataFrame(records)

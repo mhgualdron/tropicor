@@ -54,6 +54,8 @@ def compute_monthly_climatology(
     if valid_series.empty:
         raise ValueError("Series contains no valid non-NaN observations.")
 
+    if not isinstance(valid_series.index, pd.DatetimeIndex):
+        raise TypeError("Valid series index must be a pandas DatetimeIndex.")
     n_years = valid_series.index.year.nunique()
     if n_years < min_years:
         raise ValueError(
@@ -228,9 +230,9 @@ def annual_cycle_phase(
 
     mode_lower = mode.lower()
     if mode_lower in {"peak", "max"}:
-        return int(valid.idxmax())
+        return int(str(valid.idxmax()))
     elif mode_lower in {"trough", "valley", "min"}:
-        return int(valid.idxmin())
+        return int(str(valid.idxmin()))
     else:
         raise ValueError(
             f"Invalid mode '{mode}'. "
@@ -304,11 +306,10 @@ def annual_cycle_peaks(
     # 3x circular tiling: replica 0 (0..11), replica 1 (12..23), replica 2 (24..35)
     tiled_vals = np.tile(vals, 3)
 
-    find_kwargs = {}
     if prominence is not None and prominence > 0:
-        find_kwargs["prominence"] = prominence
-
-    peaks, _ = find_peaks(tiled_vals, **find_kwargs)
+        peaks, _ = find_peaks(tiled_vals, prominence=prominence)
+    else:
+        peaks, _ = find_peaks(tiled_vals)
 
     # Filter peaks that fall inside the middle replica [12, 23]
     # Map index i to calendar month (1..12): (i - 12) + 1

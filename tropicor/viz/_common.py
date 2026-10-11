@@ -46,8 +46,8 @@ def require_plotly() -> Any:
             to install the optional extra tropicor[viz-interactive].
     """
     try:
-        import plotly.express as px
-        import plotly.graph_objects as go
+        import plotly.express as px  # type: ignore[import-untyped]
+        import plotly.graph_objects as go  # type: ignore[import-untyped]
 
         return go, px
     except ImportError as err:
