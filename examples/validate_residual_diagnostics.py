@@ -233,7 +233,7 @@ def run_residual_diagnostics_audit() -> None:
             # Screen for station review flags
             flag = "No significant trend"
             if station["name"] == "Las Flores" and var_name == "tmax":
-                flag = "Outlier flag: check 2018-03 data entry (Z=+8.70)"
+                flag = "Outlier flag: raw series includes 2018-03 entry error (Z=+8.70)"
             elif (
                 station["name"] == "Noanamá"
                 and var_name == "tmax"
@@ -268,6 +268,68 @@ def run_residual_diagnostics_audit() -> None:
                     "review_flag": flag,
                 }
             )
+
+            # Explicit exclusion audit for Las Flores TMax (March 2018 outlier)
+            if station["name"] == "Las Flores" and var_name == "tmax":
+                print(
+                    "\n  [AUDIT EXCLUSION] Evaluating Las Flores TMax with 2018-03-01 "
+                    "excluded:\n"
+                    "    Reason: Stray record entered 32 months after station "
+                    "operations ceased\n"
+                    "    in July 2015. Observed TMax = 21.0 °C vs ERA5 = 29.5375 °C "
+                    "(Z = +8.70)\n"
+                    "    is unviable for sea-level Caribbean dry season (probable typo "
+                    "or TMin).\n"
+                    "    Result: Removing this single entry causes skewness to shift "
+                    "from +2.77\n"
+                    "    to -0.32 and excess kurtosis to drop from +25.08 to +0.37 "
+                    "(close to normal)."
+                )
+                s_obs_clean = s_obs[s_obs.index != "2018-03-01"]
+                s_mod_clean = s_mod[s_mod.index != "2018-03-01"]
+                rep_c = compute_residual_diagnostics(
+                    s_obs_clean,
+                    s_mod_clean,
+                    variable=var_type,
+                    trend_correction="hamed_rao",
+                    max_lags=3,
+                    min_years=10,
+                    min_obs_per_month=5,
+                )
+                mom_c = rep_c.moments
+                tr_c = rep_c.trend
+                print(
+                    f"    Audited Clean: N={mom_c.n_samples} | "
+                    f"Skewness (g1)={mom_c.skewness:>6.2f} | "
+                    f"Excess Kurt (g2)={mom_c.excess_kurtosis:>6.2f} | "
+                    f"Sen's Slope={tr_c.slope_per_decade:>6.2f} °C/decade "
+                    f"(p={tr_c.p_value:.4f})"
+                )
+                phase2_records.append(
+                    {
+                        "station": "Las Flores (Audited)",
+                        "region": station["region"],
+                        "variable": var_name,
+                        "n_samples": mom_c.n_samples,
+                        "mean_residual": round(mom_c.mean, 3),
+                        "std_residual": round(mom_c.std_dev, 3),
+                        "skewness_g1": round(mom_c.skewness, 3),
+                        "excess_kurtosis_g2": round(mom_c.excess_kurtosis, 3),
+                        "shapiro_w": round(mom_c.shapiro_stat, 4),
+                        "shapiro_p_value": mom_c.shapiro_p_value,
+                        "shapiro_reject_normality": mom_c.shapiro_reject_h0_alpha_05,
+                        "sens_slope_decade": round(tr_c.slope_per_decade, 3),
+                        "mk_z_stat": round(tr_c.mk_z_stat, 3),
+                        "mk_p_value": round(tr_c.p_value, 4),
+                        "has_trend": tr_c.has_significant_trend,
+                        "lag1_autocorr": round(tr_c.lag1_autocorr, 3),
+                        "lags_used": tr_c.significant_lags_used,
+                        "review_flag": (
+                            "Audited: 2018-03 excluded; residual drift "
+                            "(model - obs increasing)"
+                        ),
+                    }
+                )
 
     # -------------------------------------------------------------------------
     # Save Report

@@ -18,11 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `compute_deseasonalized_residuals()`: isolates residual drift from annual climatology with sample size guards (`min_years=10`, `min_obs_per_month=5`) and optional `monthly_standardize=True` parameter to mitigate precipitation heteroscedasticity.
   - Added `standardize_residuals()` for scaling series to zero mean and unit variance.
   - Added top-level package exports in `tropicor` and `tropicor.core`.
+- **Reproducible Monte Carlo Calibration Script** (`scripts/calibrate_mann_kendall.py`):
+  - Deterministic benchmarking engine across 5 seeds (`[42, 101, 2024, 777, 9999]`), $n \in \{120, 360\}$, and $\phi \in \{0.30, 0.65, 0.85\}$ (1,000 runs per cell). Serves as the canonical single source of truth for documentation calibration tables, reflecting the finalized detrended rank autocorrelation and significance filtering implementation.
+- **Station Inhomogeneity Screening & Outlier Audit**:
+  - Identified isolated data entry error in Las Flores $T_{\max}$ at March 2018 ($Z = +8.70$, recorded after 32-month station gap), explaining extreme kurtosis ($g_2 = +25.08$). Documented that removing this single unviable point restores a distribution close to normal ($g_1 = -0.32, g_2 = +0.37, p = 0.123$).
+  - Flagged Noanamá $T_{\max}$ (+1.37 °C/decade, $p < 0.0001$) as a candidate in-situ station inhomogeneity to review before attributing drift to ERA5.
 - **Validation Script & Real-Data Benchmarking** (`examples/validate_residual_diagnostics.py`):
-  - Phase 1: Replicates historical UNAL thesis calculations (Entrega 10) on raw standardized differences ($e_{\text{thesis}} = \text{IDEAM} - \text{ERA5}$), documenting the exact sign flip under modern convention ($e_{\text{tropicor}} = \text{ERA5} - \text{IDEAM}$).
-  - Phase 2: Comprehensive diagnostic audit across 4 Colombian benchmark stations (Puerto Carreño, Las Flores, Noanamá, Gorgona) for precipitation, TMin, and TMax, printing lag-1 autocorrelation for every series and exporting `local/residual_diagnostics_report.csv`.
+  - Phase 1: Replicates historical UNAL thesis calculations (Entrega 10) to the printed precision (~6 decimal places), documenting the sign flip under model error convention ($e = \text{ERA5} - \text{IDEAM}$) and reproducing the thesis bug of evaluating `stats.describe` on `df['Diff']` for $T_{\max}$.
+  - Phase 2: Comprehensive diagnostic audit across 4 Colombian benchmark stations (Puerto Carreño, Las Flores, Noanamá, Gorgona) for precipitation, TMin, and TMax, printing lag-1 autocorrelation for every series and exporting `local/residual_diagnostics_report.csv` with explicit exclusion audit for Las Flores.
 - **Documentation**:
-  - Added `docs/guides/residual-diagnostics.md`: mathematical formulations, empirical false positive calibration sweep table, statistical power preservation table, documentation of `max_lags=3` as an empirical choice, and Colombian benchmark results.
+  - Added `docs/guides/residual-diagnostics.md`: mathematical formulations, empirical false positive calibration sweep table, statistical power preservation table, documentation of `max_lags=3` as an empirical choice, floating-point ERA5 verification, and Colombian benchmark results.
   - Added API reference in `docs/api/core.md` and updated navigation in `mkdocs.yml`.
 
 ## [0.1.3] - 2026-10-09

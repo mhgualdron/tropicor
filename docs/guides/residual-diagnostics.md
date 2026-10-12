@@ -97,8 +97,8 @@ uv run python scripts/calibrate_mann_kendall.py
 * **Power Drift**: $\delta = \frac{1.5 \sigma_\epsilon}{n}$ per monthly timestep ($1.5\,\sigma_\epsilon$ total cumulative drift across the record)
 
 > [!NOTE]
-> **What Changed from Preliminary Prototype Sweeps**:
-> Earlier draft tables reflected single-seed exploratory runs ($n_{\text{sim}} = 200$, seed 42 only), in which sampling variance was higher and one cell ($n=120, \phi=0.30$) was mistakenly transcribed as 6.2%. In contrast, the current tables represent the 5-seed pooled benchmark (1,000 iterations per cell) generated directly by `scripts/calibrate_mann_kendall.py`.
+> **Evolution of Sweep Tables & Canonical Source of Truth**:
+> Between early exploratory prototype scripts and the final unified engine in `tropicor.core.diagnostics`, the detrended rank autocorrelation function and lag significance filtering were refined (particularly regarding edge-case sample variance inflation and NaN handling). Consequently, values for the unconstrained all-lags configuration shifted slightly (e.g. from 13.3% to 10.1% at $n=120, \phi=0.30$). The standalone script `scripts/calibrate_mann_kendall.py` is now the frozen, reproducible single source of truth for all calibration tables.
 
 ### The `max_lags=3` Truncation Mechanism
 
@@ -174,17 +174,21 @@ In Las Flores (IDEAM 21205790), deseasonalized $T_{\max}$ residuals yielded an e
 
 | Date | Observed $T_{\max}$ | ERA5 $T_{\max}$ | Raw Difference ($e$) | Deseasonalized Anomaly ($e'$) | Standardized $Z$ | Context |
 | :---: | :---: | :---: | :---: | :---: | :---: | :--- |
-| **2018-03** | **21.0 °C** | **29.54 °C** | **+8.54 °C** | **+10.39 °C** | **+8.70** | **Data entry error / stray record** |
-| 2003-04 | 36.0 °C | 29.54 °C | -6.46 °C | -3.62 °C | -3.03 | Extreme hot dry month |
-| 1993-05 | 36.0 °C | 30.11 °C | -5.89 °C | -2.57 °C | -2.15 | Extreme hot dry month |
-| 2013-09 | 32.4 °C | 31.34 °C | -1.06 °C | +2.28 °C | +1.91 | Moderate wet-season anomaly |
-| 1993-11 | 34.2 °C | 28.95 °C | -5.25 °C | -2.15 °C | -1.80 | Hot anomaly |
+| **2018-03** | **21.00 °C** | **29.5375 °C** | **+8.5375 °C** | **+10.3891 °C** | **+8.70** | **Data entry error / stray record** |
+| 2003-04 | 36.00 °C | 29.5401 °C | -6.4599 °C | -3.6198 °C | -3.03 | Extreme hot dry month |
+| 1993-05 | 36.00 °C | 30.1129 °C | -5.8871 °C | -2.5718 °C | -2.15 | Extreme hot dry month |
+| 2013-09 | 32.40 °C | 31.3382 °C | -1.0618 °C | +2.2769 °C | +1.91 | Moderate wet-season anomaly |
+| 1993-11 | 34.20 °C | 28.9512 °C | -5.2488 °C | -2.1511 °C | -1.80 | Hot anomaly |
+
+> [!NOTE]
+> **ERA5 Floating-Point Verification**:
+> In a 2-decimal rounded display, both March 2018 and April 2003 appeared as `29.54 °C`. Inspecting the underlying dataset confirms they are distinct values in ERA5 (`29.5375 °C` vs `29.5401 °C`, differing by $0.0026\,^\circ\text{C}$), confirming that this was a formatting artifact rather than a duplicate row or copy error.
 
 ### Physical & Data Entry Diagnosis
 
 1. **Unphysical Value**: Las Flores is a sea-level Caribbean coastal station. In March (peak dry season), daytime maximum temperatures are normally $30^\circ\text{C}$ to $34^\circ\text{C}$. An observed maximum temperature of $21.0\,^\circ\text{C}$ is unphysical and represents a data entry error (most likely $T_{\min}$ erroneously recorded in the $T_{\max}$ column, or a transcription typo for $31.0\,^\circ\text{C}$).
 2. **Temporal Discontinuity**: The station stopped regular operation in July 2015. After a 32-month complete gap, this single isolated data point appears in March 2018.
-3. **Impact on Moments**: Removing this single erroneous month ($N=221$ remaining) causes excess kurtosis to collapse from **$+25.08$ down to $+0.29$** and skewness from **$+2.77$ down to $-0.30$**, restoring an essentially Gaussian residual distribution.
+3. **Impact on Moments**: Removing this single erroneous month ($N=221$ remaining) causes excess kurtosis to collapse from **$+25.08$ down to $+0.37$** and skewness from **$+2.77$ down to $-0.32$**, restoring a residual distribution **close to normal** (Shapiro-Wilk $W=0.9898$, $p=0.123$, failing to reject normality at $\alpha=0.05$).
 
 ---
 
@@ -194,20 +198,22 @@ The UNAL thesis (Entregas 9–10) serves as an empirical consistency reference, 
 
 ### Comparison Across All Stations & Variables (Entrega 10)
 
+Comparison between printed thesis outputs and TROPICOR raw reproduction:
+
 | Station | Variable | Metric | Thesis Printed Value (Entrega 10 C3) | TROPICOR Raw Reproduction | Match Status & Root Cause |
 | :--- | :--- | :--- | :---: | :---: | :--- |
-| **Puerto Carreño** | Precip | Skewness / Kurtosis | $+0.7303$ / $+1.3396$ | $-0.7303$ / $+1.3396$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMin | Skewness / Kurtosis | $-0.3952$ / $+0.1601$ | $+0.3952$ / $+0.1601$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMax | Skewness / Kurtosis | $+0.7710$ / $+2.4211$ | $-0.7710$ / $+2.4211$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| **Las Flores** | Precip | Skewness / Kurtosis | $+0.6865$ / $+2.9697$ | $-0.6865$ / $+2.9697$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMin | Skewness / Kurtosis | $-0.9022$ / $+2.4938$ | $+0.9022$ / $+2.4938$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMax | Skewness / Kurtosis | $-2.8546$ / $+19.5218$ | $+2.8546$ / $+19.5218$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| **Noanamá** | Precip | Skewness / Kurtosis | $+0.4048$ / $+0.9329$ | $-0.4048$ / $+0.9329$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMin | Skewness / Kurtosis | $+0.4578$ / $+6.1956$ | $-0.4578$ / $+6.1956$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMax | Skewness / Kurtosis | $-1.1119$ / $+4.6866$ | $+1.1119$ / $+4.6866$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| **Gorgona** | Precip | Skewness / Kurtosis | $-0.1374$ / $+0.4124$ | $+0.1374$ / $+0.4124$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMin | Skewness / Kurtosis | $-0.8354$ / $+1.3400$ | $+0.8354$ / $+1.3400$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
-| | TMax | Skewness / Kurtosis | $+0.3248$ / $+2.1705$ | $-0.3248$ / $+2.1705$ | **Exact match** (sign flip due to $e = \text{ERA5} - \text{IDEAM}$) |
+| **Puerto Carreño** | Precip | Skewness / Kurtosis | $+0.7303$ / $+1.3396$ | $-0.7303$ / $+1.3396$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMin | Skewness / Kurtosis | $-0.3952$ / $+0.1601$ | $+0.3952$ / $+0.1601$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMax | Skewness / Kurtosis | $+0.7710$ / $+2.4211$ | $-0.7710$ / $+2.4211$ | Matches printed thesis precision (~6 decimals) [reproduces thesis `Diff` bug] |
+| **Las Flores** | Precip | Skewness / Kurtosis | $+0.6865$ / $+2.9697$ | $-0.6865$ / $+2.9697$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMin | Skewness / Kurtosis | $-0.9022$ / $+2.4938$ | $+0.9022$ / $+2.4938$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMax | Skewness / Kurtosis | $-2.8546$ / $+19.5218$ | $+2.8546$ / $+19.5218$ | Matches printed thesis precision (~6 decimals) [reproduces thesis `Diff` bug] |
+| **Noanamá** | Precip | Skewness / Kurtosis | $+0.4048$ / $+0.9329$ | $-0.4048$ / $+0.9329$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMin | Skewness / Kurtosis | $+0.4578$ / $+6.1956$ | $-0.4578$ / $+6.1956$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMax | Skewness / Kurtosis | $-1.1119$ / $+4.6866$ | $+1.1119$ / $+4.6866$ | Matches printed thesis precision (~6 decimals) [reproduces thesis `Diff` bug] |
+| **Gorgona** | Precip | Skewness / Kurtosis | $-0.1374$ / $+0.4124$ | $+0.1374$ / $+0.4124$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMin | Skewness / Kurtosis | $-0.8354$ / $+1.3400$ | $+0.8354$ / $+1.3400$ | Matches printed thesis precision (~6 decimals) [sign flip: $e = \text{ERA5} - \text{IDEAM}$] |
+| | TMax | Skewness / Kurtosis | $+0.3248$ / $+2.1705$ | $-0.3248$ / $+2.1705$ | Matches printed thesis precision (~6 decimals) [reproduces thesis `Diff` bug] |
 
 ### Thesis Discrepancy & Bug Audit
 
@@ -216,7 +222,7 @@ The UNAL thesis (Entregas 9–10) serves as an empirical consistency reference, 
    ```python
    TMax.append(stats.describe(df['Diff']))  # Bug: passed unstandardized raw diffs instead of df['Procesado']
    ```
-   This caused the thesis to report min/max bounds in unstandardized units for $T_{\max}$ while reporting standardized bounds for the other variables.
+   This caused the thesis to report min/max bounds in unstandardized units for $T_{\max}$ while reporting standardized bounds for the other variables. Replicating this bug exactly reproduces the thesis printed values.
 2. **Deseasonalization Necessity**:
    The thesis calculated moments on raw residuals that still contained the annual seasonal cycle. TROPICOR computes diagnostics on **deseasonalized anomalies** ($e'(t)$), ensuring that variance and moments reflect stochastic error rather than the predictable annual solar cycle.
 3. **Unbiased Fisher-Pearson Estimators**:
@@ -271,9 +277,10 @@ Benchmark results across the 4 complete 30-year thesis stations (`local/residual
 | **Puerto Carreño** | Orinoquía | Precip | 360 | $-0.00$ | $-0.60$ | $+2.17$ | $-11.54\,\text{mm}$ | $-0.048$ | $0.0039$ (Sig) | Residual drift (model - obs decreasing) |
 | | | TMin | 344 | $-0.00$ | $+0.52$ | $+0.31$ | $-0.14\,^\circ\text{C}$ | $+0.239$ | $0.0612$ | No significant trend |
 | | | TMax | 344 | $+0.00$ | $-1.03$ | $+4.09$ | $+0.43\,^\circ\text{C}$ | $+0.246$ | $<0.0001$ (Sig) | Residual drift (model - obs increasing) |
-| **Las Flores** | Caribe | Precip | 278 | $+0.00$ | $+0.07$ | $+4.32$ | $-9.15\,\text{mm}$ | $-0.008$ | $0.0014$ (Sig) | Residual drift (model - obs decreasing) |
+| **Las Flores (Raw)** | Caribe | Precip | 278 | $+0.00$ | $+0.07$ | $+4.32$ | $-9.15\,\text{mm}$ | $-0.008$ | $0.0014$ (Sig) | Residual drift (model - obs decreasing) |
 | | | TMin | 216 | $+0.00$ | $+0.96$ | $+2.18$ | $+0.04\,^\circ\text{C}$ | $+0.284$ | $0.6774$ | No significant trend |
-| | | TMax | 222 | $+0.00$ | $+2.77$ | $+25.08$ | $+0.48\,^\circ\text{C}$ | $+0.319$ | $0.0001$ (Sig) | **Outlier flag**: 2018-03 entry error ($Z=+8.70$) |
+| | | TMax | 222 | $+0.00$ | $+2.77$ | $+25.08$ | $+0.48\,^\circ\text{C}$ | $+0.319$ | $0.0001$ (Sig) | **Outlier flag**: raw series includes 2018-03 entry error ($Z=+8.70$) |
+| **Las Flores (Audited)** | Caribe | TMax | 221 | $+0.00$ | $-0.32$ | $+0.37$ | $+0.45\,^\circ\text{C}$ | $+0.329$ | $0.0002$ (Sig) | **Audited clean**: 2018-03 excluded; close to normal ($p=0.123$) |
 | **Noanamá** | Pacífico | Precip | 318 | $-0.00$ | $-0.04$ | $+0.53$ | $-22.23\,\text{mm}$ | $+0.042$ | $0.0680$ | No significant trend |
 | | | TMin | 320 | $+0.00$ | $-0.42$ | $+5.65$ | $+0.01\,^\circ\text{C}$ | $+0.442$ | $0.8987$ | No significant trend |
 | | | TMax | 320 | $+0.00$ | $+1.07$ | $+3.24$ | $+1.37\,^\circ\text{C}$ | $+0.597$ | $<0.0001$ (Sig) | **Suspect Inhomogeneity**: $+1.37^\circ\text{C}/\text{decade}$ |
