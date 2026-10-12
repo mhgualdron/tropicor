@@ -97,9 +97,10 @@ graph TD
 │                        RELEASE SCHEDULE (Q4 2026 – Q2 2027)                            │
 ├──────────────┬───────────────────────────────┬─────────────────────────────────────────┤
 │ Sprints 1–3  │ MVP Phase (v0.1.1)            │ October 2026 (Completed & Released)     │
-│ Sprints 4–6  │ Foundation & Dataviz Phase    │ Oct – Nov 2026 (Release v0.1.3 post S6) │
-│ Sprints 7–8  │ Diagnostics & Bias Correction │ December 2026 – January 2027 (v0.2.0)   │
-│ Sprints 9–11 │ ML Downscaling & Suite Phase  │ February – June 2027 (v0.3.0)           │
+│ Sprints 4–6  │ Foundation & Dataviz Phase    │ October 2026 (Completed & Released)     │
+│ Sprint 7     │ Residual Diagnostics & Drift  │ October 2026 (Completed & Released)     │
+│ Sprint 8     │ Statistical Bias Correction   │ January 2027 (v0.2.0 Milestone)         │
+│ Sprints 9–11 │ ML Downscaling & Suite Phase  │ February – June 2027 (v0.3.0 Milestone) │
 └──────────────┴───────────────────────────────┴─────────────────────────────────────────┘
 ```
 
@@ -202,7 +203,7 @@ graph TD
 * **Commit Convention**: `feat(core): implement diurnal temperature range, temporal alignment, and quickstart tutorial`
 * **Version**: `0.1.3`
 
-#### Sprint 6 (October – November 2026): Data Visualization & Station Maps
+#### Sprint 6 (October 2026 — Completed & Released): Data Visualization & Station Maps
 * **Goal**: Build publication-grade data visualization and spatial station mapping tools for climatological curves, thermal range multi-panels, and Colombian station maps with error metric markers (avoiding heavy GIS dependencies; stack chosen via discovery spike).
 * **Files Created / Modified**:
   - `tropicor/viz/__init__.py`: Package entry point for visualization modules.
@@ -217,17 +218,21 @@ graph TD
 * **Commit Convention**: `feat(viz): implement station mapping and climatological visualization suite`
 * **Version**: `0.1.3` (Official Release)
 
-#### Sprint 7 (December 2026): Standardized Residual Diagnostics & Normality Analysis
-* **Goal**: Migrate statistical moment tracking (skewness, kurtosis) and normality assessment from thesis notebooks 9 and 10.
+#### Sprint 7 (October 2026 — Completed & Released): Standardized Residual Diagnostics & Trend Drift
+* **Goal**: Implement residual moment tracking (skewness, kurtosis), normality testing, and trend drift via Hamed-Rao modified Mann-Kendall with serial autocorrelation diagnostics.
 * **Files Created / Modified**:
-  - `tropicor/core/diagnostics.py`: `standardize_residuals()`, `compute_distribution_moments()`, and `shapiro_normality_test()`.
-  - `tests/test_core/test_diagnostics.py`: Tests moment calculation against `scipy.stats.describe`.
+  - `tropicor/core/diagnostics.py`: `standardize_residuals()`, `compute_distribution_moments()`, `shapiro_normality_test()`, `deseasonalized_anomalies()`, and `deseasonalized_mann_kendall_test()`.
+  - `tests/test_core/test_diagnostics.py`: 26 comprehensive unit and integration tests including Monte Carlo calibration and pymannkendall parity.
+  - `scripts/calibrate_mann_kendall.py`: Reproducible Monte Carlo empirical parameter and power calibration suite.
+  - `examples/validate_residual_diagnostics.py`: Real station verification with station inhomogeneity screening.
+  - `docs/guides/residual-diagnostics.md`: Complete mathematical guide, Monte Carlo sweeps, and thesis audit notes.
 * **Acceptance Criteria**:
   - Standardizes residuals to zero mean and unit variance ($Z = \frac{e - \bar{e}}{\sigma}$).
-  - Verifies thesis finding: flat lowland stations show Gaussian error distributions ($p > 0.05$), while Andean stations exhibit extreme skewness and kurtosis due to unresolved topography.
-  - Deseasonalized Mann-Kendall test detects thermal instrumentation drift.
-* **Commit Convention**: `feat(core): implement residual standardization and distribution diagnostics`
-* **Version**: `0.1.4`
+  - Audits distribution moments: documents Shapiro-Wilk oversensitivity at $N \ge 120$ and screens real station outliers (e.g., Las Flores 2018 record).
+  - Deseasonalized Mann-Kendall test with Hamed-Rao correction ($k=3$), reporting lag-1 autocorrelation and warning on $\phi > 0.70$.
+  - PyPI release `v0.1.4` published and installable via `pip install tropicor==0.1.4`.
+* **Commit Convention**: `feat(core): implement residual diagnostics, moments, and Hamed-Rao trend drift (Sprint 7)`
+* **Version**: `0.1.4` (Official Release)
 
 #### Sprint 8 (January 2027): Classical Bias Correction (Quantile Mapping & Linear Scaling)
 * **Goal**: Implement statistical bias correction (Empirical Quantile Mapping and Linear Scaling); release v0.2.0.
