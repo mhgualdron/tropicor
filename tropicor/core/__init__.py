@@ -1,6 +1,12 @@
 """Core scientific validation metrics and statistical algorithms."""
 
 from tropicor.core.alignment import align_common_period
+from tropicor.core.bias import (
+    EmpiricalQuantileMapping,
+    LinearScalingCorrection,
+    linear_scale_series,
+    quantile_map_series,
+)
 from tropicor.core.climatology import (
     annual_cycle_amplitude,
     annual_cycle_peaks,
@@ -31,6 +37,8 @@ from tropicor.core.metrics import (
 
 __all__ = [
     "DistributionMoments",
+    "EmpiricalQuantileMapping",
+    "LinearScalingCorrection",
     "ResidualDiagnosticsReport",
     "TrendDiagnostics",
     "ValidationReport",
@@ -49,5 +57,7 @@ __all__ = [
     "compute_monthly_extreme_range",
     "compute_residual_diagnostics",
     "compute_validation_metrics",
+    "linear_scale_series",
+    "quantile_map_series",
     "standardize_residuals",
 ]
