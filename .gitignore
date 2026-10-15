@@ -221,6 +221,7 @@ __marimo__/
 
 # Local user test files
 local/
+scratch/
 
 # Climate data files and CDS credentials
 .cdsapirc
