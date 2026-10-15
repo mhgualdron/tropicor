@@ -20,7 +20,9 @@ import xarray as xr
 
 from tropicor.io.ideam import (
     DhimeDailyPrecipitationAdapter,
+    DhimeDailyTemperatureAdapter,
     read_dhime_daily_precipitation,
+    read_dhime_daily_temperature,
 )
 
 
@@ -215,3 +217,165 @@ def test_read_from_csv_file(tmp_path: Path, synthetic_dhime_df: pd.DataFrame) ->
     assert isinstance(ds, xr.Dataset)
     assert len(ds.time) == 6
     assert ds["station"].values[0] == "21205710"
+
+
+def test_dhime_daily_temperature_separate_tables():
+    """Verify DhimeDailyTemperatureAdapter with separate Tmax and Tmin inputs."""
+    records_max = [
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura máxima",
+            "Fecha": "2020-01-01",
+            "Unidad": "°C",
+            "Valor": 24.5,
+            "NivelAprobacion": "Definitivo",
+        },
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura máxima",
+            "Fecha": "2020-01-02",
+            "Unidad": "°C",
+            # Excel date coercion: 21.8 °C -> 21-Aug
+            "Valor": datetime(2026, 8, 21, 0, 0),
+            "NivelAprobacion": "Definitivo",
+        },
+        # 2020-01-03 missing
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura máxima",
+            "Fecha": "2020-01-04",
+            "Unidad": "°C",
+            "Valor": -9999.0,  # Sentinel -> NaN
+            "NivelAprobacion": "Definitivo",
+        },
+    ]
+
+    records_min = [
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura mínima",
+            "Fecha": "2020-01-01",
+            "Unidad": "°C",
+            "Valor": 10.2,
+            "NivelAprobacion": "Definitivo",
+        },
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura mínima",
+            "Fecha": "2020-01-02",
+            "Unidad": "°C",
+            "Valor": 9.8,
+            "NivelAprobacion": "Preliminar",
+        },
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura mínima",
+            "Fecha": "2020-01-04",
+            "Unidad": "°C",
+            "Valor": 11.0,
+            "NivelAprobacion": "Definitivo",
+        },
+    ]
+
+    df_max = pd.DataFrame(records_max)
+    df_min = pd.DataFrame(records_min)
+
+    ds = read_dhime_daily_temperature(df_max, filepath_min=df_min)
+
+    # 4 days total (2020-01-01 to 2020-01-04)
+    assert len(ds.time) == 4
+    assert set(ds.data_vars.keys()) == {
+        "tasmax",
+        "tasmin",
+        "quality_flag_max",
+        "quality_flag_min",
+    }
+
+    # Day 1
+    assert ds["tasmax"].sel(time="2020-01-01").values[0] == pytest.approx(24.5)
+    assert ds["tasmin"].sel(time="2020-01-01").values[0] == pytest.approx(10.2)
+    assert ds["quality_flag_max"].sel(time="2020-01-01").values[0] == "Definitivo"
+
+    # Day 2: Excel repaired
+    assert ds["tasmax"].sel(time="2020-01-02").values[0] == pytest.approx(21.8)
+    assert ds["tasmin"].sel(time="2020-01-02").values[0] == pytest.approx(9.8)
+
+    # Day 3: Missing in both -> NaN and Faltante
+    assert np.isnan(float(ds["tasmax"].sel(time="2020-01-03").values[0]))
+    assert np.isnan(float(ds["tasmin"].sel(time="2020-01-03").values[0]))
+    assert ds["quality_flag_max"].sel(time="2020-01-03").values[0] == "Faltante"
+
+    # Day 4: Sentinel -9999 -> NaN
+    assert np.isnan(float(ds["tasmax"].sel(time="2020-01-04").values[0]))
+    assert ds["tasmin"].sel(time="2020-01-04").values[0] == pytest.approx(11.0)
+
+    # CF attributes
+    assert ds["tasmax"].attrs["standard_name"] == "air_temperature"
+    assert ds["tasmax"].attrs["units"] == "degC"
+    assert ds["tasmin"].attrs["standard_name"] == "air_temperature"
+    assert ds["tasmin"].attrs["units"] == "degC"
+    assert "date_convention" in ds.attrs
+    assert "05:00 UTC" in ds.attrs["date_convention"]
+    assert "00–24 UTC is statistically equivalent" in ds.attrs["date_convention"]
+
+
+def test_dhime_daily_temperature_combined_table():
+    """Verify combined table with Parametro matching max and min."""
+    records = [
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura máxima diaria",
+            "Fecha": "2020-01-01",
+            "Unidad": "°C",
+            "Valor": 22.0,
+            "NivelAprobacion": "Definitivo",
+        },
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "TEMPERATURA",
+            "Parametro": "Temperatura mínima diaria",
+            "Fecha": "2020-01-01",
+            "Unidad": "°C",
+            "Valor": 12.0,
+            "NivelAprobacion": "Definitivo",
+        },
+    ]
+    df_combined = pd.DataFrame(records)
+    adapter = DhimeDailyTemperatureAdapter(df_combined)
+    ds = adapter.to_xarray()
+    assert ds["tasmax"].sel(time="2020-01-01").values[0] == pytest.approx(22.0)
+    assert ds["tasmin"].sel(time="2020-01-01").values[0] == pytest.approx(12.0)
+
+
+def test_dhime_daily_temperature_unrecognized_params_raises_informative_error():
+    """When parameters cannot be distinguished, raise ValueError with details."""
+    records = [
+        {
+            "CodigoEstacion": 21205710,
+            "NombreEstacion": "JARDIN BOTANICO - AUT",
+            "Variable": "PRECIPITACION",
+            "Parametro": "Día pluviométrico (convencional)",
+            "Fecha": "2020-01-01",
+            "Unidad": "mm",
+            "Valor": 5.0,
+        }
+    ]
+    df = pd.DataFrame(records)
+    with pytest.raises(ValueError, match="Could not distinguish Tmax and Tmin records"):
+        read_dhime_daily_temperature(df)
+
