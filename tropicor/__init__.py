@@ -5,6 +5,12 @@ of global climate reanalyses across tropical complex terrains.
 """
 
 from tropicor.core.alignment import align_common_period
+from tropicor.core.bias import (
+    EmpiricalQuantileMapping,
+    LinearScalingCorrection,
+    linear_scale_series,
+    quantile_map_series,
+)
 from tropicor.core.climatology import (
     annual_cycle_amplitude,
     annual_cycle_peaks,
@@ -41,8 +47,15 @@ from tropicor.downscale.orography import (
     compute_elevation_offset,
     lapse_rate_temperature_correction,
 )
-from tropicor.io.era5 import ERA5Adapter
-from tropicor.io.ideam import IdeamAdapter
+from tropicor.io.era5 import (
+    ERA5Adapter,
+    aggregate_hourly_to_daily_precipitation,
+)
+from tropicor.io.ideam import (
+    DhimeDailyPrecipitationAdapter,
+    IdeamAdapter,
+    read_dhime_daily_precipitation,
+)
 from tropicor.io.stations import (
     BENCHMARK_STATIONS,
     NaturalRegion,
@@ -55,9 +68,14 @@ __version__ = "0.1.4"
 __all__ = [
     "BENCHMARK_STATIONS",
     "DRY_ADIABATIC_LAPSE_RATE",
+    "DhimeDailyPrecipitationAdapter",
     "DistributionMoments",
     "ERA5Adapter",
+    "aggregate_hourly_to_daily_precipitation",
+    "EmpiricalQuantileMapping",
     "IdeamAdapter",
+    "read_dhime_daily_precipitation",
+    "LinearScalingCorrection",
     "MOIST_ADIABATIC_LAPSE_RATE",
     "NaturalRegion",
     "ResidualDiagnosticsReport",
@@ -85,6 +103,8 @@ __all__ = [
     "compute_residual_diagnostics",
     "compute_validation_metrics",
     "lapse_rate_temperature_correction",
+    "linear_scale_series",
+    "quantile_map_series",
     "standardize_residuals",
     "taylor_statistics",
 ]
