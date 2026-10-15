@@ -2,8 +2,9 @@
 
 import importlib.util
 import warnings
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Sequence, Union
+from typing import Any, Dict, List, Literal, Optional, Sequence, Union
 
 import pandas as pd
 import xarray as xr
@@ -11,6 +12,71 @@ import xarray as xr
 from tropicor.io.stations import StationMetadata
 
 STANDARD_GRAVITY: float = 9.80665
+
+
+@dataclass(frozen=True)
+class VariableAggregationConvention:
+    """Temporal aggregation convention for a meteorological variable."""
+
+    variable: str
+    window_start_utc: int
+    lag_days: int
+    description: str
+    date_convention: str
+    scope: str
+
+
+VARIABLE_CONVENTIONS: Dict[str, VariableAggregationConvention] = {
+    "precipitation": VariableAggregationConvention(
+        variable="precipitation",
+        window_start_utc=12,
+        lag_days=0,
+        description="12:00–12:00 UTC (07:00–07:00 local time), Lag 0",
+        date_convention=(
+            "DHIME date D = accumulation 07:00 local D → 07:00 local D+1 "
+            "(12:00–12:00 UTC); confirmed empirically (lag 0, 2 stations, "
+            "non-overlapping 95% CI)"
+        ),
+        scope="2 stations (21205710 1975–2015, 23215030 1975–2000)",
+    ),
+    "temperature": VariableAggregationConvention(
+        variable="temperature",
+        window_start_utc=5,
+        lag_days=0,
+        description="05:00–05:00 UTC (00:00–24:00 local time, local civil day), Lag 0",
+        date_convention=(
+            "DHIME date D = extreme temperatures 00:00–24:00 local D "
+            "(05:00 UTC D → 05:00 UTC D+1); confirmed empirically (lag 0, "
+            "2 stations, 1990–1994; 00–24 UTC is statistically equivalent)"
+        ),
+        scope=(
+            "2 stations (21205710, 23215030), 1990–1994; "
+            "00–24 UTC is statistically equivalent"
+        ),
+    ),
+}
+
+
+def get_variable_convention(variable: str) -> VariableAggregationConvention:
+    """Retrieve temporal aggregation convention for a meteorological variable.
+
+    Args:
+        variable: Variable name or alias (e.g. 'precipitation', 'tp',
+            'temperature', 't2m').
+
+    Returns:
+        VariableAggregationConvention with window_start_utc, lag_days,
+        date_convention, and scope.
+    """
+    key = variable.lower().strip()
+    if "precip" in key or key in ("tp", "rain", "pr"):
+        return VARIABLE_CONVENTIONS["precipitation"]
+    if "temp" in key or key in ("t2m", "tmax", "tmin"):
+        return VARIABLE_CONVENTIONS["temperature"]
+    raise KeyError(
+        f"No temporal convention configured for variable '{variable}'. "
+        f"Available: {list(VARIABLE_CONVENTIONS.keys())}"
+    )
 
 
 class ERA5Adapter:
@@ -201,12 +267,26 @@ class ERA5Adapter:
 
         var_lower = var.lower()
         candidates: List[str] = []
-        if var_lower in {"t2m", "temp", "temperature", "temperatura"}:
-            candidates = ["t2m", "2t", "temperature"]
-        elif var_lower in {"tp", "precip", "precipitation", "precipitacion"}:
+        if var_lower in {
+            "t2m",
+            "2m_temperature",
+            "temp",
+            "temperature",
+            "temperatura",
+        }:
+            candidates = ["t2m", "2t", "2m_temperature", "temperature"]
+        elif var_lower in {
+            "tp",
+            "precip",
+            "precipitation",
+            "precipitacion",
+            "total_precipitation",
+        }:
             candidates = ["tp", "total_precipitation", "precipitation"]
         elif var_lower in {"z", "geopotential", "elevation"}:
             candidates = ["z", "geopotential"]
+        elif var_lower in {"lsm", "land_sea_mask", "mask"}:
+            candidates = ["lsm", "land_sea_mask"]
 
         for cand in candidates:
             if cand in self._ds.data_vars:
@@ -251,7 +331,10 @@ class ERA5Adapter:
         else:
             units_str = str(units).strip().lower()
             # Temperature conversions
-            if var_name in {"t2m", "2t"} or "temp" in variable.lower():
+            if (
+                var_name in {"t2m", "2t", "2m_temperature"}
+                or "temp" in variable.lower()
+            ):
                 if units_str in {"k", "kelvin"}:
                     da = da - 273.15
                 elif units_str in {"c", "°c", "celsius"}:
@@ -459,6 +542,104 @@ class ERA5Adapter:
         elevation_meters = float(z_val.values) / STANDARD_GRAVITY
         return round(elevation_meters, 2)
 
+    def get_land_sea_mask(
+        self,
+        latitude: float,
+        longitude: float,
+        method: str = "nearest",
+    ) -> Optional[float]:
+        """Extract land-sea mask proportion [0, 1] at given coordinates.
+
+        Returns None if variable 'lsm' or 'land_sea_mask' is not present in dataset.
+        """
+        try:
+            lsm_var = self._resolve_variable_name("lsm")
+        except KeyError:
+            return None
+
+        ds_pt = self.extract_point(latitude, longitude, method=method)
+        lsm_val = ds_pt[lsm_var]
+        if "time" in lsm_val.dims:
+            lsm_val = lsm_val.mean(dim="time")
+        return round(float(lsm_val.values), 4)
+
+    def get_daily_temperature(
+        self,
+        latitude: float,
+        longitude: float,
+        method: str = "nearest",
+        window_start_utc: int = 5,
+        min_hours: int = 24,
+        lag_days: int = 0,
+        convert_to_celsius: bool = True,
+        closed: Optional[Literal["left", "right"]] = None,
+    ) -> pd.DataFrame:
+        """Extract daily temperature series (tmax, tmin, tmean) at coordinates.
+
+        Aggregates hourly temperature over a configurable 24h window (default:
+        05:00 UTC D to 05:00 UTC D+1, corresponding to local civil day 00:00-24:00
+        UTC-5 in Colombia), converting Kelvin to Celsius and masking incomplete
+        days with NaN.
+
+        Args:
+            latitude: Target latitude in decimal degrees.
+            longitude: Target longitude in decimal degrees.
+            method: Spatial extraction method ('nearest' or 'bilinear').
+            window_start_utc: Starting hour of the 24h window in UTC (default 5).
+            min_hours: Minimum number of valid hours required per day (default 24).
+            lag_days: Optional lag offset in days (default 0).
+            convert_to_celsius: If True, converts Kelvin to Celsius (T - 273.15).
+            closed: Resample boundary definition ('left' or 'right').
+
+        Returns:
+            pd.DataFrame with columns ['tmax', 'tmin', 'tmean'] indexed by calendar
+            date (freq='D').
+        """
+        var_name = self._resolve_variable_name("t2m")
+        ds_pt = self.extract_point(latitude, longitude, method=method)
+        da = ds_pt[var_name]
+
+        if "step" in da.dims:
+            da = da.mean(dim="step")
+        if "surface" in da.dims:
+            da = da.squeeze("surface")
+        if "number" in da.dims:
+            da = da.isel(number=0)
+
+        s_hourly = da.to_series()
+        s_hourly.index = pd.DatetimeIndex(s_hourly.index)
+
+        return aggregate_hourly_to_daily_temperature(
+            s_hourly,
+            window_start_utc=window_start_utc,
+            min_hours=min_hours,
+            lag_days=lag_days,
+            convert_to_celsius=convert_to_celsius,
+            closed=closed,
+        )
+
+    def get_station_daily_temperature(
+        self,
+        station: StationMetadata,
+        method: str = "nearest",
+        window_start_utc: int = 5,
+        min_hours: int = 24,
+        lag_days: int = 0,
+        convert_to_celsius: bool = True,
+        closed: Optional[Literal["left", "right"]] = None,
+    ) -> pd.DataFrame:
+        """Extract daily temperature DataFrame collocated at station coordinates."""
+        return self.get_daily_temperature(
+            latitude=station.latitude,
+            longitude=station.longitude,
+            method=method,
+            window_start_utc=window_start_utc,
+            min_hours=min_hours,
+            lag_days=lag_days,
+            convert_to_celsius=convert_to_celsius,
+            closed=closed,
+        )
+
     def close(self) -> None:
         """Close the underlying NetCDF dataset handles."""
         self._ds.close()
@@ -515,3 +696,100 @@ def aggregate_hourly_to_daily_precipitation(
 
     resampled.name = "pr"
     return resampled
+
+
+def aggregate_hourly_to_daily_temperature(
+    hourly_series: pd.Series,
+    window_start_utc: int = 5,
+    min_hours: int = 24,
+    lag_days: int = 0,
+    convert_to_celsius: bool = True,
+    closed: Optional[Literal["left", "right"]] = None,
+) -> pd.DataFrame:
+    """Aggregate hourly temperature to daily Tmax, Tmin, and Tmean.
+
+    Converts values from Kelvin to Celsius (T_C = T_K - 273.15) if needed, computes
+    maximum, minimum, and mean temperature over the specified 24-hour window, and
+    strictly masks incomplete days (< min_hours valid observations) with NaN.
+
+    Args:
+        hourly_series: Hourly temperature series with DatetimeIndex in UTC.
+        window_start_utc: Starting hour of the 24h window in UTC (default 5 for
+            05:00-05:00 UTC local civil day; 0 for 00:00-24:00 UTC;
+            12 for 12:00-12:00 UTC).
+        min_hours: Minimum number of valid hours required in the 24h window
+            (default 24). Days with fewer valid hours have NaN for extremes and mean.
+        lag_days: Lag offset in days (default 0). Positive shifts values forward,
+            negative backward.
+        convert_to_celsius: If True (default), converts from Kelvin to Celsius.
+            Values are checked to avoid double conversion if already in Celsius.
+        closed: Interval boundary definition for resample: 'left' or 'right'.
+            If None, defaults to 'left' for window_start_utc in (0, 5) and 'right' for
+            window_start_utc == 12.
+
+    Returns:
+        pd.DataFrame with columns ['tmax', 'tmin', 'tmean'] indexed by calendar
+        date (freq='D') in °C.
+    """
+    if not isinstance(hourly_series.index, pd.DatetimeIndex):
+        raise ValueError("hourly_series must have a pandas DatetimeIndex.")
+
+    s = hourly_series.copy()
+
+    # Convert K to °C
+    if convert_to_celsius:
+        valid_vals = s.dropna()
+        if not valid_vals.empty:
+            if float(valid_vals.median()) > 100.0:
+                s = s - 273.15
+            else:
+                warnings.warn(
+                    "Temperature series appears to be already in Celsius "
+                    "(median <= 100). Skipping Kelvin-to-Celsius conversion.",
+                    UserWarning,
+                    stacklevel=2,
+                )
+        else:
+            s = s - 273.15
+
+    resample_closed: Literal["left", "right"] = (
+        closed
+        if closed is not None
+        else ("left" if window_start_utc in (0, 5) else "right")
+    )
+
+    grouper = s.resample(
+        "24h",
+        offset=f"{window_start_utc}h",
+        closed=resample_closed,
+        label="left",
+    )
+
+    tmax = grouper.max()
+    tmin = grouper.min()
+    tmean = grouper.mean()
+    counts = grouper.count()
+
+    # Mask days with fewer than min_hours valid readings with NaN
+    mask = counts < min_hours
+    tmax = tmax.mask(mask)
+    tmin = tmin.mask(mask)
+    tmean = tmean.mask(mask)
+
+    df = pd.DataFrame(
+        {
+            "tmax": tmax,
+            "tmin": tmin,
+            "tmean": tmean,
+        }
+    )
+
+    dt_index = pd.DatetimeIndex(df.index)
+    df.index = dt_index.normalize()
+    df = df.asfreq("D")
+
+    if lag_days != 0:
+        df = df.shift(lag_days)
+
+    return df
+

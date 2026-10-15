@@ -12,6 +12,7 @@ from scripts.compare_era5_ideam_daily import (
 from tropicor.io.era5 import (
     ERA5Adapter,
     aggregate_hourly_to_daily_precipitation,
+    aggregate_hourly_to_daily_temperature,
 )
 
 
@@ -157,4 +158,185 @@ def test_synthetic_ideam_convention_spikes():
     assert daily2.loc["2025-07-02"] == pytest.approx(18.0)
     assert daily2.loc["2025-07-01"] == pytest.approx(0.0)
     assert daily2.loc["2025-07-03"] == pytest.approx(0.0)
+
+
+def test_aggregate_hourly_to_daily_temperature_kelvin_conversion():
+    """Verify that Kelvin is properly converted to Celsius with Tmax, Tmin, Tmean."""
+    # 72 hours from 2025-07-01 00:00 to 2025-07-03 23:00
+    times = pd.date_range("2025-07-01 00:00", "2025-07-03 23:00", freq="1h")
+    # Base temp in Kelvin: 273.15 + 20.0 = 293.15 K (20 °C)
+    s_k = pd.Series(293.15, index=times)
+
+    # For 2025-07-02 12:00 to 2025-07-03 12:00 (Day 2025-07-02 in 12-12 window):
+    # Set maximum spike at 15:00 UTC: 303.15 K (30.0 °C)
+    # Set minimum dip at 06:00 UTC (07-03): 288.15 K (15.0 °C)
+    s_k.loc["2025-07-02 15:00"] = 303.15
+    s_k.loc["2025-07-03 06:00"] = 288.15
+
+    daily_df = aggregate_hourly_to_daily_temperature(
+        s_k, window_start_utc=12, min_hours=24, convert_to_celsius=True
+    )
+
+    assert isinstance(daily_df, pd.DataFrame)
+    assert list(daily_df.columns) == ["tmax", "tmin", "tmean"]
+
+    # Day 2025-07-02 has full 24h
+    d2 = daily_df.loc["2025-07-02"]
+    assert d2["tmax"] == pytest.approx(30.0)
+    assert d2["tmin"] == pytest.approx(15.0)
+    # 22 hours at 20 °C + 1 at 30 °C + 1 at 15 °C = 485 / 24 ≈ 20.208 °C
+    assert d2["tmean"] == pytest.approx((22 * 20.0 + 30.0 + 15.0) / 24.0)
+
+    # Incomplete boundary days should be NaN
+    assert pd.isna(daily_df.loc["2025-06-30", "tmax"])
+    assert pd.isna(daily_df.loc["2025-07-03", "tmax"])
+
+
+def test_aggregate_hourly_to_daily_temperature_masking():
+    """Verify that days with fewer than min_hours valid observations mask to NaN."""
+    times = pd.date_range("2025-07-01 12:00", "2025-07-02 12:00", freq="1h")
+    s = pd.Series(295.15, index=times)  # 22 °C
+    # Inject 3 NaNs -> 21 valid hours < 24
+    s.iloc[3:6] = np.nan
+
+    # With min_hours=24 -> all NaN
+    df_strict = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=12, min_hours=24
+    )
+    assert pd.isna(df_strict.loc["2025-07-01", "tmax"])
+    assert pd.isna(df_strict.loc["2025-07-01", "tmin"])
+    assert pd.isna(df_strict.loc["2025-07-01", "tmean"])
+
+    # With min_hours=20 -> valid values computed
+    df_relaxed = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=12, min_hours=20
+    )
+    assert df_relaxed.loc["2025-07-01", "tmax"] == pytest.approx(22.0)
+    assert df_relaxed.loc["2025-07-01", "tmin"] == pytest.approx(22.0)
+    assert df_relaxed.loc["2025-07-01", "tmean"] == pytest.approx(22.0)
+
+
+def test_aggregate_hourly_to_daily_temperature_windows_and_lags():
+    """Verify configurable windows (00-24 UTC vs 12-12 UTC) and lag shifts."""
+    times = pd.date_range("2025-07-01 00:00", "2025-07-04 23:00", freq="1h")
+    s = pd.Series(290.15, index=times)  # 17 °C
+    # Spike at 2025-07-02 02:00 UTC (00-24 window of day 2, but 12-12 window of day 1)
+    s.loc["2025-07-02 02:00"] = 305.15  # 32 °C
+
+    # Window 00-24 UTC (calendar day UTC)
+    df_win0 = aggregate_hourly_to_daily_temperature(s, window_start_utc=0, min_hours=24)
+    assert df_win0.loc["2025-07-02", "tmax"] == pytest.approx(32.0)
+    assert df_win0.loc["2025-07-01", "tmax"] == pytest.approx(17.0)
+
+    # Window 12-12 UTC (07-01 12:00 to 07-02 12:00 maps to day 07-01)
+    df_win12 = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=12, min_hours=24
+    )
+    assert df_win12.loc["2025-07-01", "tmax"] == pytest.approx(32.0)
+    assert df_win12.loc["2025-07-02", "tmax"] == pytest.approx(17.0)
+
+    # Window 05-05 UTC (local civil day 00:00 to 24:00 local;
+    # 07-02 02:00 UTC is 07-01 21:00 local)
+    df_win5 = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=5, min_hours=24
+    )
+    assert df_win5.loc["2025-07-01", "tmax"] == pytest.approx(32.0)
+    assert df_win5.loc["2025-07-02", "tmax"] == pytest.approx(17.0)
+
+    # Lag test
+    df_lag1 = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=0, min_hours=24, lag_days=1
+    )
+    # Shifted forward: spike on 2025-07-02 now appears on 2025-07-03
+    assert df_lag1.loc["2025-07-03", "tmax"] == pytest.approx(32.0)
+
+
+def test_era5_adapter_get_daily_temperature(tmp_path):
+    """Verify ERA5Adapter extracts daily temperature (Tmax, Tmin, Tmean) from NetCDF."""
+    times = pd.date_range("2025-07-01 05:00", "2025-07-03 05:00", freq="1h")
+    lats = [4.5, 4.75]
+    lons = [-74.25, -74.0]
+
+    # Shape: (time, lat, lon) with Kelvin values: 295.15 K = 22.0 °C
+    data = np.full((len(times), len(lats), len(lons)), 295.15, dtype=np.float32)
+
+    ds = xr.Dataset(
+        data_vars={
+            "t2m": (("valid_time", "latitude", "longitude"), data, {"units": "K"}),
+            "lsm": (("latitude", "longitude"), [[0.8, 0.9], [0.85, 0.95]]),
+        },
+        coords={
+            "valid_time": times,
+            "latitude": lats,
+            "longitude": lons,
+        },
+    )
+
+    nc_path = tmp_path / "test_era5_temp.nc"
+    ds.to_netcdf(nc_path)
+
+    with ERA5Adapter(nc_path) as adapter:
+        df_temp = adapter.get_daily_temperature(4.75, -74.0, min_hours=24)
+        assert "tmax" in df_temp.columns
+        assert "tmin" in df_temp.columns
+        assert "tmean" in df_temp.columns
+        assert df_temp.loc["2025-07-01", "tmax"] == pytest.approx(22.0)
+        assert df_temp.loc["2025-07-01", "tmin"] == pytest.approx(22.0)
+        assert df_temp.loc["2025-07-01", "tmean"] == pytest.approx(22.0)
+
+        # Land sea mask
+        lsm_val = adapter.get_land_sea_mask(4.75, -74.0)
+        assert lsm_val == pytest.approx(0.95)
+
+
+def test_synthetic_temperature_civil_day_convention():
+    """Verify maximum at 19 UTC and minimum at 11 UTC on Day D
+    are assigned to Day D (lag 0).
+    """
+    # 05:00 UTC D to 05:00 UTC D+1 defines local civil day D in Colombia (UTC-5)
+    times = pd.date_range("2025-07-01 00:00", "2025-07-04 23:00", freq="1h")
+    s = pd.Series(20.0, index=times)
+
+    # Maximum at 19:00 UTC on day D (2025-07-02 19:00 UTC = 14:00 local time) -> 35.0 °C
+    # Minimum at 11:00 UTC on day D (2025-07-02 11:00 UTC = 06:00 local time) -> 10.0 °C
+    s.loc["2025-07-02 19:00"] = 35.0
+    s.loc["2025-07-02 11:00"] = 10.0
+
+    # Default convention: window_start_utc=5 (05-05 UTC, local civil day), lag_days=0
+    df_daily = aggregate_hourly_to_daily_temperature(
+        s, window_start_utc=5, min_hours=24, lag_days=0, convert_to_celsius=False
+    )
+
+    # Both extreme events must be assigned to Day D (2025-07-02)
+    assert df_daily.loc["2025-07-02", "tmax"] == pytest.approx(35.0)
+    assert df_daily.loc["2025-07-02", "tmin"] == pytest.approx(10.0)
+
+    # Adjacent days should not capture these spikes
+    assert df_daily.loc["2025-07-01", "tmax"] == pytest.approx(20.0)
+    assert df_daily.loc["2025-07-01", "tmin"] == pytest.approx(20.0)
+    assert df_daily.loc["2025-07-03", "tmax"] == pytest.approx(20.0)
+    assert df_daily.loc["2025-07-03", "tmin"] == pytest.approx(20.0)
+
+
+def test_variable_aggregation_conventions_registry():
+    """Verify configured temporal conventions for precipitation and temperature."""
+    from tropicor.io.era5 import get_variable_convention
+
+    precip_conv = get_variable_convention("precipitation")
+    assert precip_conv.window_start_utc == 12
+    assert precip_conv.lag_days == 0
+    assert "12:00–12:00 UTC" in precip_conv.description
+    assert "date_convention" in dir(precip_conv)
+
+    temp_conv = get_variable_convention("temperature")
+    assert temp_conv.window_start_utc == 5
+    assert temp_conv.lag_days == 0
+    assert "05:00–05:00 UTC" in temp_conv.description
+    assert "00–24 UTC is statistically equivalent" in temp_conv.date_convention
+
+    # Aliases
+    assert get_variable_convention("tp").window_start_utc == 12
+    assert get_variable_convention("t2m").window_start_utc == 5
+
+
 
