@@ -153,3 +153,8 @@ def test_corrected_benchmark_station_departments() -> None:
     # Santiago Pérez name encoding
     santiago = catalog["37055010"]
     assert santiago.name == "AEROPUERTO SANTIAGO PÉREZ"
+
+    # AGUAS CLARAS (23215030): Located in Aguachica (Cesar), 134 masl (not Ocaña)
+    aguas_claras = catalog["23215030"]
+    assert aguas_claras.department == "Cesar"
+    assert aguas_claras.municipality == "Aguachica"

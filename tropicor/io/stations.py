@@ -144,6 +144,9 @@ BENCHMARK_STATIONS: List[StationMetadata] = [
         latitude=8.228889,
         longitude=-73.602778,
         elevation=134.0,
+        # Located in Aguachica (Cesar), 134 masl (Magdalena lowlands). Colloquially
+        # associated with Ocaña (Norte de Santander) due to regional airport naming,
+        # but officially registered in Aguachica by IDEAM CNE.
         region=NaturalRegion.ANDINA,
         department="Cesar",
         municipality="Aguachica",
