@@ -20,6 +20,7 @@ Outputs:
     local/reports/temperature_paired_lag_bootstrap.csv
     local/reports/temperature_grid_3x3.csv
     local/reports/temperature_lapse_rate_sensitivity.csv
+    local/reports/temperature_window_diff_bootstrap.csv
 """
 
 from __future__ import annotations
@@ -41,6 +42,9 @@ from tropicor.downscale.orography import (
 )
 from tropicor.io.era5 import ERA5Adapter
 from tropicor.io.ideam import read_dhime_daily_temperature
+
+# Fixed seed for the paired window-difference bootstrap (recorded in the output).
+WINDOW_DIFF_SEED = 42
 
 
 def compute_bootstrap_ci(
@@ -125,6 +129,51 @@ def block_bootstrap_corr_diff(
     return round(mean_diff, 4), round(ci_lower, 4), round(ci_upper, 4)
 
 
+def _safe_pearson(x: np.ndarray, y: np.ndarray) -> float:
+    """Pearson r returning 0.0 for zero-variance inputs."""
+    if np.std(x) < 1e-12 or np.std(y) < 1e-12:
+        return 0.0
+    return float(np.corrcoef(x, y)[0, 1])
+
+
+def block_bootstrap_window_diff(
+    obs: np.ndarray,
+    mod_a: np.ndarray,
+    mod_b: np.ndarray,
+    block_size: int = 30,
+    n_boot: int = 1000,
+    seed: int = WINDOW_DIFF_SEED,
+) -> Tuple[float, float, float]:
+    """Paired difference r(obs, mod_a) - r(obs, mod_b) with block bootstrap CI.
+
+    Both windows are evaluated on the same common sample and the same resampled
+    blocks of ``block_size`` consecutive observations (30-day blocks). The point
+    estimate is computed on the original data (not the bootstrap mean); the CI is
+    the 2.5-97.5 percentile interval of the bootstrap differences.
+
+    Returns:
+        (point_estimate, ci_lower, ci_upper)
+    """
+    n = len(obs)
+    point = _safe_pearson(obs, mod_a) - _safe_pearson(obs, mod_b)
+    if n < block_size:
+        return point, float("nan"), float("nan")
+    rng = np.random.default_rng(seed)
+    n_blocks = int(np.ceil(n / block_size))
+    max_start = max(1, n - block_size)
+    diffs = np.empty(n_boot)
+    for b in range(n_boot):
+        starts = rng.integers(0, max_start, size=n_blocks)
+        idx = np.concatenate([np.arange(s, s + block_size) for s in starts])[:n]
+        o_b = obs[idx]
+        diffs[b] = _safe_pearson(o_b, mod_a[idx]) - _safe_pearson(o_b, mod_b[idx])
+    return (
+        point,
+        float(np.percentile(diffs, 2.5)),
+        float(np.percentile(diffs, 97.5)),
+    )
+
+
 def compute_monthly_anomalies(s: pd.Series) -> pd.Series:
     """Subtract calendar monthly mean from series to yield anomalies."""
     monthly_means = s.groupby(s.index.month).transform("mean")
@@ -155,6 +204,7 @@ def evaluate_single_station(
     audit_lon: float,
     lapse_rate: float = STANDARD_LAPSE_RATE,
 ) -> Tuple[
+    List[Dict[str, Any]],
     List[Dict[str, Any]],
     List[Dict[str, Any]],
     List[Dict[str, Any]],
@@ -202,6 +252,7 @@ def evaluate_single_station(
 
     primary_records: List[Dict[str, Any]] = []
     paired_diff_records: List[Dict[str, Any]] = []
+    window_diff_records: List[Dict[str, Any]] = []
     grid_3x3_records: List[Dict[str, Any]] = []
     sensitivity_records: List[Dict[str, Any]] = []
     seasonal_center_records: List[Dict[str, Any]] = []
@@ -411,6 +462,52 @@ def evaluate_single_station(
                         ),
                     }
                 )
+
+        # 2b. Paired window difference (00-24 UTC vs 05-05 UTC), 30-day block bootstrap
+        for var_key, s_obs in [("Tmax", s_obs_tmax), ("Tmin", s_obs_tmin)]:
+            col = var_key.lower()
+            for lag in candidate_lags:
+                df_w = pd.concat(
+                    [
+                        s_obs.rename("obs"),
+                        daily_dfs[(0, lag)][col].rename("mod_00_24"),
+                        daily_dfs[(5, lag)][col].rename("mod_05_05"),
+                    ],
+                    axis=1,
+                ).dropna()
+                season_idx = df_w.index.map(lambda dt: get_season(dt.month))
+                w_groups = [("Todo", df_w)]
+                for season_name in ["DEF", "MAM", "JJA", "SON"]:
+                    w_groups.append((season_name, df_w[season_idx == season_name]))
+
+                for season_name, df_s in w_groups:
+                    if len(df_s) < 60:
+                        continue
+                    o_arr = df_s["obs"].to_numpy(dtype=float)
+                    a_arr = df_s["mod_00_24"].to_numpy(dtype=float)
+                    b_arr = df_s["mod_05_05"].to_numpy(dtype=float)
+                    point, ci_lo, ci_hi = block_bootstrap_window_diff(
+                        o_arr, a_arr, b_arr, block_size=30, n_boot=1000
+                    )
+                    window_diff_records.append(
+                        {
+                            "station_name": station_name,
+                            "station_id": station_id,
+                            "variable": var_key,
+                            "lag_days": lag,
+                            "season": season_name,
+                            "n_days_common": len(df_s),
+                            "r_00_24": round(_safe_pearson(o_arr, a_arr), 4),
+                            "r_05_05": round(_safe_pearson(o_arr, b_arr), 4),
+                            "delta_r_point (r_00-24 - r_05-05)": round(point, 4),
+                            "ci95_lower": round(ci_lo, 4),
+                            "ci95_upper": round(ci_hi, 4),
+                            "ci_excludes_zero": bool(ci_lo > 0 or ci_hi < 0),
+                            "block_size_days": 30,
+                            "n_boot": 1000,
+                            "seed": WINDOW_DIFF_SEED,
+                        }
+                    )
 
         # 3. 3x3 Grid Neighborhood Analysis & Center Cell Seasonal Breakdown
         station_grid_recs: List[Dict[str, Any]] = []
@@ -673,6 +770,7 @@ def evaluate_single_station(
         grid_3x3_records,
         sensitivity_records,
         seasonal_center_records,
+        window_diff_records,
     )
 
 
@@ -815,6 +913,7 @@ def main() -> None:
     all_grid_3x3: List[Dict[str, Any]] = []
     all_sens: List[Dict[str, Any]] = []
     all_seasonal: List[Dict[str, Any]] = []
+    all_window_diff: List[Dict[str, Any]] = []
     era5_lapse_reports: Dict[str, Any] = {}
 
     for cfg in stations_config:
@@ -843,23 +942,26 @@ def main() -> None:
 
         static_file = Path(cfg["static_file"])
 
-        p_recs, pair_recs, g3_recs, sens_recs, seas_recs = evaluate_single_station(
-            station_id=st_id,
-            station_name=st_name,
-            dhime_ds=ds_dhime,
-            era5_files=era5_files,
-            static_file=static_file,
-            start_date=args.start_date,
-            end_date=args.end_date,
-            audit_elevation=audit_elevation,
-            audit_lat=audit_lat,
-            audit_lon=audit_lon,
+        p_recs, pair_recs, g3_recs, sens_recs, seas_recs, win_recs = (
+            evaluate_single_station(
+                station_id=st_id,
+                station_name=st_name,
+                dhime_ds=ds_dhime,
+                era5_files=era5_files,
+                static_file=static_file,
+                start_date=args.start_date,
+                end_date=args.end_date,
+                audit_elevation=audit_elevation,
+                audit_lat=audit_lat,
+                audit_lon=audit_lon,
+            )
         )
         all_primary.extend(p_recs)
         all_paired.extend(pair_recs)
         all_grid_3x3.extend(g3_recs)
         all_sens.extend(sens_recs)
         all_seasonal.extend(seas_recs)
+        all_window_diff.extend(win_recs)
 
         # Intrinsic lapse rate in ERA5 domain
         lapse_info = compute_era5_spatial_lapse_rate(static_file, era5_files)
@@ -892,6 +994,75 @@ def main() -> None:
     seasonal_csv = reports_dir / "temperature_center_cell_seasonal_biases.csv"
     df_seasonal.to_csv(seasonal_csv, index=False)
     print(f"Reporte estacional de celda central guardado en: {seasonal_csv}")
+
+    df_wdiff = pd.DataFrame(all_window_diff)
+    wdiff_csv = reports_dir / "temperature_window_diff_bootstrap.csv"
+    df_wdiff.to_csv(wdiff_csv, index=False)
+    print(f"Reporte de diferencia pareada entre ventanas guardado en: {wdiff_csv}")
+
+    if not df_wdiff.empty:
+        print("\n" + "=" * 88)
+        print("DIFERENCIA PAREADA ENTRE VENTANAS: r(00-24 UTC) - r(05-05 UTC), IC95%")
+        print(
+            f"Bloques de 30 dias, 1000 replicas, semilla fija = {WINDOW_DIFF_SEED}; "
+            "estimacion puntual sobre los datos originales (no media del bootstrap)"
+        )
+        print("=" * 88)
+        lag0_all = df_wdiff[df_wdiff["lag_days"] == 0]
+        for _, row in lag0_all[lag0_all["season"] == "Todo"].iterrows():
+            print(
+                f"  {row['station_name']} [{row['variable']}] lag 0, Todo: "
+                f"N={row['n_days_common']}, r(00-24)={row['r_00_24']:.4f}, "
+                f"r(05-05)={row['r_05_05']:.4f}, "
+                f"delta_r={row['delta_r_point (r_00-24 - r_05-05)']:+.4f}, "
+                f"IC95% [{row['ci95_lower']:+.4f}, {row['ci95_upper']:+.4f}]"
+            )
+        excl = df_wdiff[df_wdiff["ci_excludes_zero"]]
+        print(
+            f"\nCombinaciones (estacion x variable x lag x temporada) con IC que excluye cero: "
+            f"{len(excl)} de {len(df_wdiff)}"
+        )
+        for _, row in excl.iterrows():
+            print(
+                f"  {row['station_name']} [{row['variable']}] lag {row['lag_days']:+d}, "
+                f"{row['season']}: delta_r={row['delta_r_point (r_00-24 - r_05-05)']:+.4f}, "
+                f"IC95% [{row['ci95_lower']:+.4f}, {row['ci95_upper']:+.4f}]"
+            )
+        max_abs_delta = float(
+            df_wdiff["delta_r_point (r_00-24 - r_05-05)"].abs().max()
+        )
+        max_abs_delta_lag0 = float(
+            lag0_all["delta_r_point (r_00-24 - r_05-05)"].abs().max()
+        )
+        print(f"\nMax |delta_r| (lag 0, todas las temporadas): {max_abs_delta_lag0:.4f}")
+        print(f"Max |delta_r| (todos los lags y temporadas): {max_abs_delta:.4f}")
+
+        # Consistency check against the r values of the primary (unpaired) table.
+        keys = ["station_name", "variable", "lag_days", "season"]
+        prim0 = df_primary[df_primary["window_start_utc"] == 0][keys + ["pearson_r"]]
+        prim5 = df_primary[df_primary["window_start_utc"] == 5][keys + ["pearson_r"]]
+        chk = df_wdiff.merge(prim0, on=keys).merge(
+            prim5, on=keys, suffixes=("_p00", "_p05")
+        )
+        chk["d00"] = (chk["r_00_24"] - chk["pearson_r_p00"]).abs()
+        chk["d05"] = (chk["r_05_05"] - chk["pearson_r_p05"]).abs()
+        print(
+            "\nVerificacion de consistencia con la tabla primaria (muestras no pareadas): "
+            f"max |r_00-24 - r_primario| = {chk['d00'].max():.4f}, "
+            f"max |r_05-05 - r_primario| = {chk['d05'].max():.4f}"
+        )
+        ac = chk[
+            (chk["station_name"] == "Aguas Claras")
+            & (chk["variable"] == "Tmin")
+            & (chk["lag_days"] == 0)
+            & (chk["season"] == "Todo")
+        ]
+        for _, row in ac.iterrows():
+            print(
+                "  Aguas Claras Tmin lag 0 Todo: "
+                f"r_pareado(00-24)={row['r_00_24']:.4f} vs primario={row['pearson_r_p00']:.4f}; "
+                f"r_pareado(05-05)={row['r_05_05']:.4f} vs primario={row['pearson_r_p05']:.4f}"
+            )
 
     # Comparison of candidate windows: 00-24 UTC vs 05-05 UTC (local civil day)
     w0 = df_primary[df_primary["window_start_utc"] == 0]
