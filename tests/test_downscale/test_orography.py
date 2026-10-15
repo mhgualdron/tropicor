@@ -8,8 +8,12 @@ from tropicor.core.metrics import compute_validation_metrics
 from tropicor.downscale.orography import (
     DRY_ADIABATIC_LAPSE_RATE,
     MOIST_ADIABATIC_LAPSE_RATE,
+    STANDARD_GRAVITY,
     STANDARD_LAPSE_RATE,
+    altitude_temperature_adjustment,
     compute_elevation_offset,
+    compute_orographic_bias_report,
+    geopotential_to_height,
     lapse_rate_temperature_correction,
 )
 
@@ -272,3 +276,85 @@ class TestLapseRateTemperatureCorrection:
                 model_elevation=1500.0,
                 lapse_rate=pd.Series([0.006, 0.007]),
             )
+
+
+class TestAltitudeAdjustmentReport:
+    """Test suite for altitude adjustment and bias report computation."""
+
+    def test_altitude_temperature_adjustment_alias(self) -> None:
+        """Verify adjustment behaves identically to lapse_rate_correction."""
+        t_raw = pd.Series([15.0, 16.0, 17.0])
+        res1 = lapse_rate_temperature_correction(
+            t_raw, 1000.0, 2000.0, lapse_rate=0.0065
+        )
+        res2 = altitude_temperature_adjustment(t_raw, 1000.0, 2000.0, lapse_rate=0.0065)
+        pd.testing.assert_series_equal(res1, res2)
+
+    def test_compute_orographic_bias_report(self) -> None:
+        """Verify calculation of before/after bias report with synthetic series."""
+        idx = pd.date_range("2020-01-01", periods=10, freq="D")
+        # Observation series around 24 °C (Bucaramanga station at 898m)
+        y_obs = pd.Series(
+            [23.0, 24.0, 25.0, 24.5, 23.5, 24.0, 24.2, 23.8, 24.1, 24.4], index=idx
+        )
+        # Raw model is colder due to smoothed elevation (2118m vs 898m)
+        # delta_z = -1220m, delta_t = -0.0065 * (-1220) = +7.93 °C
+        # Raw model is around 24.0 - 7.93 = 16.07 °C
+        y_mod_raw = y_obs - 7.93
+
+        report = compute_orographic_bias_report(
+            y_obs=y_obs,
+            y_mod_raw=y_mod_raw,
+            station_elevation=898.0,
+            model_elevation=2118.0,
+            lapse_rate=0.0065,
+            station_name="UIS Bucaramanga",
+        )
+
+        assert report["station_name"] == "UIS Bucaramanga"
+        assert report["delta_z"] == pytest.approx(-1220.0)
+        assert report["delta_t"] == pytest.approx(7.93)
+        assert report["raw_bias"] == pytest.approx(-7.93, abs=0.01)
+        assert report["adjusted_bias"] == pytest.approx(0.0, abs=0.01)
+        assert report["bias_reduction_pct"] > 99.0
+        assert report["raw_r"] == pytest.approx(1.0)
+        assert report["adjusted_r"] == pytest.approx(1.0)
+        assert isinstance(report["table"], pd.DataFrame)
+        assert "TOPOGRAPHIC ALTITUDE ADJUSTMENT REPORT" in report["report_text"]
+        assert "Mean Bias" in report["report_text"]
+
+
+class TestGeopotentialToHeight:
+    """Test suite for surface geopotential to geopotential height conversion."""
+
+    def test_geopotential_to_height_scalar(self) -> None:
+        """Verify scalar conversion: h = Phi / 9.80665."""
+        phi = 2118.0 * STANDARD_GRAVITY
+        h = geopotential_to_height(phi)
+        assert isinstance(h, float)
+        assert h == pytest.approx(2118.0)
+
+    def test_geopotential_to_height_array(self) -> None:
+        """Verify numpy array conversion preserves shape and values."""
+        elevations = np.array([0.0, 1000.0, 2552.0])
+        phi = elevations * STANDARD_GRAVITY
+        h = geopotential_to_height(phi)
+        assert isinstance(h, np.ndarray)
+        np.testing.assert_allclose(h, elevations, rtol=1e-6)
+
+    def test_geopotential_to_height_series(self) -> None:
+        """Verify pandas Series conversion preserves index and type."""
+        idx = pd.Index(["AguasClaras", "Noanama"])
+        elevations = pd.Series([133.8, 28.0], index=idx)
+        phi = elevations * STANDARD_GRAVITY
+        h = geopotential_to_height(phi)
+        assert isinstance(h, pd.Series)
+        pd.testing.assert_series_equal(h, elevations)
+
+    def test_geopotential_to_height_invalid_gravity(self) -> None:
+        """Verify ValueError is raised if gravity is non-positive."""
+        with pytest.raises(ValueError, match="Gravity must be positive"):
+            geopotential_to_height(1000.0, gravity=0.0)
+        with pytest.raises(ValueError, match="Gravity must be positive"):
+            geopotential_to_height(1000.0, gravity=-9.8)
+
