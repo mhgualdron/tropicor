@@ -110,3 +110,30 @@ Output attribute:
 DHIME date D = accumulation 07:00 local D → 07:00 local D+1 (12:00–12:00 UTC); confirmed empirically (lag 0, 2 stations, non-overlapping 95% CI)
 ```
 
+---
+
+## Daily Temperature (`read_dhime_daily_temperature`)
+
+To load daily maximum and minimum temperature observations into a CF-compliant `xarray.Dataset`, use `read_dhime_daily_temperature()`:
+
+```python
+from tropicor.io.ideam import read_dhime_daily_temperature
+
+ds_temp = read_dhime_daily_temperature(
+    "local/newFiles/TemperaturaMedia_21205710_1990_1994.csv"
+)
+print(ds_temp.attrs["date_convention"])
+```
+
+Output attribute:
+```text
+DHIME date D = extreme temperatures 00:00–24:00 local D (05:00 UTC D → 05:00 UTC D+1); confirmed empirically (lag 0, 2 stations, 1990–1994; 00–24 UTC is statistically equivalent)
+```
+
+The resulting dataset contains:
+- `tmax`: Daily maximum surface air temperature (°C).
+- `tmin`: Daily minimum surface air temperature (°C).
+- `tmean`: Arithmetic mean $(T_{\max} + T_{\min}) / 2$ (°C).
+- `qc_flag`: Approval status (0 for `Definitivo`, 1 for `Preliminar`).
+- Coordinates: `time` (complete daily calendar, gaps marked with NaN), `latitude`, `longitude`, and `station_id`.
+
