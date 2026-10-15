@@ -27,11 +27,14 @@ dependencies = [
     "scipy>=1.11",
     "scikit-learn>=1.4",
     "openpyxl>=3.1",
+    "xlrd>=2.0.2",
+    "python-dotenv>=1.2.4",
 ]
 
 [project.optional-dependencies]
 viz = ["matplotlib>=3.8"]
 viz-interactive = ["plotly>=5.20"]
+parallel = ["dask>=2024.0", "distributed>=2024.0"]
 grib = ["cfgrib>=0.9.10", "eccodes>=2.30"]
 dev = [
     "pytest",
@@ -59,9 +62,13 @@ Repository = "https://github.com/mhgualdron/tropicor"
 [tool.ruff]
 line-length = 88
 target-version = "py310"
+extend-exclude = ["scratch", "local"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E501"]
 
 [tool.setuptools.packages.find]
 where = ["."]

@@ -55,20 +55,68 @@ class ERA5Adapter:
             path_str = str(filepath_or_pattern)
             # Check if glob pattern or single file
             if any(char in path_str for char in ["*", "?", "["]):
-                self._ds = xr.open_mfdataset(
-                    path_str, combine="by_coords", **open_kwargs
-                )
+                try:
+                    self._ds = xr.open_mfdataset(
+                        path_str, combine="by_coords", **open_kwargs
+                    )
+                except ImportError as exc:
+                    if "dask" in str(exc).lower():
+                        warnings.warn(
+                            "Dask is not installed. Multi-file ERA5 dataset is "
+                            "being loaded sequentially into memory. For faster "
+                            "chunked or parallel loading, install: "
+                            "pip install 'tropicor[parallel]'",
+                            UserWarning,
+                            stacklevel=2,
+                        )
+                        import glob
+
+                        matched = sorted(glob.glob(path_str))
+                        if not matched:
+                            raise FileNotFoundError(
+                                f"No files matched pattern: {path_str}"
+                            ) from exc
+                        datasets = [xr.open_dataset(f, **open_kwargs) for f in matched]
+                        tdim = (
+                            "valid_time"
+                            if "valid_time" in datasets[0].dims
+                            else "time"
+                        )
+                        self._ds = xr.concat(datasets, dim=tdim)
+                    else:
+                        raise
             else:
                 p = Path(path_str)
                 if not p.exists():
                     raise FileNotFoundError(f"ERA5 file not found: {p}")
                 self._ds = xr.open_dataset(p, **open_kwargs)
         else:
-            self._ds = xr.open_mfdataset(
-                [str(f) for f in filepath_or_pattern],
-                combine="by_coords",
-                **open_kwargs,
-            )
+            try:
+                self._ds = xr.open_mfdataset(
+                    [str(f) for f in filepath_or_pattern],
+                    combine="by_coords",
+                    **open_kwargs,
+                )
+            except ImportError as exc:
+                if "dask" in str(exc).lower():
+                    warnings.warn(
+                        "Dask is not installed. Multi-file ERA5 dataset is "
+                        "being loaded sequentially into memory. For faster "
+                        "chunked or parallel loading, install: "
+                        "pip install 'tropicor[parallel]'",
+                        UserWarning,
+                        stacklevel=2,
+                    )
+                    datasets = [
+                        xr.open_dataset(str(f), **open_kwargs)
+                        for f in filepath_or_pattern
+                    ]
+                    tdim = (
+                        "valid_time" if "valid_time" in datasets[0].dims else "time"
+                    )
+                    self._ds = xr.concat(datasets, dim=tdim)
+                else:
+                    raise
 
         self._sanitize_dataset()
 
@@ -308,6 +356,83 @@ class ERA5Adapter:
             method=method,
         )
 
+    def get_daily_precipitation(
+        self,
+        latitude: float,
+        longitude: float,
+        method: str = "nearest",
+        window_start_utc: int = 12,
+        min_hours: int = 24,
+        lag_days: int = 0,
+    ) -> pd.Series:
+        """Extract and aggregate daily precipitation at given coordinates.
+
+        Accumulates hourly precipitation according to the WMO / IDEAM Día Pluviométrico
+        convention (default: 12:00 UTC day D to 12:00 UTC day D+1, mapped to day D).
+
+        Args:
+            latitude: Target latitude in decimal degrees.
+            longitude: Target longitude in decimal degrees.
+            method: Spatial extraction method ('nearest' or 'bilinear').
+            window_start_utc: Starting hour of the 24h accumulation window in UTC
+                (default 12).
+            min_hours: Minimum number of valid hours required per day (default 24).
+            lag_days: Optional lag offset in days (default 0).
+
+        Returns:
+            pd.Series containing daily precipitation in mm, indexed by calendar date
+            with daily frequency.
+        """
+        var_name = self._resolve_variable_name("tp")
+        ds_pt = self.extract_point(latitude, longitude, method=method)
+        da = ds_pt[var_name]
+
+        # Unit conversion to mm
+        units = da.attrs.get("units")
+        if units is not None:
+            units_str = str(units).strip().lower()
+            if units_str in {"m", "meter", "meters", "metre", "metres"}:
+                da = da * 1000.0
+        else:
+            # If units missing and mean is typical for meters (< 0.1 m/hr)
+            if float(da.mean()) < 0.1:
+                da = da * 1000.0
+
+        if "step" in da.dims:
+            da = da.sum(dim="step")
+        if "surface" in da.dims:
+            da = da.squeeze("surface")
+        if "number" in da.dims:
+            da = da.isel(number=0)
+
+        s_hourly = da.to_series()
+        s_hourly.index = pd.DatetimeIndex(s_hourly.index)
+
+        return aggregate_hourly_to_daily_precipitation(
+            s_hourly,
+            window_start_utc=window_start_utc,
+            min_hours=min_hours,
+            lag_days=lag_days,
+        )
+
+    def get_station_daily_precipitation(
+        self,
+        station: StationMetadata,
+        method: str = "nearest",
+        window_start_utc: int = 12,
+        min_hours: int = 24,
+        lag_days: int = 0,
+    ) -> pd.Series:
+        """Extract daily precipitation series collocated at station coordinates."""
+        return self.get_daily_precipitation(
+            latitude=station.latitude,
+            longitude=station.longitude,
+            method=method,
+            window_start_utc=window_start_utc,
+            min_hours=min_hours,
+            lag_days=lag_days,
+        )
+
     def get_model_elevation(
         self,
         latitude: float,
@@ -343,3 +468,50 @@ class ERA5Adapter:
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         self.close()
+
+
+def aggregate_hourly_to_daily_precipitation(
+    hourly_series: pd.Series,
+    window_start_utc: int = 12,
+    min_hours: int = 24,
+    lag_days: int = 0,
+) -> pd.Series:
+    """Aggregate hourly precipitation to daily accumulation matching WMO convention.
+
+    By WMO and IDEAM standard (Día Pluviométrico), precipitation for day D
+    corresponds to the 24-hour accumulation between 07:00 local time on day D
+    (12:00 UTC) and 07:00 local time on day D+1 (12:00 UTC).
+
+    Args:
+        hourly_series: Hourly precipitation series with DatetimeIndex in UTC (in mm).
+        window_start_utc: Starting hour of the 24h accumulation window in UTC
+            (default 12 for 07:00 Colombia).
+        min_hours: Minimum number of valid hours required in the 24h window
+            (default 24). Days with fewer hours are masked with NaN.
+        lag_days: Lag offset in days (default 0). Positive shifts values forward,
+            negative backward.
+
+    Returns:
+        pd.Series with normalized daily DatetimeIndex (freq='D') in mm.
+    """
+    if not isinstance(hourly_series.index, pd.DatetimeIndex):
+        raise ValueError("hourly_series must have a pandas DatetimeIndex.")
+
+    # Resample 24h with window_start_utc offset
+    # closed='right', label='left': interval (D 12:00 .. D+1 12:00] is labeled D 12:00
+    resampled = hourly_series.resample(
+        "24h",
+        offset=f"{window_start_utc}h",
+        closed="right",
+        label="left",
+    ).sum(min_count=min_hours)
+
+    dt_index = pd.DatetimeIndex(resampled.index)
+    resampled.index = dt_index.normalize()
+    resampled = resampled.asfreq("D")
+
+    if lag_days != 0:
+        resampled = resampled.shift(lag_days)
+
+    resampled.name = "pr"
+    return resampled
