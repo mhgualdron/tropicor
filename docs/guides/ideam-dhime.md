@@ -91,3 +91,22 @@ df_station = pd.DataFrame(
 
 print(df_station.head())
 ```
+
+---
+
+## Daily Precipitation (`read_dhime_daily_precipitation`)
+
+To load high-resolution conventional daily precipitation records (*Día Pluviométrico*) into a CF-compliant `xarray.Dataset`, use `read_dhime_daily_precipitation()`:
+
+```python
+from tropicor.io.ideam import read_dhime_daily_precipitation
+
+ds = read_dhime_daily_precipitation("local/newFiles/DiaPluviometrico_JardinBotanico_21205710.csv")
+print(ds.attrs["date_convention"])
+```
+
+Output attribute:
+```text
+DHIME date D = accumulation 07:00 local D → 07:00 local D+1 (12:00–12:00 UTC); confirmed empirically (lag 0, 2 stations, non-overlapping 95% CI)
+```
+
