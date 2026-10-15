@@ -77,6 +77,7 @@ nav:
       - Academic Heritage & Orography: science/overview.md
       - Physical Lapse Rates: science/lapse-rate.md
       - Verification Metrics: science/metrics.md
+      - Pre-Specified Evaluation Protocol: science/evaluation-protocol.md
   - API Reference:
       - tropicor.core: api/core.md
       - tropicor.downscale: api/downscale.md
