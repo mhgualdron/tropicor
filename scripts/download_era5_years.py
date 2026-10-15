@@ -57,17 +57,22 @@ def compute_station_area(station_code: str) -> Tuple[List[float], Any]:
     return [north, west, south, east], station
 
 
+DEFAULT_STATIC_VARIABLES = ["geopotential", "land_sea_mask"]
+
+
 def check_or_update_manifest(
     out_dir: Path,
     requested_area: List[float],
     station: Optional[str] = None,
     variable: str = DEFAULT_VARIABLE,
     dataset: str = DEFAULT_DATASET,
+    static_downloaded: bool = False,
 ) -> None:
     """Verifica que out_dir no contenga datos descargados de otra área y actualiza manifest.json."""
     import json
 
     manifest_path = out_dir / "manifest.json"
+    manifest: Dict[str, Any] = {}
     if manifest_path.exists():
         with open(manifest_path, "r", encoding="utf-8") as f:
             manifest = json.load(f)
@@ -84,6 +89,8 @@ def check_or_update_manifest(
 
     # Verificar si hay archivos .nc existentes con área incompatible
     nc_files = list(out_dir.glob(f"era5_{variable}_*.nc"))
+    if not nc_files:
+        nc_files = [f for f in out_dir.glob("era5_*.nc") if not f.name.endswith(".part")]
     if nc_files and not manifest_path.exists():
         try:
             with xr.open_dataset(nc_files[0]) as ds_test:
@@ -111,15 +118,33 @@ def check_or_update_manifest(
                 raise
 
     out_dir.mkdir(parents=True, exist_ok=True)
+
+    # Mantener lista acumulativa de variables descargadas en el directorio
+    existing_vars = list(manifest.get("variables", []))
+    if not existing_vars and "variable" in manifest:
+        existing_vars = [manifest["variable"]]
+    if variable and variable not in existing_vars:
+        existing_vars.append(variable)
+
     manifest_data = {
-        "station": station,
+        "station": station or manifest.get("station"),
         "area": requested_area,
         "variable": variable,
+        "variables": existing_vars,
         "dataset": dataset,
         "updated_at": datetime.datetime.now().isoformat(),
     }
+    if "static_file" in manifest:
+        manifest_data["static_file"] = manifest["static_file"]
+    if "static_variables" in manifest:
+        manifest_data["static_variables"] = manifest["static_variables"]
+    if static_downloaded or (out_dir / "era5_static.nc").exists():
+        manifest_data["static_file"] = "era5_static.nc"
+        manifest_data["static_variables"] = DEFAULT_STATIC_VARIABLES
+
     with open(manifest_path, "w", encoding="utf-8") as f:
         json.dump(manifest_data, f, indent=2)
+
 
 MONTHS = [f"{m:02d}" for m in range(1, 13)]
 DAYS = [f"{d:02d}" for d in range(1, 32)]
@@ -271,6 +296,81 @@ def download_year(
     return f"{year}: FAILED"
 
 
+def build_static_cds_request(
+    area: Optional[List[float]] = None,
+    variables: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """Construct the CDS API request dictionary for static/invariant surface fields."""
+    if area is None:
+        raise ValueError("El parámetro 'area' [N, W, S, E] es obligatorio.")
+    vars_to_req = variables or DEFAULT_STATIC_VARIABLES
+    return {
+        "product_type": ["reanalysis"],
+        "variable": vars_to_req,
+        "year": ["2020"],
+        "month": ["01"],
+        "day": ["01"],
+        "time": ["00:00"],
+        "data_format": "netcdf",
+        "download_format": "unarchived",
+        "area": area,
+    }
+
+
+def download_static(
+    out_dir: Path,
+    area: Optional[List[float]] = None,
+    dataset: str = DEFAULT_DATASET,
+    variables: Optional[List[str]] = None,
+    log_file: Optional[Path] = None,
+) -> str:
+    """Download static/invariant fields (geopotential, land_sea_mask) from CDS."""
+    if area is None:
+        raise ValueError("El parámetro 'area' [N, W, S, E] es obligatorio.")
+    target = out_dir / "era5_static.nc"
+    log_path = log_file or (out_dir / "download.log")
+
+    if target.exists() and target.stat().st_size > 0:
+        msg = f"Campos estáticos: ya descargados ({target.stat().st_size / 1e6:.2f} MB), omitido"
+        _log_event(log_path, f"SKIP STATIC: {target.name} ya existe")
+        return msg
+
+    request = build_static_cds_request(area, variables=variables)
+    client = cdsapi.Client(quiet=True)
+
+    _log_event(
+        log_path,
+        "START STATIC: solicitando campos estáticos (geopotential, land_sea_mask) a CDS",
+    )
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            tmp = target.with_suffix(".part")
+            client.retrieve(dataset, request).download(str(tmp))
+            tmp.rename(target)
+            size_mb = target.stat().st_size / 1e6
+            _log_event(
+                log_path,
+                f"SUCCESS STATIC: guardado en {target.name} ({size_mb:.2f} MB)",
+            )
+            return f"Static: OK ({size_mb:.2f} MB)"
+        except Exception as exc:  # noqa: BLE001
+            _log_event(
+                log_path,
+                f"RETRY STATIC (intento {attempt}/{MAX_RETRIES}): "
+                f"{type(exc).__name__}: {exc}",
+            )
+            if attempt == MAX_RETRIES:
+                _log_event(
+                    log_path,
+                    f"FAILED STATIC: fallo definitivo tras {MAX_RETRIES} intentos",
+                )
+                return f"Static: FAILED tras {MAX_RETRIES} intentos ({exc})"
+            time.sleep(10 * attempt)
+
+    return "Static: FAILED"
+
+
 def run_verify(
     out_dir: Path,
     start_year: int,
@@ -329,8 +429,22 @@ def run_verify(
         except Exception as exc:  # noqa: BLE001
             corrupted.append((y, str(exc)))
 
+    # Inspect static file if present
+    static_nc = out_dir / "era5_static.nc"
+    if static_nc.exists():
+        try:
+            with xr.open_dataset(static_nc) as ds_s:
+                s_vars = list(ds_s.data_vars.keys())
+                s_mb = static_nc.stat().st_size / 1e6
+                print(
+                    f"\nArchivo estático detectado: {static_nc.name} ({s_mb:.2f} MB), "
+                    f"Variables: {s_vars}"
+                )
+        except Exception as exc:  # noqa: BLE001
+            print(f"\nArchivo estático {static_nc.name} ilegible: {exc}")
+
     # Print summary
-    print(f"Total años en rango: {len(years)}")
+    print(f"\nTotal años en rango: {len(years)}")
     print(f"Archivos encontrados: {len(valid) + len(corrupted)}")
     print(f"Años faltantes: {len(missing)} ({missing if missing else 'Ninguno'})")
     if corrupted:
@@ -363,6 +477,8 @@ def run_dry_run(
     variable: str,
     dataset: str,
     url: str,
+    download_static: bool = False,
+    static_only: bool = False,
 ) -> None:
     """Print the detailed dry-run execution plan without contacting CDS."""
     years = list(range(start_year, end_year + 1))
@@ -382,21 +498,37 @@ def run_dry_run(
         f"Área [N, W, S, E]:    {area} (N={area[0]}, W={area[1]}, "
         f"S={area[2]}, E={area[3]})"
     )
-    print(f"Período:              {start_year} a {end_year} ({len(years)} años)")
+    if not static_only:
+        print(f"Período:              {start_year} a {end_year} ({len(years)} años)")
     print(f"Directorio salida:    {out_dir}")
     print(f"Archivo de log:       {out_dir / 'download.log'}")
-    print(f"Hilos paralelos:      {workers}")
-    print(f"Archivos existentes:  {len(already_done)} años")
-    print(f"Años por solicitar:   {len(to_download)} años")
-    print("-" * 88)
-    print(f"Ejemplo de solicitud para el primer año ({start_year}):")
-    sample_req = build_cds_request(start_year, variable=variable, area=area)
-    print(f"  Target: {out_dir / f'era5_{variable}_{start_year}.nc'}")
-    for k, v in sample_req.items():
-        if isinstance(v, list) and len(v) > 4:
-            print(f"  {k}: [{v[0]}, {v[1]}, ..., {v[-1]}] ({len(v)} elementos)")
-        else:
-            print(f"  {k}: {v}")
+    if not static_only:
+        print(f"Hilos paralelos:      {workers}")
+        print(f"Archivos existentes:  {len(already_done)} años")
+        print(f"Años por solicitar:   {len(to_download)} años")
+
+    if download_static or static_only:
+        static_file = out_dir / "era5_static.nc"
+        st_status = "ya existe" if static_file.exists() else "por descargar"
+        print(
+            f"Campos estáticos:     {DEFAULT_STATIC_VARIABLES} -> {static_file.name} "
+            f"({st_status})"
+        )
+        sample_static = build_static_cds_request(area=area)
+        print("  Ejemplo de solicitud para campos estáticos:")
+        for k, v in sample_static.items():
+            print(f"    {k}: {v}")
+
+    if not static_only:
+        print("-" * 88)
+        print(f"Ejemplo de solicitud para el primer año ({start_year}):")
+        sample_req = build_cds_request(start_year, variable=variable, area=area)
+        print(f"  Target: {out_dir / f'era5_{variable}_{start_year}.nc'}")
+        for k, v in sample_req.items():
+            if isinstance(v, list) and len(v) > 4:
+                print(f"  {k}: [{v[0]}, {v[1]}, ..., {v[-1]}] ({len(v)} elementos)")
+            else:
+                print(f"  {k}: {v}")
     print("=" * 88)
     print("MODO DRY-RUN COMPLETADO: No se realizaron peticiones de red ni descargas.")
 
@@ -424,7 +556,10 @@ def parse_args() -> argparse.Namespace:
         "--station",
         type=str,
         default=None,
-        help="Código de la estación IDEAM (ej. 21205710, 23215030). Si no se pasa --area, se calcula automáticamente.",
+        help=(
+            "Código de la estación IDEAM (ej. 21205710, 23215030). "
+            "Si no se pasa --area, se calcula automáticamente."
+        ),
     )
     parser.add_argument(
         "--area",
@@ -459,6 +594,18 @@ def parse_args() -> argparse.Namespace:
         help=f"Nombre de la variable en CDS (por defecto: {DEFAULT_VARIABLE}).",
     )
     parser.add_argument(
+        "--download-static",
+        "--static",
+        dest="download_static",
+        action="store_true",
+        help="Descargar campos estáticos/invariantes (geopotential, land_sea_mask) para la estación.",
+    )
+    parser.add_argument(
+        "--static-only",
+        action="store_true",
+        help="Descargar únicamente campos estáticos (era5_static.nc) sin descargar series anuales.",
+    )
+    parser.add_argument(
         "--env-file",
         type=Path,
         default=Path(".env"),
@@ -483,7 +630,7 @@ def main() -> None:
     """Main CLI entrypoint."""
     args = parse_args()
 
-    if args.start_year > args.end_year:
+    if not args.static_only and args.start_year > args.end_year:
         print(
             f"Error: --start-year ({args.start_year}) no puede ser mayor que "
             f"--end-year ({args.end_year}).",
@@ -537,6 +684,7 @@ def main() -> None:
             station=station_code,
             variable=args.variable,
             dataset=args.dataset,
+            static_downloaded=args.download_static or args.static_only,
         )
     except RuntimeError as r_err:
         print(f"ERROR: {r_err}", file=sys.stderr)
@@ -560,13 +708,31 @@ def main() -> None:
             variable=args.variable,
             dataset=args.dataset,
             url=url,
+            download_static=args.download_static,
+            static_only=args.static_only,
         )
         return
 
     # 4. Modo de descarga real
     out_dir.mkdir(parents=True, exist_ok=True)
-    years = list(range(args.start_year, args.end_year + 1))
     log_file = out_dir / "download.log"
+
+    # 4a. Descargar campos estáticos si fueron solicitados
+    if args.download_static or args.static_only:
+        print(f"Solicitando descarga de campos estáticos en {out_dir}...")
+        static_result = download_static(
+            out_dir=out_dir,
+            area=area,
+            dataset=args.dataset,
+            log_file=log_file,
+        )
+        print(static_result, flush=True)
+        if args.static_only:
+            _log_event(log_file, "SESSION COMPLETED (STATIC ONLY)")
+            return
+
+    # 4b. Descargar series anuales
+    years = list(range(args.start_year, args.end_year + 1))
     print(
         f"Iniciando descarga de {len(years)} años en {out_dir} "
         f"con {args.workers} hilos..."
@@ -574,7 +740,7 @@ def main() -> None:
     _log_event(
         log_file,
         f"SESSION START: años {args.start_year} a {args.end_year}, "
-        f"workers={args.workers}",
+        f"workers={args.workers}, variable={args.variable}",
     )
 
     with ThreadPoolExecutor(max_workers=args.workers) as pool:

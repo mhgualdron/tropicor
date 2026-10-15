@@ -6,6 +6,8 @@ import pytest
 
 from scripts.download_era5_years import (
     build_cds_request,
+    build_static_cds_request,
+    check_or_update_manifest,
     load_cds_credentials,
     run_dry_run,
     run_verify,
@@ -73,3 +75,52 @@ def test_verify_empty_dir(tmp_path: Path, capsys: pytest.CaptureFixture[str]) ->
     captured = capsys.readouterr().out
     assert "VERIFICACIÓN DE ARCHIVOS ERA5" in captured
     assert "Años faltantes: 2" in captured
+
+
+def test_build_static_cds_request_structure() -> None:
+    """Verify static invariant fields CDS request."""
+    req = build_static_cds_request(area=[5.25, -74.5, 4.25, -73.5])
+    assert req["product_type"] == ["reanalysis"]
+    assert req["variable"] == ["geopotential", "land_sea_mask"]
+    assert req["year"] == ["2020"]
+    assert req["month"] == ["01"]
+    assert req["day"] == ["01"]
+    assert req["time"] == ["00:00"]
+    assert req["area"] == [5.25, -74.5, 4.25, -73.5]
+
+
+def test_manifest_multi_variable_tracking(tmp_path: Path) -> None:
+    """Verify that downloading multiple variables retains both in manifest.json."""
+    import json
+
+    out_dir = tmp_path / "st_manifest"
+    area = [5.25, -74.5, 4.25, -73.5]
+
+    # First download: precipitation
+    check_or_update_manifest(
+        out_dir=out_dir,
+        requested_area=area,
+        station="21205710",
+        variable="total_precipitation",
+    )
+    with open(out_dir / "manifest.json", "r", encoding="utf-8") as f:
+        m1 = json.load(f)
+    assert m1["variable"] == "total_precipitation"
+    assert m1["variables"] == ["total_precipitation"]
+
+    # Second download: 2m_temperature
+    check_or_update_manifest(
+        out_dir=out_dir,
+        requested_area=area,
+        station="21205710",
+        variable="2m_temperature",
+        static_downloaded=True,
+    )
+    with open(out_dir / "manifest.json", "r", encoding="utf-8") as f:
+        m2 = json.load(f)
+    assert m2["variable"] == "2m_temperature"
+    assert "total_precipitation" in m2["variables"]
+    assert "2m_temperature" in m2["variables"]
+    assert m2["static_file"] == "era5_static.nc"
+    assert m2["static_variables"] == ["geopotential", "land_sea_mask"]
+
