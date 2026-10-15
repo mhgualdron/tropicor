@@ -326,9 +326,9 @@ def test_dhime_daily_temperature_separate_tables():
     assert ds["tasmax"].attrs["units"] == "degC"
     assert ds["tasmin"].attrs["standard_name"] == "air_temperature"
     assert ds["tasmin"].attrs["units"] == "degC"
-    assert "date_convention" in ds.attrs
     assert "05:00 UTC" in ds.attrs["date_convention"]
-    assert "00–24 UTC is statistically equivalent" in ds.attrs["date_convention"]
+    expected_sub = "05–05 UTC maintained as local civil day default"
+    assert expected_sub in ds.attrs["date_convention"]
 
 
 def test_dhime_daily_temperature_combined_table():

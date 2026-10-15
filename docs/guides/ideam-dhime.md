@@ -127,7 +127,7 @@ print(ds_temp.attrs["date_convention"])
 
 Output attribute:
 ```text
-DHIME date D = extreme temperatures 00:00–24:00 local D (05:00 UTC D → 05:00 UTC D+1); confirmed empirically (lag 0, 2 stations, 1990–1994; 00–24 UTC is statistically equivalent)
+DHIME date D = extreme temperatures 00:00–24:00 local D (05:00 UTC D → 05:00 UTC D+1); confirmed empirically (lag 0, 2 stations, 1990–1994; paired |Δr| <= 0.0057 at lag 0 full year, 05–05 UTC maintained as local civil day default)
 ```
 
 The resulting dataset contains:

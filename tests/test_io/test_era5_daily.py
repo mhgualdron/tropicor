@@ -332,7 +332,8 @@ def test_variable_aggregation_conventions_registry():
     assert temp_conv.window_start_utc == 5
     assert temp_conv.lag_days == 0
     assert "05:00–05:00 UTC" in temp_conv.description
-    assert "00–24 UTC is statistically equivalent" in temp_conv.date_convention
+    expected_sub = "05–05 UTC maintained as local civil day default"
+    assert expected_sub in temp_conv.date_convention
 
     # Aliases
     assert get_variable_convention("tp").window_start_utc == 12
