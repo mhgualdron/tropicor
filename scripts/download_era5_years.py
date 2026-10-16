@@ -90,7 +90,9 @@ def check_or_update_manifest(
     # Verificar si hay archivos .nc existentes con área incompatible
     nc_files = list(out_dir.glob(f"era5_{variable}_*.nc"))
     if not nc_files:
-        nc_files = [f for f in out_dir.glob("era5_*.nc") if not f.name.endswith(".part")]
+        nc_files = [
+            f for f in out_dir.glob("era5_*.nc") if not f.name.endswith(".part")
+        ]
     if nc_files and not manifest_path.exists():
         try:
             with xr.open_dataset(nc_files[0]) as ds_test:
@@ -650,7 +652,9 @@ def main() -> None:
             sys.exit(1)
         try:
             area, st_meta = compute_station_area(station_code)
-            print(f"Estación: {st_meta.name} [{st_meta.code}] -> Área calculada: {area}")
+            print(
+                f"Estación: {st_meta.name} [{st_meta.code}] -> Área calculada: {area}"
+            )
         except Exception as err:
             print(
                 f"Error al calcular área desde estación '{station_code}': {err}",

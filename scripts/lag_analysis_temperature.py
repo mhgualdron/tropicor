@@ -111,16 +111,8 @@ def block_bootstrap_corr_diff(
         std_m0 = np.std(m0_b)
         std_mo = np.std(mo_b)
 
-        r0 = (
-            stats.pearsonr(o_b, m0_b)[0]
-            if (std_o > 1e-12 and std_m0 > 1e-12)
-            else 0.0
-        )
-        ro = (
-            stats.pearsonr(o_b, mo_b)[0]
-            if (std_o > 1e-12 and std_mo > 1e-12)
-            else 0.0
-        )
+        r0 = stats.pearsonr(o_b, m0_b)[0] if (std_o > 1e-12 and std_m0 > 1e-12) else 0.0
+        ro = stats.pearsonr(o_b, mo_b)[0] if (std_o > 1e-12 and std_mo > 1e-12) else 0.0
         diffs[b] = r0 - ro
 
     mean_diff = float(np.mean(diffs))
@@ -413,15 +405,11 @@ def evaluate_single_station(
                 r_neg_anom = float(stats.pearsonr(yo_anom, ym_neg_anom)[0])
                 r_pos_anom = float(stats.pearsonr(yo_anom, ym_pos_anom)[0])
 
-                diff_neg_anom, ci_neg_l_anom, ci_neg_u_anom = (
-                    block_bootstrap_corr_diff(
-                        yo_anom, ym0_anom, ym_neg_anom, block_size=30, n_boot=1000
-                    )
+                diff_neg_anom, ci_neg_l_anom, ci_neg_u_anom = block_bootstrap_corr_diff(
+                    yo_anom, ym0_anom, ym_neg_anom, block_size=30, n_boot=1000
                 )
-                diff_pos_anom, ci_pos_l_anom, ci_pos_u_anom = (
-                    block_bootstrap_corr_diff(
-                        yo_anom, ym0_anom, ym_pos_anom, block_size=30, n_boot=1000
-                    )
+                diff_pos_anom, ci_pos_l_anom, ci_pos_u_anom = block_bootstrap_corr_diff(
+                    yo_anom, ym0_anom, ym_pos_anom, block_size=30, n_boot=1000
                 )
 
                 paired_diff_records.append(
@@ -782,9 +770,7 @@ def compute_era5_spatial_lapse_rate(
     with ERA5Adapter(static_file) as static_adapter:
         ds_stat = static_adapter.dataset
         z_var = static_adapter._resolve_variable_name("z")
-        z_grid = (
-            ds_stat[z_var].squeeze().values
-        ) / STANDARD_GRAVITY  # shape (5, 5)
+        z_grid = (ds_stat[z_var].squeeze().values) / STANDARD_GRAVITY  # shape (5, 5)
 
     with ERA5Adapter(era5_files) as era5_adapter:
         ds_t = era5_adapter.dataset
@@ -870,9 +856,7 @@ def main() -> None:
         print("=" * 88)
         print(f"Estación:            {args.station}")
         print(f"Periodo:             {args.start_date} a {args.end_date}")
-        print(
-            "Ventanas:            00-24 UTC, 12-12 UTC, 05-05 UTC (día civil local)"
-        )
+        print("Ventanas:            00-24 UTC, 12-12 UTC, 05-05 UTC (día civil local)")
         print("Desfases:            -1 día, 0 días, +1 día")
         print("Bootstrap pareado:   Bloques de 30 días (1000 réplicas)")
         print("Evaluación espacial: Matriz 3x3 de celdas por estación")
@@ -1028,13 +1012,13 @@ def main() -> None:
                 f"{row['season']}: delta_r={row['delta_r_point (r_00-24 - r_05-05)']:+.4f}, "
                 f"IC95% [{row['ci95_lower']:+.4f}, {row['ci95_upper']:+.4f}]"
             )
-        max_abs_delta = float(
-            df_wdiff["delta_r_point (r_00-24 - r_05-05)"].abs().max()
-        )
+        max_abs_delta = float(df_wdiff["delta_r_point (r_00-24 - r_05-05)"].abs().max())
         max_abs_delta_lag0 = float(
             lag0_all["delta_r_point (r_00-24 - r_05-05)"].abs().max()
         )
-        print(f"\nMax |delta_r| (lag 0, todas las temporadas): {max_abs_delta_lag0:.4f}")
+        print(
+            f"\nMax |delta_r| (lag 0, todas las temporadas): {max_abs_delta_lag0:.4f}"
+        )
         print(f"Max |delta_r| (todos los lags y temporadas): {max_abs_delta:.4f}")
 
         # Consistency check against the r values of the primary (unpaired) table.
@@ -1079,9 +1063,9 @@ def main() -> None:
         ).abs()
         max_diff_overall = float(merged_w["pearson_diff"].max())
         max_diff_lag0_todo = float(
-            merged_w[
-                (merged_w["lag_days"] == 0) & (merged_w["season"] == "Todo")
-            ]["pearson_diff"].max()
+            merged_w[(merged_w["lag_days"] == 0) & (merged_w["season"] == "Todo")][
+                "pearson_diff"
+            ].max()
         )
         max_diff_lag0_all = float(
             merged_w[merged_w["lag_days"] == 0]["pearson_diff"].max()
@@ -1145,7 +1129,9 @@ def main() -> None:
             print("  --> OK: La celda central coincide con la de menor |delta_z|.")
 
     print("\n" + "=" * 88)
-    print("SESGOS POR TEMPORADA EN LA CELDA CENTRAL (CRUDO Y AJUSTADO: Tmax, Tmin, DTR)")
+    print(
+        "SESGOS POR TEMPORADA EN LA CELDA CENTRAL (CRUDO Y AJUSTADO: Tmax, Tmin, DTR)"
+    )
     print("=" * 88)
     for cfg in stations_config:
         st_name = cfg["name"]

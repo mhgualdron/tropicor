@@ -145,9 +145,7 @@ class ERA5Adapter:
                             ) from exc
                         datasets = [xr.open_dataset(f, **open_kwargs) for f in matched]
                         tdim = (
-                            "valid_time"
-                            if "valid_time" in datasets[0].dims
-                            else "time"
+                            "valid_time" if "valid_time" in datasets[0].dims else "time"
                         )
                         self._ds = xr.concat(datasets, dim=tdim)
                     else:
@@ -178,9 +176,7 @@ class ERA5Adapter:
                         xr.open_dataset(str(f), **open_kwargs)
                         for f in filepath_or_pattern
                     ]
-                    tdim = (
-                        "valid_time" if "valid_time" in datasets[0].dims else "time"
-                    )
+                    tdim = "valid_time" if "valid_time" in datasets[0].dims else "time"
                     self._ds = xr.concat(datasets, dim=tdim)
                 else:
                     raise
@@ -793,4 +789,3 @@ def aggregate_hourly_to_daily_temperature(
         df = df.shift(lag_days)
 
     return df
-

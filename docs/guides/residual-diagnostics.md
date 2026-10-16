@@ -220,7 +220,9 @@ Comparison between printed thesis outputs and TROPICOR raw reproduction:
 1. **Thesis Coding Bug in Entrega 10 (Cell 2 Line 24)**:
    In `Entrega10.ipynb`, the author standardized residuals using `df['Procesado'] = (df['Diff'] - mean) / std`. For Precipitation and $T_{\min}$, the author called `stats.describe(df['Procesado'])`. However, for $T_{\max}$ (line 24), the code mistakenly reads:
    ```python
-   TMax.append(stats.describe(df['Diff']))  # Bug: passed unstandardized raw diffs instead of df['Procesado']
+   TMax.append(
+       stats.describe(df["Diff"])
+   )  # Bug: passed unstandardized raw diffs instead of df['Procesado']
    ```
    This caused the thesis to report min/max bounds in unstandardized units for $T_{\max}$ while reporting standardized bounds for the other variables. Replicating this bug exactly reproduces the thesis printed values.
 2. **Deseasonalization Necessity**:
@@ -254,12 +256,16 @@ report = compute_residual_diagnostics(
 # Inspect distribution moments and normality
 print(f"Skewness (g1):      {report.moments.skewness:.3f}")
 print(f"Excess Kurtosis:    {report.moments.excess_kurtosis:.3f}")
-print(f"Shapiro-Wilk W:     {report.moments.shapiro_stat:.4f} (p={report.moments.shapiro_p_value:.3e})")
+print(
+    f"Shapiro-Wilk W:     {report.moments.shapiro_stat:.4f} (p={report.moments.shapiro_p_value:.3e})"
+)
 
 # Inspect monotonic residual drift (model - obs)
 print(f"Sen's Slope:        {report.trend.slope_per_decade:.3f} °C/decade")
 print(f"Lag-1 Autocorr:     {report.trend.lag1_autocorr:.3f}")
-print(f"Hamed-Rao p-value:  {report.trend.p_value:.4f} (Trend: {report.trend.has_significant_trend})")
+print(
+    f"Hamed-Rao p-value:  {report.trend.p_value:.4f} (Trend: {report.trend.has_significant_trend})"
+)
 
 # Tabular summary DataFrame
 df_summary = report.summary()

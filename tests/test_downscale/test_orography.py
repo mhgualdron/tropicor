@@ -357,4 +357,3 @@ class TestGeopotentialToHeight:
             geopotential_to_height(1000.0, gravity=0.0)
         with pytest.raises(ValueError, match="Gravity must be positive"):
             geopotential_to_height(1000.0, gravity=-9.8)
-

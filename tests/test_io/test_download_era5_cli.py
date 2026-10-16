@@ -123,4 +123,3 @@ def test_manifest_multi_variable_tracking(tmp_path: Path) -> None:
     assert "2m_temperature" in m2["variables"]
     assert m2["static_file"] == "era5_static.nc"
     assert m2["static_variables"] == ["geopotential", "land_sea_mask"]
-

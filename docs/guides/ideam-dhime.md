@@ -101,7 +101,9 @@ To load high-resolution conventional daily precipitation records (*D√≠a Pluviom√
 ```python
 from tropicor.io.ideam import read_dhime_daily_precipitation
 
-ds = read_dhime_daily_precipitation("local/newFiles/DiaPluviometrico_JardinBotanico_21205710.csv")
+ds = read_dhime_daily_precipitation(
+    "local/newFiles/DiaPluviometrico_JardinBotanico_21205710.csv"
+)
 print(ds.attrs["date_convention"])
 ```
 

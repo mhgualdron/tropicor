@@ -27,7 +27,10 @@ def haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     phi1, phi2 = np.radians(lat1), np.radians(lat2)
     dphi = np.radians(lat2 - lat1)
     dlambda = np.radians(lon2 - lon1)
-    a = np.sin(dphi / 2.0) ** 2 + np.cos(phi1) * np.cos(phi2) * np.sin(dlambda / 2.0) ** 2
+    a = (
+        np.sin(dphi / 2.0) ** 2
+        + np.cos(phi1) * np.cos(phi2) * np.sin(dlambda / 2.0) ** 2
+    )
     return float(2.0 * r * np.arcsin(np.sqrt(a)))
 
 
@@ -122,7 +125,9 @@ def analyze_station(
     # También leer directamente del CSV original para verificar
     df_raw = pd.read_csv(dhime_csv_path)
     df_raw["Fecha_dt"] = pd.to_datetime(df_raw["Fecha"], errors="coerce").dt.normalize()
-    df_raw_period = df_raw[(df_raw["Fecha_dt"] >= start_date) & (df_raw["Fecha_dt"] <= end_date)]
+    df_raw_period = df_raw[
+        (df_raw["Fecha_dt"] >= start_date) & (df_raw["Fecha_dt"] <= end_date)
+    ]
     raw_flags = df_raw_period["NivelAprobacion"].value_counts(dropna=False).to_dict()
 
     # Meses completos en el periodo
@@ -131,7 +136,9 @@ def analyze_station(
         valid=lambda x: int(x.notna().sum()),
         days_in_month=lambda x: len(x),
     )
-    monthly_counts["is_complete"] = monthly_counts["valid"] == monthly_counts["days_in_month"]
+    monthly_counts["is_complete"] = (
+        monthly_counts["valid"] == monthly_counts["days_in_month"]
+    )
     total_months = len(monthly_counts)
     complete_months = int(monthly_counts["is_complete"].sum())
 
@@ -151,7 +158,11 @@ def analyze_station(
         s_era_center_raw = era5_adapter.get_daily_precipitation(
             lat_center, lon_center, lag_days=0, min_hours=24
         )
-        last_day_val = s_era_center_raw.loc[end_date] if end_date in s_era_center_raw.index else np.nan
+        last_day_val = (
+            s_era_center_raw.loc[end_date]
+            if end_date in s_era_center_raw.index
+            else np.nan
+        )
         last_day_is_nan = bool(pd.isna(last_day_val))
 
         # 3. Desfases temporales (-1, 0, +1 días)
@@ -162,7 +173,9 @@ def analyze_station(
             ).reindex(common_idx)
 
             # Global
-            df_sync = pd.concat([s_obs.rename("obs"), s_era_lag.rename("mod")], axis=1).dropna()
+            df_sync = pd.concat(
+                [s_obs.rename("obs"), s_era_lag.rename("mod")], axis=1
+            ).dropna()
             n_sync = len(df_sync)
             y_o = df_sync["obs"].to_numpy(dtype=float)
             y_m = df_sync["mod"].to_numpy(dtype=float)
@@ -170,7 +183,9 @@ def analyze_station(
             r_val = float(stats.pearsonr(y_o, y_m)[0]) if n_sync >= 3 else np.nan
             rho_val = float(stats.spearmanr(y_o, y_m)[0]) if n_sync >= 3 else np.nan
             bias_val = float(np.mean(y_m - y_o)) if n_sync >= 1 else np.nan
-            rmse_val = float(np.sqrt(np.mean((y_m - y_o) ** 2))) if n_sync >= 1 else np.nan
+            rmse_val = (
+                float(np.sqrt(np.mean((y_m - y_o) ** 2))) if n_sync >= 1 else np.nan
+            )
 
             ci_r, ci_rho = compute_bootstrap_ci(y_o, y_m, n_boot=1000, seed=42)
 
@@ -192,7 +207,9 @@ def analyze_station(
                     rho_s = float(stats.spearmanr(y_os, y_ms)[0])
                     bias_s = float(np.mean(y_ms - y_os))
                     rmse_s = float(np.sqrt(np.mean((y_ms - y_os) ** 2)))
-                    ci_rs, ci_rhos = compute_bootstrap_ci(y_os, y_ms, n_boot=1000, seed=42)
+                    ci_rs, ci_rhos = compute_bootstrap_ci(
+                        y_os, y_ms, n_boot=1000, seed=42
+                    )
                 else:
                     r_s, rho_s, bias_s, rmse_s = np.nan, np.nan, np.nan, np.nan
                     ci_rs, ci_rhos = (np.nan, np.nan), (np.nan, np.nan)
@@ -233,7 +250,7 @@ def analyze_station(
                 idx_lon = ilon_near + dlon
                 cur_lon = float(lons[idx_lon])
                 dist_km = haversine_km(lat_obs, lon_obs, cur_lat, cur_lon)
-                is_center = (dlat == 0 and dlon == 0)
+                is_center = dlat == 0 and dlon == 0
 
                 # Evaluamos a lag 0 y al winning lag
                 s_era_cell_0 = era5_adapter.get_daily_precipitation(
@@ -287,14 +304,43 @@ def analyze_station(
 
             # Percentiles 50, 90, 95, 99
             quantiles = [0.50, 0.90, 0.95, 0.99]
-            q_obs = {f"P{int(q*100)}": float(np.quantile(o_m, q)) for q in quantiles} if n_m > 0 else {}
-            q_era = {f"P{int(q*100)}": float(np.quantile(m_m, q)) for q in quantiles} if n_m > 0 else {}
-            q_diff = {f"P{int(q*100)}": q_era[f"P{int(q*100)}"] - q_obs[f"P{int(q*100)}"] for q in quantiles} if n_m > 0 else {}
+            q_obs = (
+                {f"P{int(q * 100)}": float(np.quantile(o_m, q)) for q in quantiles}
+                if n_m > 0
+                else {}
+            )
+            q_era = (
+                {f"P{int(q * 100)}": float(np.quantile(m_m, q)) for q in quantiles}
+                if n_m > 0
+                else {}
+            )
+            q_diff = (
+                {
+                    f"P{int(q * 100)}": q_era[f"P{int(q * 100)}"]
+                    - q_obs[f"P{int(q * 100)}"]
+                    for q in quantiles
+                }
+                if n_m > 0
+                else {}
+            )
 
             monthly_winner_metrics.append(
                 {
                     "month": month_num,
-                    "month_name": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][month_num - 1],
+                    "month_name": [
+                        "Ene",
+                        "Feb",
+                        "Mar",
+                        "Abr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Ago",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dic",
+                    ][month_num - 1],
                     "n_days": n_m,
                     "bias": bias_m,
                     "rmse": rmse_m,
@@ -320,7 +366,9 @@ def analyze_station(
             # Identificar todos los periodos (YYYY-MM) correspondientes a este mes
             periods = [p for p in monthly_counts.index if p.month == month_num]
             # Filtrar solo aquellos completos
-            complete_periods = [p for p in periods if monthly_counts.loc[p, "is_complete"]]
+            complete_periods = [
+                p for p in periods if monthly_counts.loc[p, "is_complete"]
+            ]
             complete_months_by_month_num[month_num] = {
                 "total_possible": len(periods),
                 "complete_kept": len(complete_periods),
@@ -331,7 +379,7 @@ def analyze_station(
             sums_obs = []
             sums_mod = []
             for cp in complete_periods:
-                cp_mask = (df_winner.index.to_period("M") == cp)
+                cp_mask = df_winner.index.to_period("M") == cp
                 sub_cp = df_winner[cp_mask]
                 # Verificamos si ERA5 no tiene NaNs en este mes completo
                 if sub_cp["mod"].notna().all() and sub_cp["obs"].notna().all():
@@ -342,15 +390,40 @@ def analyze_station(
                 mean_obs_sum = float(np.mean(sums_obs))
                 mean_mod_sum = float(np.mean(sums_mod))
                 monthly_bias = float(np.mean(np.array(sums_mod) - np.array(sums_obs)))
-                monthly_rmse = float(np.sqrt(np.mean((np.array(sums_mod) - np.array(sums_obs)) ** 2)))
-                monthly_r = float(stats.pearsonr(sums_obs, sums_mod)[0]) if len(sums_obs) >= 3 else np.nan
+                monthly_rmse = float(
+                    np.sqrt(np.mean((np.array(sums_mod) - np.array(sums_obs)) ** 2))
+                )
+                monthly_r = (
+                    float(stats.pearsonr(sums_obs, sums_mod)[0])
+                    if len(sums_obs) >= 3
+                    else np.nan
+                )
             else:
-                mean_obs_sum, mean_mod_sum, monthly_bias, monthly_rmse, monthly_r = np.nan, np.nan, np.nan, np.nan, np.nan
+                mean_obs_sum, mean_mod_sum, monthly_bias, monthly_rmse, monthly_r = (
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                    np.nan,
+                )
 
             monthly_aggregates_complete.append(
                 {
                     "month": month_num,
-                    "month_name": ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"][month_num - 1],
+                    "month_name": [
+                        "Ene",
+                        "Feb",
+                        "Mar",
+                        "Abr",
+                        "May",
+                        "Jun",
+                        "Jul",
+                        "Ago",
+                        "Sep",
+                        "Oct",
+                        "Nov",
+                        "Dic",
+                    ][month_num - 1],
                     "complete_months_count": len(sums_obs),
                     "mean_obs_sum_mm": mean_obs_sum,
                     "mean_mod_sum_mm": mean_mod_sum,
@@ -401,7 +474,15 @@ def main() -> None:
             "id": "21205710",
             "name": "Jardín Botánico",
             "csv": Path("local/newFiles/DiaPluviometrico_JardinBotanico_21205710.csv"),
-            "era5": sorted([str(f) for f in Path("local/era5_hourly/21205710").glob("era5_total_precipitation_*.nc") if "2024" not in f.name]),
+            "era5": sorted(
+                [
+                    str(f)
+                    for f in Path("local/era5_hourly/21205710").glob(
+                        "era5_total_precipitation_*.nc"
+                    )
+                    if "2024" not in f.name
+                ]
+            ),
             "start": "1975-01-01",
             "end": "2015-12-31",
         },
@@ -409,7 +490,14 @@ def main() -> None:
             "id": "23215030",
             "name": "Aguas Claras",
             "csv": Path("local/newFiles/DiaPluviometrico_AguasClaras.csv"),
-            "era5": sorted([str(f) for f in Path("local/era5_hourly/23215030").glob("era5_total_precipitation_*.nc")]),
+            "era5": sorted(
+                [
+                    str(f)
+                    for f in Path("local/era5_hourly/23215030").glob(
+                        "era5_total_precipitation_*.nc"
+                    )
+                ]
+            ),
             "start": "1975-01-01",
             "end": "2000-12-31",
         },
@@ -436,63 +524,101 @@ def main() -> None:
         meta = r["metadata"]
         audit = r["audit"]
         print("\n" + "#" * 88)
-        print(f"ESTACIÓN: {meta['station_name'].upper()} [CÓDIGO: {meta['station_id']}]")
+        print(
+            f"ESTACIÓN: {meta['station_name'].upper()} [CÓDIGO: {meta['station_id']}]"
+        )
         print("#" * 88)
-        print(f"Coordenadas Observadas: Lat {meta['lat_obs']:.4f}°, Lon {meta['lon_obs']:.4f}°, Altitud {meta['elevation']:.1f} msnm")
-        print(f"Punto ERA5 Más Cercano: Lat {meta['lat_center']:.4f}°, Lon {meta['lon_center']:.4f}° (Distancia: {meta['dist_center_km']:.2f} km)")
+        print(
+            f"Coordenadas Observadas: Lat {meta['lat_obs']:.4f}°, Lon {meta['lon_obs']:.4f}°, Altitud {meta['elevation']:.1f} msnm"
+        )
+        print(
+            f"Punto ERA5 Más Cercano: Lat {meta['lat_center']:.4f}°, Lon {meta['lon_center']:.4f}° (Distancia: {meta['dist_center_km']:.2f} km)"
+        )
         print(f"Periodo Común Evaluado: {meta['start_date']} a {meta['end_date']}")
 
         print("\n--- 1. AUDITORÍA PREVIA AL ANÁLISIS ---")
         print(f"Días totales en calendario:   {audit['total_days']:,} días")
         print(f"Días válidos observados:      {audit['valid_days']:,} días")
-        print(f"Días faltantes:               {audit['missing_days']:,} días ({audit['pct_missing']:.2f}%)")
+        print(
+            f"Días faltantes:               {audit['missing_days']:,} días ({audit['pct_missing']:.2f}%)"
+        )
         print("Proporción por Nivel de Aprobación:")
         for k, v in audit["raw_flags"].items():
-            pct = (v / audit['total_days']) * 100.0
+            pct = (v / audit["total_days"]) * 100.0
             print(f"  - {k}: {v:,} registros ({pct:.2f}% del periodo)")
-        print(f"Meses completos observados:   {audit['complete_months']} de {audit['total_months']} meses ({audit['pct_complete_months']:.2f}%)")
+        print(
+            f"Meses completos observados:   {audit['complete_months']} de {audit['total_months']} meses ({audit['pct_complete_months']:.2f}%)"
+        )
 
         print("\n--- 2. VERIFICACIÓN FIN DE SERIE ERA5 ---")
         print(f"Fecha final: {meta['end_date']}")
         print(f"Valor ERA5 en fecha final: {meta['last_day_val']}")
-        print(f"¿Es estrictamente NaN?: {meta['last_day_is_nan']} (Confirmado: faltan horas 12:00 a 24:00 del D+1)")
+        print(
+            f"¿Es estrictamente NaN?: {meta['last_day_is_nan']} (Confirmado: faltan horas 12:00 a 24:00 del D+1)"
+        )
 
         print("\n--- 3. EVALUACIÓN DE DESFASES TEMPORALES (-1, 0, +1 DÍAS) ---")
-        print(f"{'Desfase':<8} | {'N':<6} | {'Pearson r [IC 95%]':<26} | {'Spearman rho [IC 95%]':<26} | {'Sesgo (mm)':<10} | {'RMSE (mm)':<10}")
+        print(
+            f"{'Desfase':<8} | {'N':<6} | {'Pearson r [IC 95%]':<26} | {'Spearman rho [IC 95%]':<26} | {'Sesgo (mm)':<10} | {'RMSE (mm)':<10}"
+        )
         print("-" * 96)
         for lag in r["lag_results"]:
             lag_name = f"{lag['lag']:+d} d"
             r_str = f"{lag['r']:+.4f} [{lag['r_ci'][0]:+.4f}, {lag['r_ci'][1]:+.4f}]"
-            rho_str = f"{lag['rho']:+.4f} [{lag['rho_ci'][0]:+.4f}, {lag['rho_ci'][1]:+.4f}]"
-            print(f"{lag_name:<8} | {lag['n']:<6} | {r_str:<26} | {rho_str:<26} | {lag['bias']:+10.2f} | {lag['rmse']:10.2f}")
+            rho_str = (
+                f"{lag['rho']:+.4f} [{lag['rho_ci'][0]:+.4f}, {lag['rho_ci'][1]:+.4f}]"
+            )
+            print(
+                f"{lag_name:<8} | {lag['n']:<6} | {r_str:<26} | {rho_str:<26} | {lag['bias']:+10.2f} | {lag['rmse']:10.2f}"
+            )
 
         print("\nDesglose por Temporada (N, r [IC 95%], rho [IC 95%], Sesgo, RMSE):")
         for lag in r["lag_results"]:
             print(f"  * Desfase {lag['lag']:+d} días:")
             for s_name, sm in lag["seasons"].items():
                 r_s_str = f"{sm['r']:+.4f} [{sm['r_ci'][0]:+.4f}, {sm['r_ci'][1]:+.4f}]"
-                rho_s_str = f"{sm['rho']:+.4f} [{sm['rho_ci'][0]:+.4f}, {sm['rho_ci'][1]:+.4f}]"
-                print(f"    - {s_name:<4} | N={sm['n']:<5} | r={r_s_str:<24} | rho={rho_s_str:<24} | Sesgo={sm['bias']:+6.2f} | RMSE={sm['rmse']:6.2f}")
+                rho_s_str = (
+                    f"{sm['rho']:+.4f} [{sm['rho_ci'][0]:+.4f}, {sm['rho_ci'][1]:+.4f}]"
+                )
+                print(
+                    f"    - {s_name:<4} | N={sm['n']:<5} | r={r_s_str:<24} | rho={rho_s_str:<24} | Sesgo={sm['bias']:+6.2f} | RMSE={sm['rmse']:6.2f}"
+                )
 
-        print(f"\n--> DESFASE GANADOR: {r['winning_lag']:+d} días (determinado por máxima correlación)")
+        print(
+            f"\n--> DESFASE GANADOR: {r['winning_lag']:+d} días (determinado por máxima correlación)"
+        )
 
         print("\n--- 4. MATRIZ DE VECINOS 3x3 (Lag 0 y Desfase Ganador) ---")
-        print(f"{'Celda':<10} | {'Lat':<6} | {'Lon':<7} | {'Dist(km)':<8} | {'r (Lag 0)':<10} | {'rho (Lag 0)':<11} | {'r (Ganador)':<11} | {'Sesgo (Gan)':<11} | {'RMSE (Gan)':<10} | {'Suma ERA5':<9}")
+        print(
+            f"{'Celda':<10} | {'Lat':<6} | {'Lon':<7} | {'Dist(km)':<8} | {'r (Lag 0)':<10} | {'rho (Lag 0)':<11} | {'r (Ganador)':<11} | {'Sesgo (Gan)':<11} | {'RMSE (Gan)':<10} | {'Suma ERA5':<9}"
+        )
         print("-" * 105)
         for c in r["spatial_grid"]:
             tag = "CENTRO" if c["is_center"] else f"({c['dlat']:+d},{c['dlon']:+d})"
             m0 = c["lag0"]
             mw = c["lag_win"]
-            print(f"{tag:<10} | {c['lat']:6.2f} | {c['lon']:7.2f} | {c['dist_km']:8.1f} | {m0['r']:+10.4f} | {m0['rho']:+11.4f} | {mw['r']:+11.4f} | {mw['bias']:+11.2f} | {mw['rmse']:10.2f} | {mw['sum_mod']:9.1f}")
+            print(
+                f"{tag:<10} | {c['lat']:6.2f} | {c['lon']:7.2f} | {c['dist_km']:8.1f} | {m0['r']:+10.4f} | {m0['rho']:+11.4f} | {mw['r']:+11.4f} | {mw['bias']:+11.2f} | {mw['rmse']:10.2f} | {mw['sum_mod']:9.1f}"
+            )
 
-        print(f"\n--- 5. MÉTRICAS DETALLADAS POR MES CON DESFASE GANADOR ({r['winning_lag']:+d} d) ---")
-        print(f"{'Mes':<4} | {'N':<5} | {'Sesgo':<7} | {'RMSE':<6} | {'P>=0.1 Obs':<10} | {'P>=0.1 ERA':<10} | {'Dif 0.1':<8} | {'P>=1.0 Obs':<10} | {'P>=1.0 ERA':<10} | {'Dif 1.0':<8}")
+        print(
+            f"\n--- 5. MÉTRICAS DETALLADAS POR MES CON DESFASE GANADOR ({r['winning_lag']:+d} d) ---"
+        )
+        print(
+            f"{'Mes':<4} | {'N':<5} | {'Sesgo':<7} | {'RMSE':<6} | {'P>=0.1 Obs':<10} | {'P>=0.1 ERA':<10} | {'Dif 0.1':<8} | {'P>=1.0 Obs':<10} | {'P>=1.0 ERA':<10} | {'Dif 1.0':<8}"
+        )
         print("-" * 92)
         for m in r["monthly_winner_metrics"]:
-            print(f"{m['month_name']:<4} | {m['n_days']:<5} | {m['bias']:+7.2f} | {m['rmse']:6.2f} | {m['pct_wet_01_obs']:9.1f}% | {m['pct_wet_01_era']:9.1f}% | {m['pct_wet_01_diff']:+7.1f}% | {m['pct_wet_10_obs']:9.1f}% | {m['pct_wet_10_era']:9.1f}% | {m['pct_wet_10_diff']:+7.1f}%")
+            print(
+                f"{m['month_name']:<4} | {m['n_days']:<5} | {m['bias']:+7.2f} | {m['rmse']:6.2f} | {m['pct_wet_01_obs']:9.1f}% | {m['pct_wet_01_era']:9.1f}% | {m['pct_wet_01_diff']:+7.1f}% | {m['pct_wet_10_obs']:9.1f}% | {m['pct_wet_10_era']:9.1f}% | {m['pct_wet_10_diff']:+7.1f}%"
+            )
 
-        print("\nPercentiles Diarios de Precipitación (mm/día) por Mes (Obs / ERA5 / Diferencia):")
-        print(f"{'Mes':<4} | {'P50 (Obs/ERA/Dif)':<26} | {'P90 (Obs/ERA/Dif)':<26} | {'P95 (Obs/ERA/Dif)':<26} | {'P99 (Obs/ERA/Dif)':<26}")
+        print(
+            "\nPercentiles Diarios de Precipitación (mm/día) por Mes (Obs / ERA5 / Diferencia):"
+        )
+        print(
+            f"{'Mes':<4} | {'P50 (Obs/ERA/Dif)':<26} | {'P90 (Obs/ERA/Dif)':<26} | {'P95 (Obs/ERA/Dif)':<26} | {'P99 (Obs/ERA/Dif)':<26}"
+        )
         print("-" * 115)
         for m in r["monthly_winner_metrics"]:
             q_o, q_e, q_d = m["q_obs"], m["q_era"], m["q_diff"]
@@ -500,16 +626,24 @@ def main() -> None:
             p90_s = f"{q_o['P90']:4.1f} / {q_e['P90']:4.1f} / {q_d['P90']:+5.1f}"
             p95_s = f"{q_o['P95']:4.1f} / {q_e['P95']:4.1f} / {q_d['P95']:+5.1f}"
             p99_s = f"{q_o['P99']:4.1f} / {q_e['P99']:4.1f} / {q_d['P99']:+5.1f}"
-            print(f"{m['month_name']:<4} | {p50_s:<26} | {p90_s:<26} | {p95_s:<26} | {p99_s:<26}")
+            print(
+                f"{m['month_name']:<4} | {p50_s:<26} | {p90_s:<26} | {p95_s:<26} | {p99_s:<26}"
+            )
 
-        print("\n--- 6. AGREGADOS MENSUALES (EXCLUSIÓN ESTRICTA DE MESES INCOMPLETOS) ---")
-        print(f"{'Mes':<4} | {'Meses Usados':<14} | {'Meses Excluidos':<16} | {'Obs Media (mm)':<15} | {'ERA5 Media (mm)':<15} | {'Sesgo (mm)':<11} | {'RMSE (mm)':<10} | {'Pearson r':<9}")
+        print(
+            "\n--- 6. AGREGADOS MENSUALES (EXCLUSIÓN ESTRICTA DE MESES INCOMPLETOS) ---"
+        )
+        print(
+            f"{'Mes':<4} | {'Meses Usados':<14} | {'Meses Excluidos':<16} | {'Obs Media (mm)':<15} | {'ERA5 Media (mm)':<15} | {'Sesgo (mm)':<11} | {'RMSE (mm)':<10} | {'Pearson r':<9}"
+        )
         print("-" * 105)
         for ma in r["monthly_aggregates_complete"]:
             counts = r["complete_months_by_month_num"][ma["month"]]
             u_str = f"{counts['complete_kept']} / {counts['total_possible']}"
             e_str = f"{counts['excluded']}"
-            print(f"{ma['month_name']:<4} | {u_str:<14} | {e_str:<16} | {ma['mean_obs_sum_mm']:15.2f} | {ma['mean_mod_sum_mm']:15.2f} | {ma['monthly_bias_mm']:+11.2f} | {ma['monthly_rmse_mm']:10.2f} | {ma['monthly_r']:+9.4f}")
+            print(
+                f"{ma['month_name']:<4} | {u_str:<14} | {e_str:<16} | {ma['mean_obs_sum_mm']:15.2f} | {ma['mean_mod_sum_mm']:15.2f} | {ma['monthly_bias_mm']:+11.2f} | {ma['monthly_rmse_mm']:10.2f} | {ma['monthly_r']:+9.4f}"
+            )
 
 
 if __name__ == "__main__":

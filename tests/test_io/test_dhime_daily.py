@@ -378,4 +378,3 @@ def test_dhime_daily_temperature_unrecognized_params_raises_informative_error():
     df = pd.DataFrame(records)
     with pytest.raises(ValueError, match="Could not distinguish Tmax and Tmin records"):
         read_dhime_daily_temperature(df)
-

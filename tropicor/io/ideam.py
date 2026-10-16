@@ -237,14 +237,10 @@ class DhimeDailyPrecipitationAdapter:
                     lon_val = float(row.get("lon_actual", lon_cne))
                     alt_val = float(row.get("altitud_actual", alt_final))
                     lat = (
-                        self.lat_override
-                        if self.lat_override is not None
-                        else lat_val
+                        self.lat_override if self.lat_override is not None else lat_val
                     )
                     lon = (
-                        self.lon_override
-                        if self.lon_override is not None
-                        else lon_val
+                        self.lon_override if self.lon_override is not None else lon_val
                     )
                     alt = (
                         self.elevation_override
@@ -587,14 +583,10 @@ class DhimeDailyTemperatureAdapter:
                     lon_val = float(row.get("lon_actual", lon_cne))
                     alt_val = float(row.get("altitud_actual", alt_final))
                     lat = (
-                        self.lat_override
-                        if self.lat_override is not None
-                        else lat_val
+                        self.lat_override if self.lat_override is not None else lat_val
                     )
                     lon = (
-                        self.lon_override
-                        if self.lon_override is not None
-                        else lon_val
+                        self.lon_override if self.lon_override is not None else lon_val
                     )
                     alt = (
                         self.elevation_override

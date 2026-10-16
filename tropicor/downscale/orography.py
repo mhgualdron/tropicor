@@ -354,17 +354,11 @@ def compute_orographic_bias_report(
         else 0.0
     )
     rmse_reduction_pct = (
-        float((raw_rmse - adj_rmse) / raw_rmse * 100.0)
-        if raw_rmse > 1e-6
-        else 0.0
+        float((raw_rmse - adj_rmse) / raw_rmse * 100.0) if raw_rmse > 1e-6 else 0.0
     )
 
     mae_diff = raw_mae - adj_mae
-    mae_reduction_pct = (
-        float(mae_diff / raw_mae * 100.0)
-        if raw_mae > 1e-6
-        else 0.0
-    )
+    mae_reduction_pct = float(mae_diff / raw_mae * 100.0) if raw_mae > 1e-6 else 0.0
 
     df_comparison = pd.DataFrame(
         [
@@ -432,4 +426,3 @@ def compute_orographic_bias_report(
         "table": df_comparison,
         "report_text": report_text,
     }
-

@@ -237,9 +237,7 @@ def test_aggregate_hourly_to_daily_temperature_windows_and_lags():
 
     # Window 05-05 UTC (local civil day 00:00 to 24:00 local;
     # 07-02 02:00 UTC is 07-01 21:00 local)
-    df_win5 = aggregate_hourly_to_daily_temperature(
-        s, window_start_utc=5, min_hours=24
-    )
+    df_win5 = aggregate_hourly_to_daily_temperature(s, window_start_utc=5, min_hours=24)
     assert df_win5.loc["2025-07-01", "tmax"] == pytest.approx(32.0)
     assert df_win5.loc["2025-07-02", "tmax"] == pytest.approx(17.0)
 
@@ -338,6 +336,3 @@ def test_variable_aggregation_conventions_registry():
     # Aliases
     assert get_variable_convention("tp").window_start_utc == 12
     assert get_variable_convention("t2m").window_start_utc == 5
-
-
-
