@@ -1,6 +1,7 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
+**Latest Amendment**: Protocol v1.1 (implementation clarifications plus one conservative addition, C.8; see Appendix C)  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -395,3 +396,66 @@ When extended temperature records (2005–2020) are processed:
   - Generate Three-Tier Scorecards (Pass / Inconclusive / Fail).
   - Test parsimony progression ($k-1 \to k$) against the Primary Discriminating Family.
   - Publish final benchmark scorecard and falsification analyses.
+
+---
+
+## Appendix C: Implementation Clarifications & Conservative Rule Addition (Protocol v1.1)
+
+This appendix codifies implementation clarifications along with one substantive conservative addition (C.8) adopted at the closure of Phase 1 (Protocol v1.1). All metric definitions, temporal partitions, and parsimony rules established in Protocol v1.0 remain strictly frozen; the addition in C.8 establishes a conservative sample size guard that can only convert potential Pass/Fail outcomes into Inconclusive when annual sample sizes are combinatorially insufficient.
+
+### C.1 Scope and Module Architecture of `EvaluationSuite`
+Section 9 refers to an `EvaluationSuite`. In Phase 1, the core verification engine is implemented at module level within `tropicor.core.protocol` (functions `compute_*`, `evaluate_*`, `apply_*`). An orchestrating class structure (e.g., encapsulating the execution pipeline `method -> station -> partition -> scorecard`) will be decided in Phase 2 based on the architectural requirements of the daily correction hierarchy.
+
+### C.2 Literal Streak Completeness for $CDD_{\max}$
+To guarantee that consecutive dry days ($P < 1.0\text{ mm}$) reflect continuous, fully observed dry regimes without interpolation or boundary artifacts:
+1. **Calendar Year Boundary**: Dry streaks are computed strictly within each individual calendar year (resetting on December 31; no streak crosses into January 1 of the following year).
+2. **Strict Discard Rule**: Any candidate streak that touches or contains a missing observation day ($\text{NaN}$), or that touches any day within an excluded calendar month ($> 20\%$ missing days in that month), is **completely discarded**. Streaks are not truncated or fragmented (single rule: any incompletely observed streak is discarded).
+3. **Annual Aggregation and Discarded Year Rule**: The annual $CDD_{\max}$ is the maximum length among all valid remaining streaks in the calendar year. If an evaluated calendar year ($\ge 330$ valid observation days) has candidate dry streaks but **all** of them are discarded due to touching missing observations or excluded months, the year's $CDD_{\max}$ is undefined: the year is **excluded** from the annual mean calculation (incrementing `n_discarded_years`), preventing an artificial deflation of the annual mean by spurious zero values. Conversely, if an evaluated calendar year genuinely experiences zero dry days (all valid days have $P \ge 1.0\text{ mm}$), its annual maximum dry streak is strictly $0.0\text{ days}$ and the year is retained.
+4. **Annual Completeness Gate**: A calendar year is evaluated only if it contains $\ge 330$ valid observation days; years with $< 330$ days are excluded from the annual mean.
+5. **Model-Observation Symmetry**: Identical filtering rules are enforced synchronously on modeled series via the paired missingness mask (Section 2.4).
+6. **Empirical Feasibility Check**: A feasibility check using observations only on calibration partitions (`scripts/check_cdd_feasibility.py`) confirmed that the strict streak completeness rules do not cause undue data loss. In Jardín Botánico (1975–1994, 20 years), 4 years had $< 330$ valid days, leaving 16 evaluated years; across 1,008 candidate dry streaks, only 19 (1.88%) were discarded, leaving 989 valid streaks, with 16 of 16 evaluated years retaining valid streaks. In Aguas Claras (1975–1987, 13 years), 5 years had $< 330$ valid days, leaving 8 evaluated years; across 519 candidate dry streaks, only 6 (1.16%) were discarded, leaving 513 valid streaks, with 8 of 8 evaluated years retaining valid streaks.
+
+### C.3 Percentile Evaluation Sample ($P_{95}$ and $P_{99}$)
+Precipitation extreme percentiles $P_{95}$ and $P_{99}$ are evaluated strictly on the sub-sample of **wet days** ($P \ge 1.0\text{ mm}$), as defined in separate literal rows of Table 3.2:
+- For $P_{95}$: *"Relative bias of the 95th empirical percentile of wet days ($P \ge 1.0\text{ mm}$)"* ($|PBIAS| \le 15\%$).
+- For $P_{99}$: *"Relative bias of the 99th empirical percentile of wet days ($P \ge 1.0\text{ mm}$)"* ($|PBIAS| \le 25\%$).
+
+Days with $P < 1.0\text{ mm}$ (dry days) do not enter the empirical percentile sample.
+
+### C.4 Integer Ceiling Arithmetic for 70% Global Pass Threshold
+The global qualification threshold requiring $\lceil 0.70 \times N_{\text{decisive}} \rceil$ passes (Section 5.3) is evaluated strictly via exact integer ceiling arithmetic without floating-point representation error:
+$$\text{Required Passes} = \lceil 7 \times N_{\text{decisive}} / 10 \rceil = -(-7 \times N_{\text{decisive}} // 10)$$
+For precipitation ($N_{\text{decisive}} = 6$), the required number of passes is exactly 5. For temperature ($N_{\text{decisive}} = 3$), the required number of passes is exactly 3.
+
+### C.5 Percentile Interpolation & Seasonal Nomenclature
+1. **Empirical Percentiles**: Empirical percentiles ($P_5$, $P_{95}$, $P_{99}$) are calculated using standard linear interpolation (Hyndman and Fan Type 7; default in `numpy.percentile(..., method='linear')`).
+2. **Seasonal Notation**: The abbreviation "DEF" in the Section 3.2 table denotes the standard meteorological season December–January–February (DJF).
+
+### C.6 Indefinite Bootstrap Replicas Tracking
+Bootstrap replicas resulting in non-finite metric values (e.g., due to absence of wet days or lack of valid dry streaks in a resampled block) are excluded from the empirical confidence interval percentiles (2.5 and 97.5). The verification engine explicitly records and exposes the number of excluded replicas (`n_discarded_replicas`) in diagnostic outputs without introducing arbitrary post-hoc acceptance thresholds.
+
+### C.7 Declaration of Validation Data Integrity
+As of the registration of Amendment v1.1:
+1. **No Method Execution on Validation Data**: No downscaling or bias correction method (Levels 1–3) has been calibrated, tuned, fitted, or evaluated on the out-of-sample validation partitions (Precipitation: Jardín Botánico 1995–2015, Aguas Claras 1988–2000; Temperature: Jardín Botánico 2005–2020, Aguas Claras 2001–2011).
+2. **Prior Exploratory Analyses Declared**: Prior exploratory analyses performed before protocol registration (evaluated exclusively on uncorrected raw ERA5 and observational series, including daily precipitation lag correlations in `scripts/lag_analysis.py`, raw ERA5 spatial neighborhood and daily comparisons in `scripts/compare_era5_ideam_phase4.py` and `scripts/compare_era5_ideam_daily.py`, and 1990–1994 pilot temperature tests in `scripts/lag_analysis_temperature.py`) are formally declared as transparent baseline disclosures in Section 1.2 and Section 8. Furthermore, monthly downscaling models implemented in Sprint 8 (`LinearScaling` and `EmpiricalQuantileMapping` in `tropicor/core/bias.py`) were evaluated exclusively on four separate stations (Puerto Carreño, Las Flores, Noanamá, and Gorgona) across 1990–2019 in `examples/validate_bias_correction.py` and on synthetic series in unit tests; neither benchmark station (Jardín Botánico nor Aguas Claras) was evaluated, resulting in zero overlap with benchmark validation partitions.
+3. **Audit Ledger Status**: The append-only validation opening audit ledger (`local/reports/validation_openings.jsonl`) does not exist on this machine as of the date of this amendment (the path is excluded by .gitignore).
+
+### C.8 Minimum Annual Blocks (Substantive Addition, Pre-Validation)
+To prevent degenerate bootstrap resampling on short records or heavily masked partitions, the annual block bootstrap uncertainty engine enforces a minimum threshold of annual blocks:
+$$\text{MIN\_BOOTSTRAP\_BLOCKS} = 7$$
+In the verification engine, a "valid annual block" is defined strictly as follows: for non-CDD metrics, any calendar year containing at least one valid (non-NaN) observation in the synchronous paired series (and for temperature, at least one valid observation for both $T_{\max}$ and $T_{\min}$); for $CDD_{\max}$, any calendar year that satisfies the completeness gate ($\ge 330$ valid observation days) and does not have all candidate dry streaks discarded (i.e., years with an evaluated entry in `annual_obs` and `annual_mod`).
+
+If, following synchronous paired masking (and for $CDD_{\max}$, following completeness exclusions), a series contains fewer than 7 valid annual blocks ($B < 7$):
+1. **Confidence Interval Suppression**: The bootstrap confidence interval is not calculated; `ci_lower` and `ci_upper` are assigned `NaN` and flagged with `insufficient_blocks = True`.
+2. **Scorecard Outcome**: Any decisive metric with insufficient blocks maps strictly to `MetricOutcome.INCONCLUSIVE` under the symmetric three-tier mapping (Section 5.2). It can never produce a `PASS` or a `FAIL`.
+3. **Combinatorial Justification**: The annual block bootstrap resamples $B$ blocks with replacement. Because decisive metrics evaluate exchangeable annual or aggregated properties independent of the chronological sequence order of the annual blocks, the number of distinct resampled multisets of size $B$ drawn from $B$ available blocks is given by combinations with replacement:
+$$\binom{2B - 1}{B}$$
+Evaluating this combinatorial capacity across small values of $B$:
+- For $B = 4$: $\binom{7}{4} = 35$ distinct combinations.
+- For $B = 5$: $\binom{9}{5} = 126$ distinct combinations.
+- For $B = 6$: $\binom{11}{6} = 462$ distinct combinations.
+- For $B = 7$: $\binom{13}{7} = 1,716$ distinct combinations.
+
+$B = 7$ is the lowest integer number of blocks where the combinatorial space of distinct resamples strictly exceeds the pre-specified number of bootstrap replicas ($1,000$ replicas; Section 5.1). Below 7 blocks, 1,000 bootstrap draws necessarily suffer from extreme duplicate allocations and severe pseudo-replication.
+4. **Directionality & Conservatism**: This rule is strictly conservative; it can only convert potential Pass or Fail outcomes into Inconclusive due to sample size insufficiency, and cannot manufacture an artificial Pass.
+
