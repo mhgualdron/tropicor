@@ -30,6 +30,7 @@ CROSSING_RULE_DTR_OFFSET: float = 0.025  # Midpoint +/- 0.025 gives DTR = 0.05 C
 CROSSING_ALERT_THRESHOLD: float = 0.01  # > 1% crossing triggers alert
 DEFAULT_BOOTSTRAP_REPLICAS: int = 1000
 DEFAULT_BOOTSTRAP_SEED: int = 42
+MIN_BOOTSTRAP_BLOCKS: int = 7
 
 DEFAULT_LEDGER_PATH: Path = Path("local/reports/validation_openings.jsonl")
 
@@ -317,7 +318,9 @@ def compute_annual_cdd_max(
                 if missing_frac > max_monthly_missing_frac:
                     invalid_months.add(month)
 
-        def _evaluate_series_cdd(series: pd.Series) -> Tuple[float, int]:
+        def _evaluate_series_cdd(
+            series: pd.Series,
+        ) -> Tuple[Optional[float], int, bool]:
             valid_streaks: List[int] = []
             discarded = 0
 
@@ -354,19 +357,33 @@ def compute_annual_cdd_max(
                 else:
                     valid_streaks.append(curr_streak_len)
 
-            max_streak = float(max(valid_streaks)) if valid_streaks else 0.0
-            return max_streak, discarded
+            if valid_streaks:
+                return float(max(valid_streaks)), discarded, False
+            if discarded > 0:
+                # All candidate dry streaks were discarded -> year is excluded
+                return None, discarded, True
+            # Year had zero dry days (all days were wet >= threshold) -> valid 0.0
+            return 0.0, 0, False
 
-        max_obs, disc_obs = _evaluate_series_cdd(df_year["obs"])
-        max_mod, disc_mod = _evaluate_series_cdd(df_year["mod"])
+        max_obs, disc_obs, year_disc_obs = _evaluate_series_cdd(df_year["obs"])
+        max_mod, disc_mod, year_disc_mod = _evaluate_series_cdd(df_year["mod"])
 
         n_discarded_streaks_obs += disc_obs
         n_discarded_streaks_mod += disc_mod
 
-        annual_cdd_obs.append(max_obs)
-        annual_cdd_mod.append(max_mod)
-        annual_obs_map[year] = max_obs
-        annual_mod_map[year] = max_mod
+        if year_disc_obs:
+            n_discarded_years_obs += 1
+        else:
+            assert max_obs is not None
+            annual_cdd_obs.append(max_obs)
+            annual_obs_map[year] = max_obs
+
+        if year_disc_mod:
+            n_discarded_years_mod += 1
+        else:
+            assert max_mod is not None
+            annual_cdd_mod.append(max_mod)
+            annual_mod_map[year] = max_mod
 
     diag = CDDDiagnostic(
         n_discarded_streaks_obs=n_discarded_streaks_obs,
@@ -375,10 +392,16 @@ def compute_annual_cdd_max(
         n_discarded_years_mod=n_discarded_years_mod,
     )
 
-    if len(annual_cdd_obs) == 0:
+    if len(annual_cdd_obs) == 0 or len(annual_cdd_mod) == 0:
+        m_obs = (
+            float(np.mean(annual_cdd_obs)) if len(annual_cdd_obs) > 0 else float("nan")
+        )
+        m_mod = (
+            float(np.mean(annual_cdd_mod)) if len(annual_cdd_mod) > 0 else float("nan")
+        )
         return CDDResult(
-            mean_obs=float("nan"),
-            mean_mod=float("nan"),
+            mean_obs=m_obs,
+            mean_mod=m_mod,
             pbias=float("nan"),
             diagnostic=diag,
             annual_obs=annual_obs_map,
@@ -712,6 +735,7 @@ class BootstrapConfidenceInterval:
     n_replicas: int
     seed: int
     n_discarded_replicas: int = 0
+    insufficient_blocks: bool = False
 
 
 def compute_annual_block_bootstrap_precipitation(
@@ -735,30 +759,56 @@ def compute_annual_block_bootstrap_precipitation(
     if not isinstance(df.index, pd.DatetimeIndex):
         raise ValueError("DataFrame index must be a pd.DatetimeIndex.")
 
-    years = np.array(sorted(df.index.year.unique()))
-    n_years = len(years)
-    if n_years < 2:
-        raise ValueError(
-            f"Annual block bootstrap requires >= 2 years, found {n_years}."
-        )
+    # Synchronous paired masking: missing obs is masked in mod/raw
+    df.loc[df["obs"].isna(), "mod"] = np.nan
+    if "raw" in df.columns:
+        df.loc[df["obs"].isna(), "raw"] = np.nan
 
-    # Point estimate
+    # Identify calendar years with valid paired observations
+    valid_years = np.array([
+        y
+        for y in sorted(df.index.year.unique())
+        if df.loc[df.index.year == y, "obs"].notna().any()
+    ])
+    n_years = len(valid_years)
+
+    # Point estimates
     point_raw = df["raw"] if raw is not None else None
     point_estimates = compute_precipitation_decisive_metrics(
         df["obs"], df["mod"], raw=point_raw
     )
-
-    # Precompute annual CDD max values on original series
     base_cdd = compute_annual_cdd_max(df["obs"], df["mod"])
 
+    if n_years < MIN_BOOTSTRAP_BLOCKS:
+        early_precip_results: Dict[str, BootstrapConfidenceInterval] = {}
+        for k, pt in point_estimates.items():
+            early_precip_results[k] = BootstrapConfidenceInterval(
+                point_estimate=pt,
+                ci_lower=float("nan"),
+                ci_upper=float("nan"),
+                n_replicas=0,
+                seed=seed,
+                n_discarded_replicas=0,
+                insufficient_blocks=True,
+            )
+        return early_precip_results
+
     # Pre-index years into dataframes for fast lookup
-    year_dfs = {y: df[df.index.year == y] for y in years}
+    year_dfs = {y: df[df.index.year == y] for y in valid_years}
 
     rng = np.random.default_rng(seed)
     sampled_metrics: Dict[str, List[float]] = {k: [] for k in point_estimates}
 
+    # Check valid CDD annual blocks
+    cdd_valid_years_obs = len(base_cdd.annual_obs)
+    cdd_valid_years_mod = len(base_cdd.annual_mod)
+    cdd_insufficient = (
+        cdd_valid_years_obs < MIN_BOOTSTRAP_BLOCKS
+        or cdd_valid_years_mod < MIN_BOOTSTRAP_BLOCKS
+    )
+
     for _ in range(n_replicas):
-        resampled_years = rng.choice(years, size=n_years, replace=True)
+        resampled_years = rng.choice(valid_years, size=n_years, replace=True)
         # Concatenate sampled years
         sampled_df = pd.concat([year_dfs[y] for y in resampled_years], axis=0)
         s_raw = sampled_df["raw"] if raw is not None else None
@@ -767,21 +817,24 @@ def compute_annual_block_bootstrap_precipitation(
         )
 
         # Override cdd_max_pbias with the exact annual resample mean
-        res_obs = [
-            base_cdd.annual_obs[y]
-            for y in resampled_years
-            if y in base_cdd.annual_obs
-        ]
-        res_mod = [
-            base_cdd.annual_mod[y]
-            for y in resampled_years
-            if y in base_cdd.annual_mod
-        ]
-        if len(res_obs) > 0 and len(res_mod) > 0:
-            m_o = float(np.mean(res_obs))
-            m_m = float(np.mean(res_mod))
-            if m_o > EPSILON:
-                rep_m["cdd_max_pbias"] = float(100.0 * (m_m - m_o) / m_o)
+        if not cdd_insufficient:
+            res_obs = [
+                base_cdd.annual_obs[y]
+                for y in resampled_years
+                if y in base_cdd.annual_obs
+            ]
+            res_mod = [
+                base_cdd.annual_mod[y]
+                for y in resampled_years
+                if y in base_cdd.annual_mod
+            ]
+            if len(res_obs) > 0 and len(res_mod) > 0:
+                m_o = float(np.mean(res_obs))
+                m_m = float(np.mean(res_mod))
+                if m_o > EPSILON:
+                    rep_m["cdd_max_pbias"] = float(100.0 * (m_m - m_o) / m_o)
+                else:
+                    rep_m["cdd_max_pbias"] = float("nan")
             else:
                 rep_m["cdd_max_pbias"] = float("nan")
         else:
@@ -793,6 +846,18 @@ def compute_annual_block_bootstrap_precipitation(
 
     results: Dict[str, BootstrapConfidenceInterval] = {}
     for k, pt in point_estimates.items():
+        if k == "cdd_max_pbias" and cdd_insufficient:
+            results[k] = BootstrapConfidenceInterval(
+                point_estimate=pt,
+                ci_lower=float("nan"),
+                ci_upper=float("nan"),
+                n_replicas=0,
+                seed=seed,
+                n_discarded_replicas=0,
+                insufficient_blocks=True,
+            )
+            continue
+
         vals = sampled_metrics[k]
         n_disc = n_replicas - len(vals)
         if len(vals) == 0:
@@ -803,6 +868,7 @@ def compute_annual_block_bootstrap_precipitation(
                 n_replicas=n_replicas,
                 seed=seed,
                 n_discarded_replicas=n_disc,
+                insufficient_blocks=False,
             )
         else:
             c_low = float(np.percentile(vals, 2.5))
@@ -814,6 +880,7 @@ def compute_annual_block_bootstrap_precipitation(
                 n_replicas=n_replicas,
                 seed=seed,
                 n_discarded_replicas=n_disc,
+                insufficient_blocks=False,
             )
 
     return results
@@ -839,23 +906,41 @@ def compute_annual_block_bootstrap_temperature(
     if not isinstance(df.index, pd.DatetimeIndex):
         raise ValueError("DataFrame index must be a pd.DatetimeIndex.")
 
-    years = np.array(sorted(df.index.year.unique()))
-    n_years = len(years)
-    if n_years < 2:
-        raise ValueError(
-            f"Annual block bootstrap requires >= 2 years, found {n_years}."
+    # Identify calendar years with valid paired observations for both tmax and tmin
+    valid_years = np.array([
+        y
+        for y in sorted(df.index.year.unique())
+        if (
+            df.loc[df.index.year == y, "tmax_obs"].notna().any()
+            and df.loc[df.index.year == y, "tmin_obs"].notna().any()
         )
+    ])
+    n_years = len(valid_years)
 
     point_estimates = compute_temperature_decisive_metrics(
         df["tmax_obs"], df["tmax_mod"], df["tmin_obs"], df["tmin_mod"]
     )
 
-    year_dfs = {y: df[df.index.year == y] for y in years}
+    if n_years < MIN_BOOTSTRAP_BLOCKS:
+        early_temp_results: Dict[str, BootstrapConfidenceInterval] = {}
+        for k, pt in point_estimates.items():
+            early_temp_results[k] = BootstrapConfidenceInterval(
+                point_estimate=pt,
+                ci_lower=float("nan"),
+                ci_upper=float("nan"),
+                n_replicas=0,
+                seed=seed,
+                n_discarded_replicas=0,
+                insufficient_blocks=True,
+            )
+        return early_temp_results
+
+    year_dfs = {y: df[df.index.year == y] for y in valid_years}
     rng = np.random.default_rng(seed)
     sampled_metrics: Dict[str, List[float]] = {k: [] for k in point_estimates}
 
     for _ in range(n_replicas):
-        resampled_years = rng.choice(years, size=n_years, replace=True)
+        resampled_years = rng.choice(valid_years, size=n_years, replace=True)
         sampled_df = pd.concat([year_dfs[y] for y in resampled_years], axis=0)
         rep_m = compute_temperature_decisive_metrics(
             sampled_df["tmax_obs"],
@@ -879,6 +964,7 @@ def compute_annual_block_bootstrap_temperature(
                 n_replicas=n_replicas,
                 seed=seed,
                 n_discarded_replicas=n_disc,
+                insufficient_blocks=False,
             )
         else:
             c_low = float(np.percentile(vals, 2.5))
@@ -890,6 +976,7 @@ def compute_annual_block_bootstrap_temperature(
                 n_replicas=n_replicas,
                 seed=seed,
                 n_discarded_replicas=n_disc,
+                insufficient_blocks=False,
             )
 
     return results

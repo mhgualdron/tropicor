@@ -14,6 +14,7 @@ import pandas as pd
 import pytest
 
 from tropicor.core.protocol import (
+    MIN_BOOTSTRAP_BLOCKS,
     BootstrapConfidenceInterval,
     CDDDiagnostic,
     GlobalOutcome,
@@ -519,7 +520,7 @@ def test_weaker_of_two_concordance() -> None:
 
 def test_annual_block_bootstrap_reproducibility_and_pairing() -> None:
     """Verify annual block bootstrap is reproducible with seed and correctly paired."""
-    dates = pd.date_range("1990-01-01", "1994-12-31", freq="D")
+    dates = pd.date_range("1990-01-01", "1997-12-31", freq="D")  # 8 years (>= 7)
     rng = np.random.default_rng(123)
     n = len(dates)
 
@@ -592,6 +593,8 @@ def test_nested_annual_block_cv_leakage_and_tuning_losses() -> None:
     assert len(folds) == 20
 
     for train_s, val_s in folds:
+        assert isinstance(train_s.index, pd.DatetimeIndex)
+        assert isinstance(val_s.index, pd.DatetimeIndex)
         train_years = set(train_s.index.year)
         val_years = set(val_s.index.year)
         # ZERO overlap
@@ -640,6 +643,8 @@ def test_contiguous_5year_block_cv_with_remainder_fusion(tmp_path: Path) -> None
 
     # Check zero leakage in each fold
     for train_s, test_s, r in folds:
+        assert isinstance(train_s.index, pd.DatetimeIndex)
+        assert isinstance(test_s.index, pd.DatetimeIndex)
         train_y = set(train_s.index.year)
         test_y = set(test_s.index.year)
         assert len(train_y.intersection(test_y)) == 0
@@ -853,7 +858,7 @@ def test_compute_required_passes_integer_arithmetic() -> None:
 
 def test_bootstrap_discarded_replicas_tracking() -> None:
     """Verify that annual block bootstrap reports discarded replicas count."""
-    dates = pd.date_range("1980-01-01", "1983-12-31", freq="D")  # 4 years
+    dates = pd.date_range("1980-01-01", "1987-12-31", freq="D")  # 8 years (>= 7)
     rng = np.random.default_rng(42)
     obs = pd.Series(rng.uniform(0.0, 10.0, size=len(dates)), index=dates)
     mod = obs * 1.05
@@ -907,4 +912,130 @@ def test_scorecard_exposes_cdd_diagnostic() -> None:
     assert card.cdd_diagnostic is not None
     assert card.cdd_diagnostic.n_discarded_streaks_obs == 2
     assert card.cdd_diagnostic.n_discarded_streaks_mod == 1
+
+
+# ==============================================================================
+# 9. CDD Streak Edge Cases & Minimum Bootstrap Blocks (v1.1 Amendments)
+# ==============================================================================
+
+
+def test_cdd_all_candidate_streaks_discarded_year_is_excluded() -> None:
+    """Verify an evaluated year (>=330 days) with all streaks discarded is excluded."""
+    dates = pd.date_range("2000-01-01", "2000-12-31", freq="D")  # 366 days
+    obs = pd.Series(10.0, index=dates)  # baseline rain >= 1.0 mm
+
+    # Streak 1: days 100-104 (5 dry days), but day 102 is NaN
+    obs.iloc[100:105] = 0.0
+    obs.iloc[102] = np.nan
+
+    # Streak 2: days 200-204 (5 dry days), but day 202 is NaN
+    obs.iloc[200:205] = 0.0
+    obs.iloc[202] = np.nan
+
+    # 364 valid days (>= 330), but both candidate streaks touch NaN
+    mod = obs.copy()
+
+    cdd_res = compute_annual_cdd_max(obs, mod)
+    assert cdd_res.diagnostic.n_discarded_streaks_obs == 2
+    assert cdd_res.diagnostic.n_discarded_years_obs == 1
+    assert 2000 not in cdd_res.annual_obs
+    assert np.isnan(cdd_res.mean_obs)
+
+
+def test_cdd_zero_dry_days_year_evaluates_to_zero() -> None:
+    """Verify evaluated year with zero dry days (continuous rain) evaluates to 0.0."""
+    dates = pd.date_range("2000-01-01", "2000-12-31", freq="D")  # 366 days
+    obs = pd.Series(10.0, index=dates)  # every single day >= 1.0 mm
+    mod = obs.copy()
+
+    cdd_res = compute_annual_cdd_max(obs, mod)
+    assert cdd_res.diagnostic.n_discarded_streaks_obs == 0
+    assert cdd_res.diagnostic.n_discarded_years_obs == 0
+    assert 2000 in cdd_res.annual_obs
+    assert cdd_res.annual_obs[2000] == 0.0
+    assert cdd_res.mean_obs == 0.0
+
+
+def test_bootstrap_minimum_annual_blocks_threshold_precipitation() -> None:
+    """Verify B < 7 returns INCONCLUSIVE; B >= 7 calculates standard CIs."""
+    assert MIN_BOOTSTRAP_BLOCKS == 7
+    rng = np.random.default_rng(777)
+
+    # Case 1: B = 6 blocks (1990-1995)
+    dates_6 = pd.date_range("1990-01-01", "1995-12-31", freq="D")
+    obs_6 = pd.Series(rng.uniform(0.0, 15.0, size=len(dates_6)), index=dates_6)
+    mod_6 = obs_6 * 1.05
+    raw_6 = obs_6 * 1.20
+
+    boot_6 = compute_annual_block_bootstrap_precipitation(
+        obs_6, mod_6, raw=raw_6, n_replicas=50, seed=42
+    )
+
+    for metric_name, ci in boot_6.items():
+        assert ci.insufficient_blocks is True
+        assert np.isnan(ci.ci_lower)
+        assert np.isnan(ci.ci_upper)
+        assert ci.n_replicas == 0
+        outcome = evaluate_symmetric_metric_outcome(
+            ci.ci_lower, ci.ci_upper, threshold=10.0, is_two_sided=True
+        )
+        assert outcome == MetricOutcome.INCONCLUSIVE
+
+    # Case 2: B = 7 blocks (1990-1996)
+    dates_7 = pd.date_range("1990-01-01", "1996-12-31", freq="D")
+    obs_7 = pd.Series(rng.uniform(0.0, 15.0, size=len(dates_7)), index=dates_7)
+    mod_7 = obs_7 * 1.05
+    raw_7 = obs_7 * 1.20
+
+    boot_7 = compute_annual_block_bootstrap_precipitation(
+        obs_7, mod_7, raw=raw_7, n_replicas=50, seed=42
+    )
+
+    for metric_name, ci in boot_7.items():
+        assert ci.insufficient_blocks is False
+        assert np.isfinite(ci.ci_lower)
+        assert np.isfinite(ci.ci_upper)
+        assert ci.n_replicas == 50
+
+
+def test_bootstrap_minimum_annual_blocks_threshold_temperature() -> None:
+    """Verify temperature bootstrap enforces MIN_BOOTSTRAP_BLOCKS (B=6 vs B=7)."""
+    rng = np.random.default_rng(888)
+
+    # Case 1: B = 6 blocks
+    dates_6 = pd.date_range("1990-01-01", "1995-12-31", freq="D")
+    t_obs_6 = pd.Series(rng.uniform(15.0, 25.0, size=len(dates_6)), index=dates_6)
+    t_mod_6 = t_obs_6 + 0.3
+    t_min_obs_6 = t_obs_6 - 5.0
+    t_min_mod_6 = t_mod_6 - 4.8
+
+    boot_6 = compute_annual_block_bootstrap_temperature(
+        t_obs_6, t_mod_6, t_min_obs_6, t_min_mod_6, n_replicas=50, seed=42
+    )
+
+    for metric_name, ci in boot_6.items():
+        assert ci.insufficient_blocks is True
+        assert np.isnan(ci.ci_lower)
+        assert np.isnan(ci.ci_upper)
+        outcome = evaluate_symmetric_metric_outcome(
+            ci.ci_lower, ci.ci_upper, threshold=0.5, is_two_sided=False
+        )
+        assert outcome == MetricOutcome.INCONCLUSIVE
+
+    # Case 2: B = 7 blocks
+    dates_7 = pd.date_range("1990-01-01", "1996-12-31", freq="D")
+    t_obs_7 = pd.Series(rng.uniform(15.0, 25.0, size=len(dates_7)), index=dates_7)
+    t_mod_7 = t_obs_7 + 0.3
+    t_min_obs_7 = t_obs_7 - 5.0
+    t_min_mod_7 = t_mod_7 - 4.8
+
+    boot_7 = compute_annual_block_bootstrap_temperature(
+        t_obs_7, t_mod_7, t_min_obs_7, t_min_mod_7, n_replicas=50, seed=42
+    )
+
+    for metric_name, ci in boot_7.items():
+        assert ci.insufficient_blocks is False
+        assert np.isfinite(ci.ci_lower)
+        assert np.isfinite(ci.ci_upper)
+
 
