@@ -1037,5 +1037,3 @@ def test_bootstrap_minimum_annual_blocks_threshold_temperature() -> None:
         assert ci.insufficient_blocks is False
         assert np.isfinite(ci.ci_lower)
         assert np.isfinite(ci.ci_upper)
-
-

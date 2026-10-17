@@ -33,7 +33,9 @@ def analyze_station_cdd(
     cal_end_year: int,
 ) -> None:
     print(f"\n{'=' * 78}")
-    print(f"ESTACIÓN: {station_name} ({station_code}) - CALIBRACIÓN {cal_start_year}–{cal_end_year}")
+    print(
+        f"ESTACIÓN: {station_name} ({station_code}) - CALIBRACIÓN {cal_start_year}–{cal_end_year}"
+    )
     print(f"{'=' * 78}")
 
     ds = read_dhime_daily_precipitation(filepath)
@@ -68,7 +70,9 @@ def analyze_station_cdd(
     total_valid_streaks = 0
 
     print("\n--- DESGLOSE ANUAL ---")
-    print(f"{'Año':<6} | {'Días Válidos':<13} | {'Estado Año':<12} | {'Meses Excluidos (>20% faltante)':<32} | {'CDD_max':<8}")
+    print(
+        f"{'Año':<6} | {'Días Válidos':<13} | {'Estado Año':<12} | {'Meses Excluidos (>20% faltante)':<32} | {'CDD_max':<8}"
+    )
     print(f"{'-' * 88}")
 
     for year in years:
@@ -83,7 +87,9 @@ def analyze_station_cdd(
 
         valid_days = int(df_year["obs"].notna().sum())
         if valid_days < CDD_MIN_ANNUAL_VALID_DAYS:
-            print(f"{year:<6} | {valid_days:<13} | {'DESCARTADO':<12} | {'N/A (<330 días)':<32} | {'N/A':<8}")
+            print(
+                f"{year:<6} | {valid_days:<13} | {'DESCARTADO':<12} | {'N/A (<330 días)':<32} | {'N/A':<8}"
+            )
             continue
 
         invalid_m: List[int] = []
@@ -95,7 +101,9 @@ def analyze_station_cdd(
                 missing_frac = df_m["obs"].isna().sum() / len(df_m)
                 if missing_frac > CDD_MAX_MONTHLY_MISSING_FRAC:
                     invalid_m.append(m)
-                    excluded_months_list.append(f"{year}-{m:02d} ({missing_frac*100:.1f}%)")
+                    excluded_months_list.append(
+                        f"{year}-{m:02d} ({missing_frac * 100:.1f}%)"
+                    )
 
         # Count streaks in year
         curr_len = 0
@@ -138,19 +146,25 @@ def analyze_station_cdd(
         cdd_val = cdd_res.annual_obs.get(year, float("nan"))
         cdd_str = f"{cdd_val:.1f} d" if np.isfinite(cdd_val) else "0.0 d"
         inv_str = ", ".join(str(m) for m in invalid_m) if invalid_m else "Ninguno"
-        print(f"{year:<6} | {valid_days:<13} | {'VÁLIDO':<12} | {inv_str:<32} | {cdd_str:<8}")
+        print(
+            f"{year:<6} | {valid_days:<13} | {'VÁLIDO':<12} | {inv_str:<32} | {cdd_str:<8}"
+        )
 
     print("\n--- DIAGNÓSTICO DE FACTIBILIDAD CDD ---")
     print(f"1. Años totales en calibración:           {total_years}")
     print(f"2. Años descartados (<330 días válidos):  {discarded_years}")
     print(f"3. Años evaluados (válidos):              {evaluated_years}")
-    print(f"4. Meses excluidos (>20% faltante):       {len(excluded_months_list)} meses en total")
+    print(
+        f"4. Meses excluidos (>20% faltante):       {len(excluded_months_list)} meses en total"
+    )
     if excluded_months_list:
         print(f"   Detalle: {', '.join(excluded_months_list)}")
     print(f"5. Rachas candidatas totales:             {total_candidate_streaks}")
     print(f"6. Rachas descartadas (NaN / mes excl.):  {diag.n_discarded_streaks_obs}")
     print(f"7. Rachas válidas restantes:              {total_valid_streaks}")
-    print(f"8. Años con >= 1 racha válida:            {years_with_valid_streaks} de {evaluated_years}")
+    print(
+        f"8. Años con >= 1 racha válida:            {years_with_valid_streaks} de {evaluated_years}"
+    )
     print(f"9. Media CDD_max observación:             {cdd_res.mean_obs:.2f} días")
 
 

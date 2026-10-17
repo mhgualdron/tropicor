@@ -765,11 +765,13 @@ def compute_annual_block_bootstrap_precipitation(
         df.loc[df["obs"].isna(), "raw"] = np.nan
 
     # Identify calendar years with valid paired observations
-    valid_years = np.array([
-        y
-        for y in sorted(df.index.year.unique())
-        if df.loc[df.index.year == y, "obs"].notna().any()
-    ])
+    valid_years = np.array(
+        [
+            y
+            for y in sorted(df.index.year.unique())
+            if df.loc[df.index.year == y, "obs"].notna().any()
+        ]
+    )
     n_years = len(valid_years)
 
     # Point estimates
@@ -907,14 +909,16 @@ def compute_annual_block_bootstrap_temperature(
         raise ValueError("DataFrame index must be a pd.DatetimeIndex.")
 
     # Identify calendar years with valid paired observations for both tmax and tmin
-    valid_years = np.array([
-        y
-        for y in sorted(df.index.year.unique())
-        if (
-            df.loc[df.index.year == y, "tmax_obs"].notna().any()
-            and df.loc[df.index.year == y, "tmin_obs"].notna().any()
-        )
-    ])
+    valid_years = np.array(
+        [
+            y
+            for y in sorted(df.index.year.unique())
+            if (
+                df.loc[df.index.year == y, "tmax_obs"].notna().any()
+                and df.loc[df.index.year == y, "tmin_obs"].notna().any()
+            )
+        ]
+    )
     n_years = len(valid_years)
 
     point_estimates = compute_temperature_decisive_metrics(
