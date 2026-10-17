@@ -265,7 +265,7 @@ class TestLapseRateTemperatureCorrection:
             )
 
         with pytest.raises(TypeError, match="Unsupported temperature type"):
-            lapse_rate_temperature_correction("invalid_str", 1000.0, 1500.0)  # type: ignore[arg-type]
+            lapse_rate_temperature_correction("invalid_str", 1000.0, 1500.0)  # type: ignore[arg-type,call-overload]
 
         with pytest.raises(
             ValueError, match="Cannot apply time-varying vector lapse rate"
