@@ -1,7 +1,7 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.1 (implementation clarifications plus one conservative addition, C.8; see Appendix C)  
+**Latest Amendment**: Protocol v1.2 (Phase 2a precipitation clarifications and one substantive design decision, D.10; see Appendix D). Earlier: v1.1 (Appendix C)  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -458,4 +458,87 @@ Evaluating this combinatorial capacity across small values of $B$:
 
 $B = 7$ is the lowest integer number of blocks where the combinatorial space of distinct resamples strictly exceeds the pre-specified number of bootstrap replicas ($1,000$ replicas; Section 5.1). Below 7 blocks, 1,000 bootstrap draws necessarily suffer from extreme duplicate allocations and severe pseudo-replication.
 4. **Directionality & Conservatism**: This rule is strictly conservative; it can only convert potential Pass or Fail outcomes into Inconclusive due to sample size insufficiency, and cannot manufacture an artificial Pass.
+
+---
+
+## Appendix D: Phase 2a Daily Precipitation Downscaling Clarifications & Amendments (Protocol v1.2)
+
+This appendix codifies the implementation clarifications and substantive design decisions adopted during Phase 2a (Daily Precipitation Downscaling Hierarchy: Levels 1–3) prior to any evaluation on out-of-sample validation data.
+
+### D.1 Units of Daily Precipitation Series
+Precipitation observations and model inputs to downscaling estimators must be expressed strictly in millimeters ($\text{mm}$). To prevent silent numerical corruption from unscaled reanalysis inputs stored natively in meters ($\text{m}$), estimators raise an explicit `ValueError` in `fit()` if the mean across valid days of either input series is below $0.01\text{ mm}$.
+
+### D.2 Synchronous Paired Masking and NaN Preservation
+1. **Calibration Masking**: Model fitting across Levels 1–3 operates strictly over the subset of days where both station observations and co-located reanalysis values are simultaneously valid (synchronous pairwise deletion of missing records).
+2. **Transform NaN Propagation**: In `transform()`, missing values ($\text{NaN}$) in the input model series are strictly preserved in the output series. An input $\text{NaN}$ is never converted to a dry day ($0.0\text{ mm}$).
+3. **Zero Paired Observations per Month**: In Level 1 and Level 2 fitting, if any calendar month $m \in \{1, \dots, 12\}$ contains zero valid paired observation days in the calibration record, `fit()` raises an explicit `ValueError`. (For Level 3, the requirement of at least 2 wet days per group is governed by D.13).
+
+### D.3 Drizzle Threshold Estimation ($P_{\text{th}, m}$) via Type 7 Linear Interpolation
+For each calendar month $m$, the drizzle threshold $P_{\text{th}, m}$ (Section 7.1) is estimated as the $(1 - f_{\text{obs}, m}^{\text{wet}})$-th empirical quantile of calibration reanalysis daily precipitation using Hyndman and Fan Type 7 linear interpolation (`numpy.percentile(..., method='linear')`), evaluated strictly on paired calibration days where $f_{\text{obs}, m}^{\text{wet}} = \frac{1}{N_m} \sum \mathbb{I}[P_{\text{obs}} \ge 1.0\text{ mm}]$. When a calendar month contains zero observed wet days ($N_{\text{obs, wet}, m} = 0$, so $f_{\text{obs}, m}^{\text{wet}} = 0.0$), the evaluation probability is $q = 1.0 - 0.0 = 1.0$, and the estimator sets $P_{\text{th}, m}$ to the maximum calibration model precipitation in that month ($\max(P_{\text{mod}, m})$, the 100th empirical percentile), not infinity ($\infty$).
+
+### D.4 Literal Linear Scaling (Level 1)
+In Level 1 Linear Scaling (Section 6.1), the monthly multiplicative factor $s_m^{(1)} = \sum P_{\text{obs}, m} / \sum P_{\text{raw}, m}$ is applied uniformly to all model daily values ($P_{\text{corr}} = s_m^{(1)} \cdot P_{\text{raw}}$). No drizzle truncation or thresholding is applied in Level 1; the persistence of excess wet-day frequency is a documented structural characteristic of Level 1. If monthly model accumulation $\sum P_{\text{raw}, m}$ is zero while observed accumulation $\sum P_{\text{obs}, m}$ is positive, `fit()` raises an explicit `ValueError`. If observed accumulation is zero, $s_m^{(1)} = 0.0$.
+
+### D.5 Level 2 Scaling Without Second Truncation and Zero-Sum Rules
+1. **No Second Truncation**: Following drizzle truncation at $P_{\text{th}, m}$, surviving precipitation is multiplied by the mass-conserving monthly factor $s_m = \sum P_{\text{obs}, m} / \sum P_{\text{censored}, m}$. No secondary truncation threshold is applied to $s_m \cdot P_{\text{censored}}$; values where $s_m \cdot P_{\text{censored}} < 1.0\text{ mm}$ remain valid positive precipitation amounts to preserve the exact algebraic mass balance $\sum P_{\text{corr}} \equiv \sum P_{\text{obs}}$ (Section 7.4).
+2. **Zero-Sum Rules**: If the monthly model censored accumulation $\sum P_{\text{censored}, m}$ is zero while observed accumulation $\sum P_{\text{obs}, m}$ is positive, `fit()` raises an explicit `ValueError`. If observed accumulation is zero, $s_m = 0.0$.
+
+### D.6 Level 3 Empirical Quantile Mapping Nodes
+Quantile evaluation probabilities for Level 3 transfer nodes (Section 6.3) are defined symmetrically:
+- **100 Bins**: 99 interior quantile nodes corresponding to probabilities $0.01, 0.02, \dots, 0.99$ (`numpy.linspace(0.01, 0.99, 99)`).
+- **50 Bins**: 49 interior quantile nodes corresponding to probabilities $0.02, 0.04, \dots, 0.98$ (`numpy.linspace(0.02, 0.98, 49)`).
+
+### D.7 Marginal Empirical Samples for Wet-Day Distributions
+In Level 3 fitting, the observed wet-day sample ($P_{\text{obs}} \ge 1.0\text{ mm}$) and the model wet-day sample ($P_{\text{censored}} > 0.0\text{ mm}$) within each grouping temporal slice are drawn as marginal empirical distributions from the synchronously valid calibration paired record. They are not conditioned day-by-day on each other, reflecting the independent marginal cumulative distribution functions of precipitation amounts.
+
+### D.8 Piecewise Linear Interpolation of Transfer Function
+Within the span of calibration quantile nodes ($Q_{\text{mod}, 1} \le P \le Q_{\text{mod}, \text{top}}$), Level 3 directly interpolates observed quantiles as a piecewise linear function of model quantiles:
+$$P_{\text{corr}} = \text{interp}(P, Q_{\text{mod}}, Q_{\text{obs}})$$
+The estimator does not interpolate the ratio $r$ to subsequently multiply by $P$. This guarantees strict linearity between adjacent quantile nodes and eliminates non-linear multiplicative artifacts within the calibration domain.
+
+### D.9 Constant Extrapolation Outside Calibration Quantile Nodes
+When `extrapolation="constant"`, model precipitation exceeding the top calibration quantile node ($P > Q_{\text{mod}, \text{top}}$) is scaled by the constant ratio observed at the top node:
+$$P_{\text{corr}} = r_{\text{top}} \cdot P, \quad \text{where } r_{\text{top}} = \frac{Q_{\text{obs}, \text{top}}}{Q_{\text{mod}, \text{top}}}$$
+
+### D.10 Linear Extrapolation as a Substantive Design Decision (Transfer Function Extension)
+A literal reading of Section 6.3 ("linear extrapolation of extreme quantile ratios") entails extrapolating the ratio $r(P) = r_{\text{top}} + \text{slope}_r \cdot (P - Q_{\text{mod}, \text{top}})$. Calibration diagnostic evidence revealed that when empirical ratios decrease across upper quantiles ($\text{slope}_r < 0$), extending the ratio produced negative ratios for extreme reanalysis events, erroneously truncating intense storm events to $0.0\text{ mm}$ upon hitting the physical zero floor. Under the literal reading, calibration cross-validation would have selected a linear configuration in one of the two benchmarks; the change was adopted for physical admissibility (avoiding negative ratios), not for fit, and with the adopted definition cross-validation selects constant extrapolation at both stations. Furthermore, transfer function extension does not bound the corrected magnitude: in calibration diagnostics the corrected maxima exceed the observed maximum; the choice between configurations is governed by the criterion of D.15.
+
+To prevent this pathological destruction of extreme rainfall, Protocol v1.2 adopts a substantive design decision defining linear extrapolation as the linear extension of the transfer function itself:
+$$P_{\text{corr}} = Q_{\text{obs}, \text{top}} + s \cdot (P - Q_{\text{mod}, \text{top}})$$
+$$\text{with slope } s = \frac{Q_{\text{obs}, \text{top}} - Q_{\text{obs}, \text{top}-1}}{Q_{\text{mod}, \text{top}} - Q_{\text{mod}, \text{top}-1}}$$
+If the denominator $(Q_{\text{mod}, \text{top}} - Q_{\text{mod}, \text{top}-1}) \le 10^{-9}$, the estimator falls back to the constant ratio $r_{\text{top}} \cdot P$. Because empirical quantiles are monotonically non-decreasing, the transfer slope satisfies $s \ge 0$, mathematically ensuring physically non-negative corrections and eliminating artificial truncation of extreme events.
+
+### D.11 Transformation of Values Below the First Quantile Node
+Model wet values below the first calibration quantile node ($P_{\text{th}, m} \le P < Q_{\text{mod}, 1}$) are scaled using the ratio of the first quantile node:
+$$P_{\text{corr}} = \frac{Q_{\text{obs}, 1}}{Q_{\text{mod}, 1}} \cdot P = r_1 \cdot P$$
+This formulation is equivalent to linear interpolation between $(0, 0)$ and $(Q_{\text{mod}, 1}, Q_{\text{obs}, 1})$. Because values below $P_{\text{th}, m}$ are set to $0.0\text{ mm}$, the corrected series is discontinuous at $P_{\text{th}, m}$. Corrected values in the interval $[P_{\text{th}, m}, Q_{\text{mod}, 1})$ can fall below $1.0\text{ mm}$.
+
+### D.12 Physical Non-Negativity Safeguard (Zero Floor)
+All estimators enforce a strict physical floor $P_{\text{corr}} = \max(0.0, P_{\text{corr}})$. Level 3 maintains a diagnostic counter `n_clipped_below_zero` tracking any numerical instance clamped by this safeguard. Under the monotonic transfer extension defined in D.10, this counter evaluates strictly to 0 during extrapolation.
+
+### D.13 Minimum Sample Size per Group for Empirical Quantile Mapping
+Level 3 estimators require at least 2 wet days in both the observed series ($P \ge 1.0\text{ mm}$) and the censored model series ($P > 0.0\text{ mm}$) within every calibration group (calendar month or 31-day window). If any group contains fewer than 2 wet days, `fit()` raises an explicit `ValueError`.
+
+### D.14 Reference Leap Calendar (366 Days) for Circular Moving Windows
+When `window="moving_window_31"`, dates map to an integer day of year $D \in [1, 366]$ within a reference leap calendar (cumulative month offsets: Jan=0, Feb=31, Mar=60, $\dots$, Dec=335). Non-leap years omit day 60 (Feb 29). Circular distance along the 366-day cycle is $\Delta(D_1, D_2) = \min(|D_1 - D_2|, 366 - |D_1 - D_2|)$. The 31-day window centered on January 1 ($D=1$) comprises $\Delta \le 15$, spanning December 17 ($D=352$) through January 16 ($D=16$) across 31 continuous calendar days.
+
+### D.15 Evaluation of Cross-Validation Tuning Loss on Concatenated Out-of-Sample Series
+Nested annual block cross-validation evaluates the multi-objective tuning loss $\mathcal{L}_{\text{tuning}}$ (Section 4.1) once on the concatenated out-of-sample predictions spanning all validation folds:
+$$\mathcal{L}_{\text{tuning}}^{\text{overall}} = \text{precipitation\_tuning\_loss}(obs_{\text{cal}}, \bigcup_{k=1}^K \hat{y}_k)$$
+This provides a statistically stable multi-year empirical sample for extreme percentiles ($P_{95}$ and $P_{99}$), while individual fold losses are recorded as diagnostics of interannual variability.
+
+### D.16 Cross-Validation Folds Restricted Strictly to Valid Calendar Years
+Cross-validation folds are constructed strictly for calendar years containing at least one valid synchronously paired observation. Calendar years lacking valid observed records (e.g., station out of service) are excluded from fold partitioning.
+
+### D.17 Deterministic Parsimony Tie-Breaker with Numerical Tolerance
+Configurations whose overall tuning loss is within $10^{-6}$ (absolute) of the minimum are tied; non-finite losses are ineligible. Ties are resolved strictly in favor of parsimony:
+$$\text{monthly} \succ \text{moving\_window\_31} \quad \longrightarrow \quad 50\text{ bins} \succ 100\text{ bins} \quad \longrightarrow \quad \text{constant} \succ \text{linear}$$
+
+### D.18 Calibration Data Loading Semantics and Immediate Validation Discarding
+To enforce zero data leakage, calibration data ingestion (`load_calibration_precipitation_pair`) trims the observed and model series to the pre-specified calibration partition immediately after reading, before any statistic is computed or any estimator is fitted. Aggregation of ERA5 hourly files to daily values may span all available years, but only calibration-year values are retained.
+
+### D.19 Declaration of Validation Partition Integrity
+As of the registration of Protocol v1.2, no validation partition has been accessed. The validation ledger `local/reports/validation_openings.jsonl` does not exist on this machine (it is strictly excluded by `.gitignore`), and all fitting, hyperparameter tuning, and diagnostic evaluations of Phase 2a used exclusively calibration partitions via `load_calibration_precipitation_pair`.
+
+
 
