@@ -1,7 +1,7 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.2 (Phase 2a precipitation clarifications and one substantive design decision, D.10; see Appendix D). Earlier: v1.1 (Appendix C)  
+**Latest Amendment**: Protocol v1.3 (E.1 exclusion of Noanama from the global precipitation criterion, E.6.6 substantive linear extrapolation; see Appendix E). Earlier: v1.2 (Appendix D), v1.1 (Appendix C)  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -539,6 +539,216 @@ To enforce zero data leakage, calibration data ingestion (`load_calibration_prec
 
 ### D.19 Declaration of Validation Partition Integrity
 As of the registration of Protocol v1.2, no validation partition has been accessed. The validation ledger `local/reports/validation_openings.jsonl` does not exist on this machine (it is strictly excluded by `.gitignore`), and all fitting, hyperparameter tuning, and diagnostic evaluations of Phase 2a used exclusively calibration partitions via `load_calibration_precipitation_pair`.
+
+---
+
+## Appendix E: Phase 2b Daily Temperature Downscaling Clarifications, Substantive Design Decisions & Station Status (Protocol v1.3)
+
+### E.1 Noanamá (54085010) Precipitation Partitioning and Global Evaluation Exclusion
+Station `54085010` (Noanamá, Chocó / Medio San Juan, Pacific region; 4.68819° N, -76.93425° W, elevation 21.0 m catalog / 28.0 m CNE) is evaluated strictly for daily precipitation accumulation ($P$).
+1. **Temporal Coverage (1990–2011)**: Across the 8,035 calendar days spanning 1990-01-01 through 2011-12-31, the precipitation record contains 7,099 valid daily observations and 936 missing calendar days (88.35% completeness).
+2. **Calibration Partition (1990–2000)**: Defined across 11 calendar years (1990-01-01 to 2000-12-31). It contains exactly **10 valid calendar years** satisfying the annual completeness gate ($\ge 330$ valid observation days: 1990, 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000). The single incomplete year is 1992 (121 valid days, 245 missing days during a gap in the source record from March 1 to October 31).
+3. **Validation Partition (2001–2011)**: Defined across 11 calendar years (2001-01-01 to 2011-12-31). It contains exactly **9 valid calendar years** satisfying the completeness gate ($\ge 330$ valid observation days: 2001, 2002, 2005, 2006, 2007, 2008, 2009, 2010, 2011). Two years fail the completeness gate: 2003 (120 valid days, 245 missing) and 2004 (0 valid days, 366 missing days during an extended gap in the source record from May 1, 2003 through December 31, 2004).
+4. **Partition Status and Global Exclusion**: Because the author was exposed to monthly aggregates of Noanamá covering the 2001–2011 window in Sprint 8 (Section E.3), Noanamá daily precipitation is evaluated and reported strictly as an out-of-benchmark transfer sensitivity diagnostic. It is formally **excluded** from the global qualification pass/fail threshold (Section 5.3) to preserve strict methodological discipline.
+
+### E.2 Noanamá Temperature: Strictly Descriptive Status (No Partitioning)
+Daily maximum ($T_{\max}$) and minimum ($T_{\min}$) temperature records for station 54085010 (Noanamá) are retained exclusively for descriptive data characterization. No calibration or validation partition is established, no downscaling model is fitted, and no corrective evaluation is performed against these series.
+1. **Maximum Temperature Completeness ($T_{\max}$)**: Across the 8,035 days of 1990–2011, $T_{\max}$ contains 6,222 valid days and 1,813 missing calendar days (77.44% completeness). Exactly **8 calendar years** satisfy the annual completeness gate ($\ge 330$ valid days: 1990, 1991, 1995, 2004, 2005, 2006, 2010, 2011).
+2. **Minimum Temperature Completeness ($T_{\min}$)**: Across 1990–2011, $T_{\min}$ contains 6,984 valid days and 1,051 missing calendar days (86.92% completeness). Exactly **15 calendar years** satisfy the annual completeness gate ($\ge 330$ valid days: 1990, 1991, 1993, 1997, 1998, 1999, 2000, 2004, 2005, 2006, 2007, 2008, 2009, 2010, 2011).
+3. **Simultaneous Temperature Completeness ($T_{\max}$ and $T_{\min}$)**: A total of 6,047 calendar days have both $T_{\max}$ and $T_{\min}$ valid simultaneously. Only **6 calendar years** contain $\ge 330$ days with both extremes valid (1990, 1991, 2004, 2005, 2006, 2011).
+4. **Triple Overlap ($P$, $T_{\max}$, and $T_{\min}$)**: Exactly 5,291 calendar days possess valid records across all three meteorological variables synchronously. Only **5 calendar years** contain $\ge 330$ days with triple valid observations (1990, 1991, 2005, 2006, 2011).
+
+### E.3 Prior Exposure Disclosure (Sprint 8 Monthly Exploratory Work)
+In Sprint 8, prior exploratory downscaling analyses evaluated monthly bias correction models on Noanamá (`Noanama_1990-2019.xlsx`) across the period 1990–2019 (`commit b2e3e34`, 2026-10-14, `examples/validate_bias_correction.py`).
+1. **Sprint 8 Benchmark Scope Inspection**:
+   Inspection of `examples/validate_bias_correction.py` in `commit b2e3e34` (lines 36–70) reveals the explicit station inventory evaluated during Sprint 8:
+   ```python
+   CAL_PERIOD = ("1990-01-01", "2009-12-31")
+   TEST_PERIOD = ("2010-01-01", "2019-12-31")
+   MIN_SPLIT_TEST_MONTHS = 96  # < 8 test years -> LOYO is the primary protocol
+
+   GROUPINGS = ["monthly", "moving_window", "pooled"]
+
+   STATIONS = [
+       {
+           "name": "Puerto Carreño",
+           "file": "APuertoCarreno_1990-2019.xlsx",
+           "region": "Orinoquía",
+       },
+       {"name": "Las Flores", "file": "LasFlores_1990-2019.xlsx", "region": "Caribe"},
+       {"name": "Noanamá", "file": "Noanama_1990-2019.xlsx", "region": "Pacífico"},
+       {
+           "name": "Gorgona",
+           "file": "Gorgona_1990-2019.xlsx",
+           "region": "Insular (Pacífico)",
+       },
+   ]
+   ```
+   The four stations evaluated in Sprint 8 are named strictly as defined in code (station name and source file; the dictionary defines no station IDs, hence none are cited):
+   - **Puerto Carreño** (`APuertoCarreno_1990-2019.xlsx`)
+   - **Las Flores** (`LasFlores_1990-2019.xlsx`)
+   - **Noanamá** (`Noanama_1990-2019.xlsx`)
+   - **Gorgona** (`Gorgona_1990-2019.xlsx`)
+
+   Neither benchmark station `21205710` (Jardín Botánico) nor `23215030` (Aguas Claras) was included among the stations evaluated in Sprint 8.
+2. **Partition Overlap for Noanamá**: In that exploratory work, calibration was specified as `CAL_PERIOD = ("1990-01-01", "2009-12-31")` and out-of-sample testing as `TEST_PERIOD = ("2010-01-01", "2019-12-31")`. Consequently, the author was exposed to monthly aggregates covering the entirety of the 2001–2011 daily validation window for Noanamá.
+3. **Discovery of $T_{\max}$ Drift**: That analysis detected a substantial residual drift in $T_{\max}$ (raw model minus observation bias changing from $-0.34\,^\circ\text{C}$ in calibration to $+1.06\,^\circ\text{C}$ in testing, producing a $+1.40\,^\circ\text{C}$ drift flagged in the exploratory script `examples/validate_bias_correction.py` as a possible station inhomogeneity).
+4. **Integrity Rule**: Because the test records were inspected prior to freezing the daily evaluation protocol, Noanamá cannot provide an uncompromised test of out-of-sample skill. Treating it as an independent test would constitute post-hoc selection. Hence, Noanamá precipitation is segregated into Section E.1 and excluded from global pass/fail accounting.
+
+### E.4 Observational Data Quality: Approval Flags and Documented Constant Streak
+Data quality metadata and empirical consistency checks were audited directly from source files using `scripts/audit_station_data.py`:
+1. **Official Approval Flags (`NivelAprobacion`)**:
+   - **Noanamá (`54085010`)**:
+     - Daily precipitation $P$ restricted to protocol period 1990-01-01 to 2011-12-31 (8,035 days): 7,099 records flagged `Preliminar` (936 missing calendar days; full file spanning 1976–2025 contains 15,739 records flagged `Preliminar`).
+     - Daily maximum temperature $T_{\max}$ restricted to 1990-01-01 to 2011-12-31 (8,035 days): 6,222 records flagged `Definitivo` (1,813 missing calendar days; full file spanning 1990–2011 has identical counts).
+     - Daily minimum temperature $T_{\min}$ restricted to 1990-01-01 to 2011-12-31 (8,035 days): 6,984 records flagged `Definitivo` (1,051 missing calendar days; full file spanning 1990–2011 has identical counts).
+   - **Jardín Botánico (`21205710`)**:
+     - Daily precipitation $P$ full source file (1975-01-01 to 2025-12-25, 15,634 records): 13,082 records flagged `Definitivo` and 2,552 records flagged `Preliminar`. Restricted strictly to declared protocol period (1975-01-01 to 2015-12-31, 14,975 calendar days): 12,362 records, all flagged `Definitivo` (100% `Definitivo`, 0 `Preliminar`; 2,613 missing calendar days).
+     - Calibration daily maximum temperature $T_{\max}$ restricted to 1990–2004 (5,479 days): 3,781 records flagged `Definitivo` (100% of present calibration records, 0 `Preliminar`; 1,698 missing calendar days; full source file 1990–2020 has 8,057 total records: 7,190 `Definitivo` and 867 `Preliminar`).
+     - Calibration daily minimum temperature $T_{\min}$ restricted to 1990–2004 (5,479 days): 3,417 records flagged `Definitivo` (100% of present calibration records, 0 `Preliminar`; 2,062 missing calendar days; full source file 1990–2020 has 7,714 total records: 6,835 `Definitivo` and 879 `Preliminar`).
+     - **Validation Quality Note (Derived by Difference with File Totals)**:
+       By calculating the difference between the full file record audit and the calibration partition counts, the validation partition (2005-01-01 to 2020-12-31, 5,844 calendar days) has:
+       - $T_{\max}$: exactly **867 records flagged `Preliminar`** (867 in full file minus 0 in calibration) and 3,409 flagged `Definitivo` (7,190 in file minus 3,781 in calibration), across 4,276 present records.
+       - $T_{\min}$: exactly **879 records flagged `Preliminar`** (879 in full file minus 0 in calibration) and 3,418 flagged `Definitivo` (6,835 in file minus 3,417 in calibration), across 4,297 present records.
+       - This validation partition metadata was established strictly by differencing file-level audit metadata without inspecting or summarizing any validation values (the audit read the source files in full, as stated in E.8).
+   - **Aguas Claras (`23215030`)**:
+     - Daily precipitation $P$ full source file (1975-01-01 to 2025-12-31, 17,258 records): 14,203 records flagged `Preliminar` and 3,055 records flagged `En revisión`. Restricted strictly to declared protocol period (1975-01-01 to 2000-12-31, 9,497 calendar days): 8,980 records, all flagged `Preliminar` (100% `Preliminar`, 0 `En revisión`; 517 missing calendar days).
+     - Calibration daily maximum temperature $T_{\max}$ restricted to 1990–2000 (4,018 days): 3,974 records flagged `Preliminar` (100% of present calibration records; 44 missing calendar days; full source file 1990–2011 contains 7,865 records, all `Preliminar`).
+     - Calibration daily minimum temperature $T_{\min}$ restricted to 1990–2000 (4,018 days): 3,954 records flagged `Preliminar` (100% of present calibration records; 64 missing calendar days; full source file 1990–2011 contains 6,990 records, all `Preliminar`).
+2. **Physical Consistency Checks**:
+   - No daily values fell outside the physical screening limits ($P \in [0, 500]\text{ mm}$, $T_{\max} \in [5, 45]\,^\circ\text{C}$, $T_{\min} \in [-5, 35]\,^\circ\text{C}$).
+   - Thermal inversion ($T_{\max} < T_{\min}$ on the same calendar day) evaluated to exactly 0 occurrences in Noanamá across 1990–2011.
+3. **Documented Identical Streak**:
+   - In Noanamá $T_{\min}$, a run of 10 consecutive identical daily observations of exactly $22.0\,^\circ\text{C}$ was detected from 1995-03-25 to 1995-04-03.
+   - In accordance with non-intervention principles, this streak is retained in the observation series and documented herein without manual editing or deletion.
+
+### E.5 Nearest ERA5 Grid Cell Selection & Land-Sea Mask Verification
+Under the nearest-neighbor grid selection rule (Section 2.1.1), station 54085010 (Noanamá, 4.68819° N, -76.93425° W) maps to the ERA5 grid cell centered at:
+- **Center Cell**: 4.75° N, -77.00° W (horizontal distance 10.02 km).
+- **Land-Sea Mask (`lsm`)**: `0.9921` (predominantly land, well above the 0.5 threshold).
+- **Surface Elevation**: Model geopotential $z = 1075.69\text{ m}^2/\text{s}^2$, corresponding to DEM elevation $h = z/g = 109.69\text{ m}$ (a difference of $+88.69\text{ m}$ relative to the catalog elevation of 21.0 m, and $+81.69\text{ m}$ relative to the CNE elevation of 28.0 m).
+
+The four immediate cardinal 0.25° neighbors exhibit the following `lsm` values:
+- **North** (5.00° N, -77.00° W): `0.9971`
+- **South** (4.50° N, -77.00° W): `0.9905`
+- **East** (4.75° N, -76.75° W): `0.9875`
+- **West** (4.75° N, -77.25° W): `0.6461`
+
+Because the center cell has `lsm = 0.9921`, it represents terrestrial land cover; no coastal cell replacement is required.
+
+### E.6 Phase 2b Daily Temperature Downscaling Implementation Clarifications
+The following implementation rules describe the exact execution behavior of the Phase 2b codebase in `tropicor.downscale.temperature` and `tropicor.core.protocol`:
+1. **Explicit Units and Plausibility Range**:
+   - The ERA5 hourly reader in `load_calibration_temperature_pair` explicitly checks that `da.attrs["units"] == "K"`, raising a `ValueError` if the attribute is absent or different.
+   - Unit conversion is executed explicitly as $T(^\circ\text{C}) = T(\text{K}) - 273.15$.
+   - Every input temperature series is verified against the plausible terrestrial range $[-60.0, 60.0]\,^\circ\text{C}$ (`MIN_PLAUSIBLE_TEMP_C`, `MAX_PLAUSIBLE_TEMP_C` in `tropicor.downscale.temperature`). If any non-NaN value falls outside this range, `_validate_temperature_range` raises an explicit `ValueError`.
+2. **Missingness Mask Policies**:
+   - **Level 1 (Independent Monthly Additive Bias)**: Paired missingness is evaluated independently per variable (`obs_tmax.notna() & mod_tmax.notna()` for $T_{\max}$; `obs_tmin.notna() & mod_tmin.notna()` for $T_{\min}$) within `Level1MonthlyAdditiveTemperature.fit`.
+   - **Level 2 (Coupled Mean and DTR Scaling)**: Enforces a synchronous 4-variable mask where `obs_tmax`, `obs_tmin`, `mod_tmax`, and `mod_tmin` must all be valid simultaneously on the same calendar day within `Level2MeanStateDTRScalingTemperature.fit`.
+   - **Level 3 (Empirical Quantile Mapping)**: Empirical quantiles are estimated using independent paired masks per variable within `Level3QuantileMappingTemperature.fit`.
+   - **Universal Crossing Rule Mask**: Applied strictly on days where both corrected $T_{\max}$ and $T_{\min}$ are valid within `apply_universal_crossing_rule`. Days with either variable missing are left untouched.
+3. **Universal Crossing Rule Behavior & Diagnostic Pre-Counting**:
+   - The universal crossing rule `apply_universal_crossing_rule` modifies temperature values strictly on days with physical crossings ($T_{\min} > T_{\max}$). It sets $T_{\text{mid}} = (T_{\max} + T_{\min}) / 2$, $T_{\max} = T_{\text{mid}} + 0.025\,^\circ\text{C}$, and $T_{\min} = T_{\text{mid}} - 0.025\,^\circ\text{C}$, guaranteeing $DTR = 0.05\,^\circ\text{C} > 0$ while conserving daily mean temperature.
+   - On days where $T_{\min} \le T_{\max}$, values are unchanged.
+   - The diagnostic counter `n_crossings_before_rule_` is evaluated on level-corrected outputs immediately prior to executing the crossing rule in `Level1MonthlyAdditiveTemperature.transform`, `Level2MeanStateDTRScalingTemperature.transform`, and `Level3QuantileMappingTemperature.transform`.
+   - The post-rule diagnostic `n_crossings_after_rule_` is directly measured on the final returned series (verifying days where $T_{\min} > T_{\max}$, which evaluates to 0). In `tune_level3_temperature_hyperparameters`, `crossings_before_rule` sums `n_crossings_before_rule_` across folds, and `crossings_after_rule` is measured directly on the concatenated out-of-sample predictions.
+4. **Degenerate Sample & Variance Safeguards**:
+   - In Level 2, if the calibration reanalysis mean diurnal temperature range in any month satisfies $\overline{DTR}_{\text{mod}, m} \le 10^{-4}\,^\circ\text{C}$, `Level2MeanStateDTRScalingTemperature.fit` raises an explicit `ValueError`.
+   - If any calendar month contains zero valid paired samples in Level 1, Level 2, or Level 3, `fit()` raises a `ValueError`.
+   - In Level 3, every grouping slice (month or circular window evaluated via `_doy_window_mask`) must contain at least 10 valid paired samples (`MIN_SAMPLES_PER_GROUP = 10` in `tropicor.downscale.temperature`); otherwise, `fit()` raises a `ValueError`.
+5. **Level 3 Empirical Quantile Nodes**:
+   - **50 Bins**: 49 empirical quantile nodes at $100 \times k / 50$ for $k = 1 \dots 49$ (probabilities $0.02, 0.04, \dots, 0.98$).
+   - **100 Bins**: 99 empirical quantile nodes at $100 \times k / 100$ for $k = 1 \dots 99$ (probabilities $0.01, 0.02, \dots, 0.99$).
+   - This resolves the wording in Section 6.3 ("50 bins vs. 100 bins (percentiles 1...99)") symmetrically, mirroring D.6.
+6. **Linear Extrapolation as a Substantive Design Decision (Transfer Function Extension)**:
+   - When `extrapolation="linear"`, extrapolation outside calibration quantile nodes extends the transfer function linearly using the extreme node slope in `Level3QuantileMappingTemperature.transform`:
+     $$T_{\text{corr}} = Q_{\text{obs}, K} + s_{\text{upper}} \cdot (T - Q_{\text{mod}, K}) \quad \text{for } T > Q_{\text{mod}, K}, \quad s_{\text{upper}} = \frac{Q_{\text{obs}, K} - Q_{\text{obs}, K-1}}{Q_{\text{mod}, K} - Q_{\text{mod}, K-1}}$$
+     $$T_{\text{corr}} = Q_{\text{obs}, 1} + s_{\text{lower}} \cdot (T - Q_{\text{mod}, 1}) \quad \text{for } T < Q_{\text{mod}, 1}, \quad s_{\text{lower}} = \frac{Q_{\text{obs}, 2} - Q_{\text{obs}, 1}}{Q_{\text{mod}, 2} - Q_{\text{mod}, 1}}$$
+   - If the extreme model interval $(Q_{\text{mod}, K} - Q_{\text{mod}, K-1}) \le 10^{-9}$ or $(Q_{\text{mod}, 2} - Q_{\text{mod}, 1}) \le 10^{-9}$, the slope falls back to the constant residual slope $s = 1.0$.
+   - No clipping or artificial capping of $s$ is applied.
+   - For `extrapolation="constant"`, the estimator applies constant residual anomaly extension ($s = 1.0$), matching $T_{\text{corr}} = Q_{\text{obs}} + (T - Q_{\text{mod}})$.
+7. **Temperature Tuning Loss Definition**:
+   - Evaluated as the unweighted sum across $\{T_{\max}, T_{\min}, \text{DTR}\}$ of the mean absolute quantile error across 19 interior percentiles ($P_5, P_{10}, \dots, P_{95}$), without any $1/3$ factor:
+     $$\mathcal{L}_{\text{tuning}} = \sum_{V \in \{T_{\max}, T_{\min}, DTR\}} \frac{1}{19} \sum_{q \in \{5, 10, \dots, 95\}} |Q_q(V_{\text{mod}}) - Q_q(V_{\text{obs}})|$$
+     directly implementing the specification of Section 4.1 via `temperature_tuning_loss` in `tropicor.core.protocol`.
+   - $DTR$ series are masked with a paired missingness mask (`clean_dtr_obs, clean_dtr_mod = apply_paired_mask(dtr_obs, dtr_mod)`).
+   - If any variable's paired series is completely empty, `temperature_tuning_loss` raises an explicit `ValueError`.
+8. **Deterministic Parsimony Tie-Breaker**:
+   - Configurations within $10^{-6}\,^\circ\text{C}$ (absolute) of the minimum concatenated out-of-sample tuning loss are considered tied in `select_best_level3_temperature_result`.
+   - Ties are broken strictly by parsimony hierarchy:
+     $$\text{monthly} \succ \text{moving\_window} \quad \longrightarrow \quad 50\text{ bins} \succ 100\text{ bins} \quad \longrightarrow \quad \text{constant} \succ \text{linear} \quad \longrightarrow \quad \text{config\_id}$$
+9. **Cross-Validation Fold Definition & Loss Concatenation**:
+   - CV folds are formed by whole calendar years containing at least one valid paired day with all four values (`obs_tmax`, `obs_tmin`, `mod_tmax`, `mod_tmin`) simultaneously valid within `tune_level3_temperature_hyperparameters`. Years without at least one such day are excluded. At least 2 valid years are required for cross-validation; otherwise `tune_level3_temperature_hyperparameters` raises `ValueError`.
+   - Overall CV loss is computed on the concatenated out-of-sample predictions across all folds.
+10. **Explicit Aggregation Parameters**:
+    - In `load_calibration_temperature_pair`, `window_start_utc` (fixed at 5 for 05–05 UTC), `lag_days` (fixed at 0), and `min_hours` (fixed at 24, consistent with `tropicor.io.era5` and `docs/guides/era5-extraction.md`) must be passed as explicit, mandatory arguments with no silent defaults. To aggregate the final calibration day (December 31 of `cal_end`) under the 05:00–05:00 UTC civil window, the loader opens the ERA5 hourly file for year `cal_end + 1` solely to read the boundary hours (00:00–05:00 UTC of January 1); no validation observations are loaded or evaluated.
+
+### E.7 Pre-Validation Declared Limitations & Scorecard Reporting Mandates
+1. **Tuning Loss Tail Sensitivity and Extrapolation Frequency**:
+   - The multi-objective tuning loss $\mathcal{L}_{\text{tuning}}$ evaluates percentiles $P_5 \dots P_{95}$ and inherently has low sensitivity to distribution tails ($< P_5$ and $> P_{95}$).
+   - **Nominal Extrapolation Fraction (Zero Climate Drift)**: In the absence of distribution drift between folds and calibration samples, the theoretical nominal fraction of days falling outside extreme quantile nodes is:
+     - **50 bins** ($P_2 \dots P_{98}$ nodes): $4.00\%$ per variable ($2.00\%$ lower tail $< P_2$, $2.00\%$ upper tail $> P_{98}$).
+     - **100 bins** ($P_1 \dots P_{99}$ nodes): $2.00\%$ per variable ($1.00\%$ lower tail $< P_1$, $1.00\%$ upper tail $> P_{99}$).
+   - **Empirical Extrapolation Frequency Table**:
+     Across calibration cross-validation out-of-sample predictions, the measured extrapolation counts and rates (defined as model values falling strictly outside calibration extreme quantile nodes; denominator is total model days across retained folds: **5,114 days** for Jardín Botánico across 14 retained folds, with 1995 omitted; **4,018 days** for Aguas Claras across 11 retained folds, 1990–2000) are:
+
+     | Station | Config ID | Grouping | Bins | Extrapolation | $T_{\max}$ Extrap. Count (%) | $T_{\min}$ Extrap. Count (%) | Either Variable Count (%) | Total Model Days |
+     |:---|:---:|:---|:---:|:---|:---:|:---:|:---:|:---:|
+     | **Jardín Botánico** (`21205710`) | 0 | monthly | 50 | constant | 276 (5.40%) | 297 (5.81%) | 556 (10.87%) | 5,114 |
+     | | 1 | monthly | 50 | linear | 276 (5.40%) | 297 (5.81%) | 556 (10.87%) | 5,114 |
+     | | 2 | monthly | 100 | constant | 155 (3.03%) | 184 (3.60%) | 334 (6.53%) | 5,114 |
+     | | 3 | monthly | 100 | linear | 155 (3.03%) | 184 (3.60%) | 334 (6.53%) | 5,114 |
+     | | 4 | moving_window | 50 | constant | 272 (5.32%) | 294 (5.75%) | 545 (10.66%) | 5,114 |
+     | | 5 | moving_window | 50 | linear | 272 (5.32%) | 294 (5.75%) | 545 (10.66%) | 5,114 |
+     | | 6 | moving_window | 100 | constant | 157 (3.07%) | 178 (3.48%) | 328 (6.41%) | 5,114 |
+     | | 7 | moving_window | 100 | linear | 157 (3.07%) | 178 (3.48%) | 328 (6.41%) | 5,114 |
+     | **Aguas Claras** (`23215030`) | 0 | monthly | 50 | constant | 224 (5.57%) | 232 (5.77%) | 428 (10.65%) | 4,018 |
+     | | 1 | monthly | 50 | linear | 224 (5.57%) | 232 (5.77%) | 428 (10.65%) | 4,018 |
+     | | 2 | monthly | 100 | constant | 142 (3.53%) | 147 (3.66%) | 275 (6.84%) | 4,018 |
+     | | 3 | monthly | 100 | linear | 142 (3.53%) | 147 (3.66%) | 275 (6.84%) | 4,018 |
+     | | 4 | moving_window | 50 | constant | 216 (5.38%) | 231 (5.75%) | 415 (10.33%) | 4,018 |
+     | | 5 | moving_window | 50 | linear | 216 (5.38%) | 231 (5.75%) | 415 (10.33%) | 4,018 |
+     | | 6 | moving_window | 100 | constant | 134 (3.33%) | 144 (3.58%) | 260 (6.47%) | 4,018 |
+     | | 7 | moving_window | 100 | linear | 134 (3.33%) | 144 (3.58%) | 260 (6.47%) | 4,018 |
+
+   - **Performance Contrast between Linear and Constant Extrapolation**:
+     Cross-validation tuning loss differences across the 4 matched configuration pairs with the sign defined strictly as constant minus linear ($\mathcal{L}_{\text{tuning}}(\text{constant}) - \mathcal{L}_{\text{tuning}}(\text{linear})$):
+
+     | Station | Grouping | Bins | Config Pair | Constant CV Loss (°C) | Linear CV Loss (°C) | Difference (Constant − Linear) (°C) |
+     |:---|:---|:---:|:---:|:---:|:---:|:---:|
+     | **Jardín Botánico** (`21205710`) | monthly | 50 | 0 vs 1 | 0.1999 | 0.1925 | +0.0074 |
+     | | monthly | 100 | 2 vs 3 | 0.1895 | 0.1834 | +0.0060 |
+     | | moving_window | 50 | 4 vs 5 | 0.1962 | 0.1911 | +0.0051 |
+     | | moving_window | 100 | 6 vs 7 | 0.1779 | 0.1734 | +0.0046 |
+     | **Aguas Claras** (`23215030`) | monthly | 50 | 0 vs 1 | 0.1070 | 0.1117 | -0.0048 |
+     | | monthly | 100 | 2 vs 3 | 0.0970 | 0.0994 | -0.0024 |
+     | | moving_window | 50 | 4 vs 5 | 0.0973 | 0.1008 | -0.0035 |
+     | | moving_window | 100 | 6 vs 7 | 0.0798 | 0.0836 | -0.0038 |
+
+     Differences are computed from unrounded losses and rounded once; they may differ by 0.0001 from the subtraction of the displayed rounded values.
+
+     Rather than representing random numerical noise, this is a small difference with consistent station-specific sign across all 4 configuration pairs: linear extrapolation consistently improves CV loss in Jardín Botánico ($+0.0046$ to $+0.0074\,^\circ\text{C}$), whereas constant extrapolation consistently improves CV loss in Aguas Claras (difference $-0.0048$ to $-0.0024\,^\circ\text{C}$, magnitude $0.0024$ to $0.0048\,^\circ\text{C}$).
+2. **Empirical Slope Amplification in Linear Extrapolation**:
+   - Under linear extrapolation, empirical slopes $s$ reach elevated values when neighboring model quantile nodes are separated by narrow intervals:
+     - **Jardín Botánico (`21205710`)**: Maximum slope under Config 7 $T_{\min}$ occurs in DOY group 112 with $s = 15.8803$, where model quantile node separation is $0.0499\,^\circ\text{C}$ (observed node separation $0.7925\,^\circ\text{C}$).
+     - **Aguas Claras (`23215030`)**: Maximum slope under Config 7 $T_{\min}$ occurs in DOY group 166 with $s = 14.0295$, where model quantile node separation is $0.0623\,^\circ\text{C}$ (observed node separation $0.8740\,^\circ\text{C}$).
+   - Conversely, when observed extreme nodes are tied, the slope evaluates to $s = 0.00$, causing extreme reanalysis anomalies to be clamped to a flat line.
+   - In calibration diagnostics for Jardín Botánico (Config 7 full fit), exactly 1 day exceeded a $10\,^\circ\text{C}$ absolute correction ($13.27\,^\circ\text{C}$ on 1993-07-17, model $T_{\min} = 5.0\,^\circ\text{C}$, DOY 199, $s = 6.58$). In Aguas Claras, Config 5 had 1 day exceeding $10\,^\circ\text{C}$ ($13.01\,^\circ\text{C}$ on 1997-12-25, model $T_{\max} = 33.0\,^\circ\text{C}$, DOY 360, $s = 3.68$).
+   - Under leave-one-year-out cross-validation (out-of-sample), the largest absolute tail correction per configuration ranged from 3.97 to 27.96 °C for Jardín Botánico (winner, Config 7: 16.11 °C; largest, Config 3, linear: 27.96 °C) and from 6.29 to 14.99 °C for Aguas Claras (winner, Config 6, constant: 6.92 °C). These are out-of-sample maxima over all folds and are not comparable with the full-fit figures above.
+   - These behaviors were observed strictly on calibration partitions, and no method rule, grid or selection rule was altered; only reporting requirements were added.
+3. **Mandatory Reporting in Every Temperature Scorecard**:
+   - To maintain methodological transparency, every published Level 3 temperature scorecard must report:
+     1. `n_extrapolated_days_` (number of days with model values falling outside calibration extreme quantile nodes).
+     2. `max_abs_extrapolation_correction_` (maximum absolute correction $|T_{\text{corr}} - T_{\text{mod}}|$ applied during extrapolation).
+     3. `min_n_per_group` (minimum sample size among all fitted quantile mapping groups).
+     4. Range of empirical extrapolation slopes $[s_{\min}, s_{\max}]$ across all groups for both $T_{\max}$ and $T_{\min}$ via the `slope_range` / `slope_ranges` property.
+4. **Mandatory Sensitivity Reporting**:
+   - Level 3 with constant extrapolation (`extrapolation="constant"`) must always be evaluated and reported alongside any promoted linear configuration as a sensitivity check. This sensitivity reporting is purely diagnostic and does not alter the formal model promotion hierarchy.
+
+### E.8 Declaration of Validation Partition Integrity (Protocol v1.3)
+As of the registration of Protocol v1.3, no validation values have been read for Jardín Botánico (`21205710`) nor Aguas Claras (`23215030`). The observational station data audit (`scripts/audit_station_data.py`) read full source files across their entire span, but extracted and reported exclusively record counts and approval flag metadata (no validation values were inspected, summarized, or retained). Prior exposure to monthly aggregates of Noanamá is disclosed in Section E.3. The validation ledger `local/reports/validation_openings.jsonl` does not exist on this machine (it is strictly excluded by `.gitignore`), and all fitting, hyperparameter tuning, and diagnostic evaluations of Phase 2b used exclusively calibration partitions via `load_calibration_temperature_pair` (which opens the ERA5 hourly file for year `cal_end + 1` solely to aggregate the 05:00–05:00 UTC boundary hours of the final calibration day, without opening any validation observations).
+
+
 
 
 
