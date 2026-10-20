@@ -446,3 +446,32 @@ def test_haversine_distance() -> None:
     # Same point distance is 0.0
     d_zero = compute_haversine_distance_km(4.5, -76.5, 4.5, -76.5)
     assert np.isclose(d_zero, 0.0, atol=1e-5)
+
+
+def test_audit_file_structure_with_restrict_range(tmp_path: Path) -> None:
+    """Verify that restrict_to_expected_range strictly slices dates."""
+    csv_file = tmp_path / "multi_year_station.csv"
+    content = (
+        "CodigoEstacion,NombreEstacion,Fecha,Valor,NivelAprobacion\n"
+        "12345678,TEST_STATION,1985-05-10 0:00,15.0,Definitivo\n"
+        "12345678,TEST_STATION,1990-01-01 0:00,20.0,Definitivo\n"
+        "12345678,TEST_STATION,1995-06-15 0:00,22.5,Definitivo\n"
+        "12345678,TEST_STATION,2000-12-31 0:00,18.0,Definitivo\n"
+        "12345678,TEST_STATION,2015-08-20 0:00,25.0,Definitivo\n"
+    )
+    csv_file.write_text(content, encoding="utf-8")
+
+    # With restrict_to_expected_range=True for 1990-01-01 to 2000-12-31:
+    res, df_restricted = audit_file_structure(
+        csv_file,
+        expected_station_id="12345678",
+        expected_start="1990-01-01",
+        expected_end="2000-12-31",
+        restrict_to_expected_range=True,
+    )
+
+    assert len(df_restricted) == 3
+    dates = pd.to_datetime(df_restricted["Fecha"]).dt.strftime("%Y-%m-%d").tolist()
+    assert dates == ["1990-01-01", "1995-06-15", "2000-12-31"]
+    assert "1985-05-10" not in dates
+    assert "2015-08-20" not in dates

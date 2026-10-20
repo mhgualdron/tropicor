@@ -261,6 +261,7 @@ def audit_file_structure(
     expected_station_id: str = "54085010",
     expected_start: str = "1990-01-01",
     expected_end: str = "2011-12-31",
+    restrict_to_expected_range: bool = False,
 ) -> Tuple[FileStructureResult, pd.DataFrame]:
     """Audit Control 1: File structure, dates, duplicates, ordering, SHA-256."""
     sha256_hash = compute_file_sha256(filepath)
@@ -293,6 +294,14 @@ def audit_file_structure(
     date_col = "Fecha" if "Fecha" in df_raw.columns else df_raw.columns[0]
     parsed_dates = pd.to_datetime(df_raw[date_col], errors="coerce")
     df_raw["_parsed_date"] = parsed_dates
+
+    if restrict_to_expected_range:
+        in_range_mask = (parsed_dates >= pd.Timestamp(expected_start)) & (
+            parsed_dates <= pd.Timestamp(expected_end)
+        )
+        df_raw = df_raw.loc[in_range_mask].copy()
+        total_rows = len(df_raw)
+        parsed_dates = df_raw["_parsed_date"]
 
     unparseable_mask = parsed_dates.isna()
     unparseable_count = int(unparseable_mask.sum())
@@ -1522,6 +1531,7 @@ def run_audit(
     end_date: str = "2011-12-31",
     output_dir: Path = Path("local/reports"),
     check_jb_ac_flags: bool = True,
+    restrict_range: bool = False,
 ) -> Tuple[Path, Path]:
     """Execute generic station audit and export markdown and JSON reports."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1542,6 +1552,7 @@ def run_audit(
             expected_station_id=station_id,
             expected_start=start_date,
             expected_end=end_date,
+            restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_pr)
 
@@ -1572,12 +1583,12 @@ def run_audit(
             variable_label="Precipitación",
             expected_start=start_date,
             expected_end=end_date,
-            evaluation_scope="Rango Protocolo (1990-2011)",
+            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
         )
         completeness_results.append(comp_pr_proto)
 
         # Full observed range evaluation
-        if not s_pr.empty:
+        if not restrict_range and not s_pr.empty:
             pr_min_yr = s_pr.index.min().year
             pr_max_yr = s_pr.index.max().year
             if str(pr_min_yr) != start_date[:4] or str(pr_max_yr) != end_date[:4]:
@@ -1597,6 +1608,7 @@ def run_audit(
             expected_station_id=station_id,
             expected_start=start_date,
             expected_end=end_date,
+            restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_tmax)
 
@@ -1615,7 +1627,7 @@ def run_audit(
         phys_tmax = audit_physical_rules(
             s_tmax_eval,
             raw_tmax_eval,
-            variable_label="Temperatura Máxima (°C) [1990-2011]",
+            variable_label=f"Temperatura Máxima (°C) [{start_date[:4]}-{end_date[:4]}]",
             lower_bound=5.0,
             upper_bound=45.0,
             min_streak_days=10,
@@ -1628,11 +1640,11 @@ def run_audit(
             variable_label="Temperatura Máxima",
             expected_start=start_date,
             expected_end=end_date,
-            evaluation_scope="Rango Protocolo (1990-2011)",
+            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
         )
         completeness_results.append(comp_tmax_proto)
 
-        if not s_tmax.empty:
+        if not restrict_range and not s_tmax.empty:
             tmax_min_yr = s_tmax.index.min().year
             tmax_max_yr = s_tmax.index.max().year
             if str(tmax_min_yr) != start_date[:4] or str(tmax_max_yr) != end_date[:4]:
@@ -1652,6 +1664,7 @@ def run_audit(
             expected_station_id=station_id,
             expected_start=start_date,
             expected_end=end_date,
+            restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_tmin)
 
@@ -1670,7 +1683,7 @@ def run_audit(
         phys_tmin = audit_physical_rules(
             s_tmin_eval,
             raw_tmin_eval,
-            variable_label="Temperatura Mínima (°C) [1990-2011]",
+            variable_label=f"Temperatura Mínima (°C) [{start_date[:4]}-{end_date[:4]}]",
             lower_bound=-5.0,
             upper_bound=35.0,
             min_streak_days=10,
@@ -1683,11 +1696,11 @@ def run_audit(
             variable_label="Temperatura Mínima",
             expected_start=start_date,
             expected_end=end_date,
-            evaluation_scope="Rango Protocolo (1990-2011)",
+            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
         )
         completeness_results.append(comp_tmin_proto)
 
-        if not s_tmin.empty:
+        if not restrict_range and not s_tmin.empty:
             tmin_min_yr = s_tmin.index.min().year
             tmin_max_yr = s_tmin.index.max().year
             if str(tmin_min_yr) != start_date[:4] or str(tmin_max_yr) != end_date[:4]:
@@ -1865,6 +1878,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Skip checking JB and AC quality flags",
     )
+    parser.add_argument(
+        "--restrict-range",
+        action="store_true",
+        help="Strictly restrict all audits to the specified start and end dates without evaluating full file range",
+    )
     return parser.parse_args()
 
 
@@ -1882,6 +1900,7 @@ def main() -> None:
         end_date=args.end_date,
         output_dir=args.output_dir,
         check_jb_ac_flags=not args.no_jb_ac_check,
+        restrict_range=args.restrict_range,
     )
     print(md_path.read_text(encoding="utf-8"))
     print("\nAudit completed successfully.")
