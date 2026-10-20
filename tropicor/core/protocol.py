@@ -1346,6 +1346,7 @@ def temperature_tuning_loss(
 
     dtr_obs = clean_tmax_obs - clean_tmin_obs
     dtr_mod = clean_tmax_mod - clean_tmin_mod
+    clean_dtr_obs, clean_dtr_mod = apply_paired_mask(dtr_obs, dtr_mod)
 
     quantiles = np.arange(5, 100, 5)  # 5, 10, ..., 95 (19 quantiles)
     total_loss = 0.0
@@ -1353,8 +1354,13 @@ def temperature_tuning_loss(
     for obs_v, mod_v in [
         (clean_tmax_obs, clean_tmax_mod),
         (clean_tmin_obs, clean_tmin_mod),
-        (dtr_obs, dtr_mod),
+        (clean_dtr_obs, clean_dtr_mod),
     ]:
+        if len(obs_v) == 0 or len(mod_v) == 0:
+            raise ValueError(
+                "Cannot compute temperature tuning loss on empty "
+                "or completely missing series."
+            )
         q_obs = np.percentile(obs_v.to_numpy(), quantiles)
         q_mod = np.percentile(mod_v.to_numpy(), quantiles)
         total_loss += float(np.mean(np.abs(q_mod - q_obs)))

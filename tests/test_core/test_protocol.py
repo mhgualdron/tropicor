@@ -1037,3 +1037,37 @@ def test_bootstrap_minimum_annual_blocks_threshold_temperature() -> None:
         assert ci.insufficient_blocks is False
         assert np.isfinite(ci.ci_lower)
         assert np.isfinite(ci.ci_upper)
+
+
+def test_temperature_tuning_loss_hand_calculated_and_partial_days() -> None:
+    """Verify temperature_tuning_loss with hand-calculated values and partial days."""
+    dates = pd.date_range("2000-01-01", periods=5, freq="D")
+
+    # Complete data:
+    #   tmax: mod - obs = +1.0 everywhere -> MAE quantiles = 1.0
+    #   tmin: mod - obs = +1.0 everywhere -> MAE quantiles = 1.0
+    #   dtr:  mod - obs = 0.0 everywhere  -> MAE quantiles = 0.0
+    #   Total loss = 1.0 + 1.0 + 0.0 = 2.0 °C
+    tmax_obs = pd.Series([20.0, 22.0, 24.0, 26.0, 28.0], index=dates)
+    tmax_mod = pd.Series([21.0, 23.0, 25.0, 27.0, 29.0], index=dates)
+    tmin_obs = pd.Series([10.0, 11.0, 12.0, 13.0, 14.0], index=dates)
+    tmin_mod = pd.Series([11.0, 12.0, 13.0, 14.0, 15.0], index=dates)
+
+    loss_complete = temperature_tuning_loss(tmax_obs, tmax_mod, tmin_obs, tmin_mod)
+    assert np.isclose(loss_complete, 2.0, atol=1e-6)
+
+    # Discriminating partial data case:
+    # Day 5 missing Tmax in obs, with extreme model Tmax (48.0)
+    # Tmax: 4 paired days (obs [20,22,24,26], mod [21,23,25,27]), MAE = 1.0
+    # Tmin: 5 paired days (obs [10..14], mod [11..15]), MAE = 1.0
+    # DTR: 4 paired days (obs [10,11,12,13], mod [10,11,12,13]), MAE = 0.0
+    # Expected total loss = 1.0 + 1.0 + 0.0 = 2.0 °C
+    tmax_obs_disc = pd.Series([20.0, 22.0, 24.0, 26.0, np.nan], index=dates)
+    tmax_mod_disc = pd.Series([21.0, 23.0, 25.0, 27.0, 48.0], index=dates)
+    tmin_obs_disc = pd.Series([10.0, 11.0, 12.0, 13.0, 14.0], index=dates)
+    tmin_mod_disc = pd.Series([11.0, 12.0, 13.0, 14.0, 15.0], index=dates)
+
+    loss_disc = temperature_tuning_loss(
+        tmax_obs_disc, tmax_mod_disc, tmin_obs_disc, tmin_mod_disc
+    )
+    assert np.isclose(loss_disc, 2.0, atol=1e-6)
