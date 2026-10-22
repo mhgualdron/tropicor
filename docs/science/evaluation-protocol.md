@@ -1,7 +1,8 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.4 (Appendix F: Andean Generalization Set, selection rules, temporal partitions, and timeseries point reanalysis source). Earlier: v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Latest Amendment**: Protocol v1.5 (Appendix G: Andean Generalization Set Out-of-Sample Temperature Validation Protocol). Earlier: v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Freeze Date (v1.5)**: 2026-10-22  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -846,7 +847,7 @@ To ensure uncompromised transparency regarding observational data handling and m
 ### F.7 Reporting and Governance Rules
 1. **Calibration-Only Reporting Until Phase 3**: In accordance with the pre-specified protocol timeline, all downscaling models fitted to the Andean generalization set shall be reported strictly on their calibration partitions until Phase 3 is formally authorized. Out-of-sample validation partitions remain strictly closed.
 2. **Station-Level Scorecard**: Each evaluated Andean station must publish a comprehensive calibration scorecard reporting:
-   - Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 configurations (Levels 1–3).
+   - Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 Level 3 configurations.
    - Selection of the winning configuration under the Section 4.1 tie-breaking hierarchy.
    - Extrapolation diagnostics under Level 3 (count of extrapolated days, maximum absolute tail correction, and empirical slope ranges).
    - Raw model biases for $T_{\max}$ and $T_{\min}$ over the calibration block.
@@ -855,7 +856,110 @@ To ensure uncompromised transparency regarding observational data handling and m
 4. **Elevation Mismatch Sensitivity (Conditional)**: Corrective performance and residual bias shall be evaluated as a function of the elevation discrepancy between the station CNE altitude and the ERA5 model surface height, $|h_{\text{ERA5}} - h_{\text{CNE}}|$, where $h_{\text{ERA5}} = z/g$ is the ERA5 surface geopotential divided by standard gravity at the station's grid cell. This analysis is conditional on acquiring the ERA5 static fields (geopotential); until those are downloaded and their hashes recorded, it is not executed.
 5. **Benchmark Threshold Invariance**: The Andean generalization set serves an exploratory and transferability diagnostic role. None of the pre-specified qualification thresholds, metric bounds, or primary benchmark pass/fail criteria (Section 5.3) are modified by this amendment.
 
+---
 
+## Appendix G: Andean Generalization Set Out-of-Sample Temperature Validation Protocol (Protocol v1.5)
 
+### G.1 Methods Evaluated on Andean Validation
+For each of the five eligible stations in the Andean generalization set (Section F.4, Table F.4), out-of-sample validation evaluation shall be executed strictly for the following methods:
+1. **Level 0**: Raw ERA5 point time-series extracted at the nearest 0.25° grid node center from dataset `reanalysis-era5-single-levels-timeseries` (Section F.6).
+2. **Level 1**: Independent monthly additive bias correction (Section 6.2).
+3. **Level 2**: Coupled daily mean temperature and diurnal temperature range ($DTR$) scaling (Section 6.2).
+4. **Level 3 (Winner)**: The specific Level 3 Empirical Quantile Mapping (EQM) configuration selected by leave-one-year-out cross-validation on the calibration block under the parsimony tie-breaking rule of Section 4.1 / E.6.8.
+5. **Level 3 (Constant Sensitivity)**: Level 3 EQM evaluated with constant tail extrapolation (`extrapolation="constant"`), configured with the identical `grouping` (e.g., monthly) and bin count (`n_quantiles`) of the calibration winner, without re-tuning or re-selecting hyperparameters, as mandated by Section E.7.4. If the calibration winner already employs constant extrapolation, this sensitivity check is identically satisfied by the winner.
 
+All evaluated downscaling methods (Levels 1, 2, 3 winner, and Level 3 constant sensitivity) shall be fitted exactly once on the complete calibration block ($n_{\text{cal}}$ valid years) and applied directly out-of-sample to the validation partition without any cross-validation or hyperparameter tuning on validation observations.
 
+The formal parsimony progression rule ($k-1 \to k$, Section 6.4) shall be evaluated across levels ($0 \to 1 \to 2 \to 3$) on each station's validation partition. In accordance with Section F.1 and F.7.5, this progression analysis serves a diagnostic role and shall not designate operational methods or alter the primary benchmark qualification status.
+
+All pre-specified validation evaluations for a given station—comprising Level 0, Level 1, Level 2, the Level 3 winner, the Level 3 constant extrapolation sensitivity, and any conditional lag sensitivity triggered under Section G.6.4—shall be executed within the same single validation opening for that station.
+
+### G.2 Prohibition of Validation Hyperparameter Exploration
+No Level 3 hyperparameter configuration other than the cross-validation winner selected during calibration (and the mandatory constant extrapolation sensitivity of Section G.1) shall be evaluated, inspected, or fitted on the validation partitions. Validation partitions shall never be used to compare, tune, or select quantile mapping parameters, window geometries, bin counts, or extrapolation options.
+
+### G.3 Standalone Station Scorecards and Absence of Global Synthesis Verdict
+The Andean generalization set is an exploratory and diagnostic sample designed to inspect model behavior across complex topographical gradients. Consequently:
+1. No global pass/fail verdict, composite acceptance threshold, or synthetic "transferability" claim shall be applied to the Andean generalization set as a whole.
+2. Each of the five stations shall receive an independent, self-contained evaluation scorecard.
+3. A purely descriptive count of stations satisfying the complete qualification criteria of Section 5.3 (including the absolute disqualifying gate of physical consistency $T_{\min} \le T_{\max}$, Section 3.4) is permitted and shall be reported separately for each evaluated level (Level 0, Level 1, Level 2, Level 3 winner, and Level 3 constant extrapolation sensitivity), without collective inferential claims or global thresholds.
+
+### G.4 Fixed Bootstrap Seed and Uncertainty Quantification
+1. All validation metric biases, extreme percentiles, and paired differences $\Delta\text{Error}$ shall be evaluated with 95% confidence intervals derived from a 1,000-replica annual block bootstrap (Section 5.1).
+2. The pseudo-random number generator seed for the bootstrap resampling shall be permanently fixed at `42` (`DEFAULT_BOOTSTRAP_SEED`, defined in `tropicor.core.protocol`), matching the established codebase default. This seed shall be recorded explicitly in the validation audit ledger entry.
+3. Any evaluation performed with an alternative bootstrap seed shall be classified and labeled strictly as an exploratory numerical sensitivity test.
+
+### G.5 Valid Annual Blocks and Sample Size Safeguards
+1. For out-of-sample temperature validation across the Andean generalization set, a "valid annual block" for bootstrap resampling is defined strictly as a joint valid calendar year under Section F.3: a calendar year within the validation block containing $\ge 330$ days with both $T_{\max}$ and $T_{\min}$ valid on the same calendar day.
+2. Days belonging to invalid calendar years within the validation block span shall be synchronously masked out prior to metric computation and bootstrap resampling.
+3. The conservative sample size rule `MIN_BOOTSTRAP_BLOCKS = 7` (Appendix C.8) shall be enforced on this definition. Because all five eligible stations possess $n_{\text{val}} \ge 10$ joint valid years in validation (Table F.4: Berlín 10, Mogotes 10, Matecaña 12, Olaya Herrera 14, Obonuco 10), every station strictly satisfies the minimum sample size requirement ($n_{\text{val}} \ge 7$).
+
+### G.6 Pre-Validation Calibration Lag Audit
+1. Prior to opening any validation partition, the observational lag audit (Section 8) shall be executed strictly on the CALIBRATION partitions of the five Andean stations.
+2. The audit shall evaluate cross-correlation curves, lag correlations (lags $-2, -1, 0, +1, +2$ days), and extrema timing without computing any bias, error, or dispersion metrics, in strict compliance with Section 8.2.
+3. The primary validation evaluation shall remain permanently fixed at lag 0 under the 05:00–05:00 UTC civil day window.
+4. The lag detection criterion shall evaluate the paired difference $\Delta r(k) = r(k) - r(0)$ for candidate lags $k \in \{-1, +1\}$ using a paired 30-day block bootstrap (Sections 5.1 and 8) with 1,000 replicas and seed fixed at 42. If the 95% bootstrap confidence interval of the difference strictly excludes zero in favor of $k$ ($\Delta r(k) > 0$), an additional labeled sensitivity evaluation at lag $k$ shall be computed on validation data and published alongside the primary lag 0 scorecard without modifying the primary evaluation.
+
+### G.7 ERA5 Static Geopotential Acquisition and Orographic Mismatch Sensitivity
+1. Prior to opening validation partitions, the ERA5 static surface geopotential field ($z$, in $\text{m}^2/\text{s}^2$) for the five registered grid cells shall be retrieved from dataset `reanalysis-era5-single-levels` via the CDS API and its cryptographic SHA-256 hash permanently recorded. This pre-validation acquisition supersedes and formally satisfies the conditional clause of Section F.7.4.
+2. The model surface elevation shall be computed as:
+   $$h_{\text{ERA5}} = \frac{z}{g}$$
+   where standard gravity is fixed at $g = 9.80665\text{ m}/\text{s}^2$.
+3. The topographical elevation discrepancy is defined as $|h_{\text{ERA5}} - h_{\text{CNE}}|$, where $h_{\text{CNE}}$ is the official station altitude from the CNE catalog.
+4. The orographic mismatch analysis ($\Delta z = |h_{\text{ERA5}} - h_{\text{CNE}}|$) across the Andean generalization set shall be purely descriptive ($n = 5$ stations), reporting exploratory rankings and associations without formal inferential claims, statistical hypothesis testing, or p-values.
+5. It is formally disclosed that the hypothesis predicting an association between raw temperature bias magnitude and orographic mismatch $|h_{\text{ERA5}} - h_{\text{CNE}}|$ was formulated after observing calibration raw biases.
+
+### G.8 Omission of Neighbor-Cell Spatial Sensitivity
+Neighbor-cell spatial sensitivity ($3 \times 3$ grid cells or cardinal neighbors) shall not be evaluated on the Andean generalization set, as reanalysis predictors were acquired exclusively as single-point time series at the nearest 0.25° grid node center via the CDS API (Section F.6). This omission is documented as an accepted spatial limitation. In particular, station `37015020` (Berlín) exhibits a minimum margin to the cell boundary of only 0.0064° (~710 m) along the longitudinal axis (Margin Lon 0.0064° vs. Margin Lat 0.0619°; Table F.4 and `tropicor/data/andean_station_registry.json`), making its grid cell assignment sensitive to small coordinate uncertainties.
+
+### G.9 Descriptive Continuous Metrics for Performance Profiling
+In addition to the three decisive metrics ($|\text{Bias}_m|$, $DTR$ bias, extreme percentiles) and the physical consistency gates of Section 3.4, each validation scorecard shall report the following descriptive continuous metrics across validation partitions:
+1. Mean Absolute Error (MAE) for daily $T_{\max}$ and daily $T_{\min}$.
+2. Root Mean Square Error (RMSE) for daily $T_{\max}$ and daily $T_{\min}$.
+3. Pearson correlation coefficient ($r$) for daily $T_{\max}$ and daily $T_{\min}$.
+4. A 12-month table of calendar monthly mean biases, $\text{Bias}_m(T_{\max})$ and $\text{Bias}_m(T_{\min})$, for $m = 1 \dots 12$.
+
+These metrics serve purely to profile error distributions and temporal coherence; they carry no pass/fail thresholds and shall not influence the decisive three-tier qualification status.
+
+### G.10 Validation Opening Ledger Specification
+Access to validation observations shall be governed strictly by the write-ahead audit ledger (`local/reports/validation_openings.jsonl`, `DEFAULT_LEDGER_PATH`).
+
+The ledger record schema and access control mechanics implemented in `tropicor/core/protocol.py` (lines 1457–1514) define the following specification:
+- **Record Fields**:
+  - `timestamp`: UTC timestamp in ISO 8601 format (`datetime.now(timezone.utc).isoformat()`).
+  - `commit_hash`: Git commit hash at execution time (`get_current_git_commit()`).
+  - `purpose`: Stated execution purpose string.
+  - `station_id`: Identifier of the station being accessed.
+  - `variable`: Target variable name (e.g., `"temperature"`).
+  - `seed`: Pseudo-random number generator seed (integer).
+  - `config`: Configuration dictionary for the evaluated method.
+- **Access Control Behavior**:
+  - `validate_validation_access(open_validation=...)` raises `PermissionError` when `open_validation` is `False`, and the Phase 3 evaluator shall invoke this function, and obtain its ledger record, before reading any validation observation.
+  - When `open_validation=True`, access is authorized and appended in JSON Lines format to the file at `DEFAULT_LEDGER_PATH`.
+
+The governance policy for validation access shall follow these procedural mandates:
+1. **Single Opening Principle**: Accessing validation observations shall occur strictly once per station for the formal protocol evaluation. All pre-specified validation evaluations for a given station (Level 0, Level 1, Level 2, the Level 3 winner, the Level 3 constant extrapolation sensitivity, and any conditional lag sensitivity) shall be executed within that same single opening.
+2. **Phase 3 Evaluator Responsibility**: Invoking validate_validation_access before reading any validation observation, enforcing a single opening per station, and rejecting unauthorized re-runs or requiring labeled reproduction flags shall be mandatory requirements that the Phase 3 evaluator runner must implement; the existing helper functions in `tropicor/core/protocol.py` do not inspect prior ledger entries or prevent repeated openings.
+3. **Reproduction Re-runs**: Any subsequent execution on a previously opened station shall be permitted only as an exact reproduction run at the identical git commit hash, and its outputs shall be explicitly labeled as reproduction runs.
+4. **Post-Hoc Code Changes**: Any execution performed under a subsequent git commit with modified evaluation code shall be labeled as exploratory and cannot supersede original protocol validation results.
+
+### G.11 Formal Authorization of Phase 3 Execution
+Phase 3 out-of-sample validation on the Andean generalization set (Section F.7.1) shall be formally authorized only after the following pre-flight milestones are verified:
+1. The validation evaluation runner is committed, type-checked, and verified against synthetic test data.
+2. The calibration lag audit (Section G.6) is completed and archived.
+3. The ERA5 static geopotential dataset is downloaded and its cryptographic SHA-256 hash is recorded.
+4. Protocol v1.5 is registered under annotated git tag `protocol-v1.5`. This tag freezes the text of this amendment and does not by itself authorize Phase 3.
+5. The repository working tree is clean (`git status --short` is empty) and the HEAD commit hash is recorded in scorecards.
+
+The formal act of authorization shall consist of the maintainer's explicit written confirmation, recorded in the message of a separate annotated git tag named `phase3-authorization`. This tag shall be created only after milestones 1, 2, 3 and 5 are verified, and it shall point to the exact commit of the evaluator that will perform the openings. Until that tag exists, validation partitions shall remain closed.
+
+### G.12 Sequential Resolution of Remaining Slots in Subsequent Batches
+Slots S1, S5, S7, S9, and S10 (currently pending data) may be resolved and evaluated in future batches under the identical frozen evaluator and Protocol v1.5 rules:
+1. Each pending slot shall be evaluated strictly according to the pre-specified plan priority (Plan A $\succ$ Plan B $\succ$ Plan C) based solely on data availability and coverage audit counts (Section F.2), never using downscaling results, tuning metrics, or performance outcomes.
+2. No out-of-order or ad-hoc station substitutions shall be permitted.
+3. Any slot for which all candidate plans fail eligibility or lack data shall be formally designated and reported as unfilled (`UNFILLED`).
+
+### G.13 Erratum for Section F.7.2
+In Section F.7.2, bullet 1:
+- **Original text**: *"Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 configurations (Levels 1–3)."*
+- **Corrected text**: *"Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 Level 3 configurations."*  
+Levels 1 and 2 are deterministic analytical estimators without hyperparameter grids; the 8 cross-validation configurations belong strictly to the Level 3 hyperparameter search space.
