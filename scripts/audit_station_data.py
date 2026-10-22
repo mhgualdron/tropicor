@@ -1521,7 +1521,7 @@ def generate_markdown_report(
 
 
 def run_audit(
-    station_id: str,
+    station_id: Optional[str] = None,
     pr_path: Optional[Path] = None,
     tmax_path: Optional[Path] = None,
     tmin_path: Optional[Path] = None,
@@ -1532,9 +1532,52 @@ def run_audit(
     output_dir: Path = Path("local/reports"),
     check_jb_ac_flags: bool = True,
     restrict_range: bool = False,
+    input_dir: Optional[Path] = None,
+    pr_start_date: Optional[str] = None,
+    pr_end_date: Optional[str] = None,
+    temp_start_date: Optional[str] = None,
+    temp_end_date: Optional[str] = None,
 ) -> Tuple[Path, Path]:
     """Execute generic station audit and export markdown and JSON reports."""
     output_dir.mkdir(parents=True, exist_ok=True)
+
+    if input_dir is not None:
+        input_dir = Path(input_dir)
+        if not input_dir.exists() or not input_dir.is_dir():
+            raise ValueError(
+                f"Input directory does not exist or is not a directory: {input_dir}"
+            )
+        if station_id is None:
+            station_id = input_dir.name
+        if pr_path is None:
+            pr_candidates = sorted(
+                list(input_dir.glob("DiaPluviometrico_*.csv"))
+                + list(input_dir.glob("*Pluvio*.csv"))
+            )
+            if pr_candidates:
+                pr_path = pr_candidates[0]
+        if tmax_path is None:
+            tmax_candidates = sorted(
+                list(input_dir.glob("TempMaxima_*.csv"))
+                + list(input_dir.glob("*TempMax*.csv"))
+            )
+            if tmax_candidates:
+                tmax_path = tmax_candidates[0]
+        if tmin_path is None:
+            tmin_candidates = sorted(
+                list(input_dir.glob("TempMinima_*.csv"))
+                + list(input_dir.glob("*TempMin*.csv"))
+            )
+            if tmin_candidates:
+                tmin_path = tmin_candidates[0]
+
+    if station_id is None:
+        raise ValueError("Either station_id or input_dir must be specified.")
+
+    eff_pr_start = pr_start_date if pr_start_date is not None else start_date
+    eff_pr_end = pr_end_date if pr_end_date is not None else end_date
+    eff_temp_start = temp_start_date if temp_start_date is not None else start_date
+    eff_temp_end = temp_end_date if temp_end_date is not None else end_date
 
     structure_results: List[FileStructureResult] = []
     sentinel_results: List[SentinelAuditResult] = []
@@ -1550,8 +1593,8 @@ def run_audit(
         struct_pr, df_pr = audit_file_structure(
             pr_path,
             expected_station_id=station_id,
-            expected_start=start_date,
-            expected_end=end_date,
+            expected_start=eff_pr_start,
+            expected_end=eff_pr_end,
             restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_pr)
@@ -1565,12 +1608,12 @@ def run_audit(
         pr_full_series = s_pr
 
         # Protocol range evaluation
-        s_pr_eval = s_pr.loc[start_date:end_date]
-        raw_pr_eval = raw_pr.loc[start_date:end_date]
+        s_pr_eval = s_pr.loc[eff_pr_start:eff_pr_end]
+        raw_pr_eval = raw_pr.loc[eff_pr_start:eff_pr_end]
         phys_pr = audit_physical_rules(
             s_pr_eval,
             raw_pr_eval,
-            variable_label="Precipitación (mm) [1990-2011]",
+            variable_label=f"Precipitación (mm) [{eff_pr_start[:4]}-{eff_pr_end[:4]}]",
             lower_bound=0.0,
             upper_bound=500.0,
             min_streak_days=5,
@@ -1581,9 +1624,9 @@ def run_audit(
         comp_pr_proto = audit_completeness(
             s_pr_eval,
             variable_label="Precipitación",
-            expected_start=start_date,
-            expected_end=end_date,
-            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
+            expected_start=eff_pr_start,
+            expected_end=eff_pr_end,
+            evaluation_scope=f"Rango Protocolo ({eff_pr_start[:4]}-{eff_pr_end[:4]})",
         )
         completeness_results.append(comp_pr_proto)
 
@@ -1591,7 +1634,7 @@ def run_audit(
         if not restrict_range and not s_pr.empty:
             pr_min_yr = s_pr.index.min().year
             pr_max_yr = s_pr.index.max().year
-            if str(pr_min_yr) != start_date[:4] or str(pr_max_yr) != end_date[:4]:
+            if str(pr_min_yr) != eff_pr_start[:4] or str(pr_max_yr) != eff_pr_end[:4]:
                 comp_pr_full = audit_completeness(
                     s_pr,
                     variable_label="Precipitación",
@@ -1606,8 +1649,8 @@ def run_audit(
         struct_tmax, df_tmax = audit_file_structure(
             tmax_path,
             expected_station_id=station_id,
-            expected_start=start_date,
-            expected_end=end_date,
+            expected_start=eff_temp_start,
+            expected_end=eff_temp_end,
             restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_tmax)
@@ -1622,12 +1665,12 @@ def run_audit(
         s_tmax, raw_tmax = extract_clean_numeric_series(df_tmax)
         tmax_full_series = s_tmax
 
-        s_tmax_eval = s_tmax.loc[start_date:end_date]
-        raw_tmax_eval = raw_tmax.loc[start_date:end_date]
+        s_tmax_eval = s_tmax.loc[eff_temp_start:eff_temp_end]
+        raw_tmax_eval = raw_tmax.loc[eff_temp_start:eff_temp_end]
         phys_tmax = audit_physical_rules(
             s_tmax_eval,
             raw_tmax_eval,
-            variable_label=f"Temperatura Máxima (°C) [{start_date[:4]}-{end_date[:4]}]",
+            variable_label=f"Temperatura Máxima (°C) [{eff_temp_start[:4]}-{eff_temp_end[:4]}]",
             lower_bound=5.0,
             upper_bound=45.0,
             min_streak_days=10,
@@ -1638,16 +1681,19 @@ def run_audit(
         comp_tmax_proto = audit_completeness(
             s_tmax_eval,
             variable_label="Temperatura Máxima",
-            expected_start=start_date,
-            expected_end=end_date,
-            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
+            expected_start=eff_temp_start,
+            expected_end=eff_temp_end,
+            evaluation_scope=f"Rango Protocolo ({eff_temp_start[:4]}-{eff_temp_end[:4]})",
         )
         completeness_results.append(comp_tmax_proto)
 
         if not restrict_range and not s_tmax.empty:
             tmax_min_yr = s_tmax.index.min().year
             tmax_max_yr = s_tmax.index.max().year
-            if str(tmax_min_yr) != start_date[:4] or str(tmax_max_yr) != end_date[:4]:
+            if (
+                str(tmax_min_yr) != eff_temp_start[:4]
+                or str(tmax_max_yr) != eff_temp_end[:4]
+            ):
                 comp_tmax_full = audit_completeness(
                     s_tmax,
                     variable_label="Temperatura Máxima",
@@ -1662,8 +1708,8 @@ def run_audit(
         struct_tmin, df_tmin = audit_file_structure(
             tmin_path,
             expected_station_id=station_id,
-            expected_start=start_date,
-            expected_end=end_date,
+            expected_start=eff_temp_start,
+            expected_end=eff_temp_end,
             restrict_to_expected_range=restrict_range,
         )
         structure_results.append(struct_tmin)
@@ -1678,12 +1724,12 @@ def run_audit(
         s_tmin, raw_tmin = extract_clean_numeric_series(df_tmin)
         tmin_full_series = s_tmin
 
-        s_tmin_eval = s_tmin.loc[start_date:end_date]
-        raw_tmin_eval = raw_tmin.loc[start_date:end_date]
+        s_tmin_eval = s_tmin.loc[eff_temp_start:eff_temp_end]
+        raw_tmin_eval = raw_tmin.loc[eff_temp_start:eff_temp_end]
         phys_tmin = audit_physical_rules(
             s_tmin_eval,
             raw_tmin_eval,
-            variable_label=f"Temperatura Mínima (°C) [{start_date[:4]}-{end_date[:4]}]",
+            variable_label=f"Temperatura Mínima (°C) [{eff_temp_start[:4]}-{eff_temp_end[:4]}]",
             lower_bound=-5.0,
             upper_bound=35.0,
             min_streak_days=10,
@@ -1694,16 +1740,19 @@ def run_audit(
         comp_tmin_proto = audit_completeness(
             s_tmin_eval,
             variable_label="Temperatura Mínima",
-            expected_start=start_date,
-            expected_end=end_date,
-            evaluation_scope=f"Rango Protocolo ({start_date[:4]}-{end_date[:4]})",
+            expected_start=eff_temp_start,
+            expected_end=eff_temp_end,
+            evaluation_scope=f"Rango Protocolo ({eff_temp_start[:4]}-{eff_temp_end[:4]})",
         )
         completeness_results.append(comp_tmin_proto)
 
         if not restrict_range and not s_tmin.empty:
             tmin_min_yr = s_tmin.index.min().year
             tmin_max_yr = s_tmin.index.max().year
-            if str(tmin_min_yr) != start_date[:4] or str(tmin_max_yr) != end_date[:4]:
+            if (
+                str(tmin_min_yr) != eff_temp_start[:4]
+                or str(tmin_max_yr) != eff_temp_end[:4]
+            ):
                 comp_tmin_full = audit_completeness(
                     s_tmin,
                     variable_label="Temperatura Mínima",
@@ -1723,8 +1772,8 @@ def run_audit(
         simultaneous_temp = audit_simultaneous_temperature(
             tmax_full_series,
             tmin_full_series,
-            expected_start=start_date,
-            expected_end=end_date,
+            expected_start=eff_temp_start,
+            expected_end=eff_temp_end,
         )
 
     # Triplet Overlap (Precip + Tmax + Tmin)
@@ -1738,8 +1787,8 @@ def run_audit(
             pr_series=pr_full_series,
             tmax_series=tmax_full_series,
             tmin_series=tmin_full_series,
-            start_date=start_date,
-            end_date=end_date,
+            start_date=max(eff_pr_start, eff_temp_start),
+            end_date=min(eff_pr_end, eff_temp_end),
         )
 
     # Metadata audit
@@ -1822,8 +1871,14 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--station-id",
         type=str,
-        required=True,
+        default=None,
         help="Station code / identifier (e.g. 54085010)",
+    )
+    parser.add_argument(
+        "--input-dir",
+        type=Path,
+        default=None,
+        help="Directory containing station CSV files (e.g. local/era5_ts/<station>)",
     )
     parser.add_argument(
         "--pr-path",
@@ -1868,6 +1923,30 @@ def parse_args() -> argparse.Namespace:
         help="Expected calendar end date (YYYY-MM-DD)",
     )
     parser.add_argument(
+        "--pr-start-date",
+        type=str,
+        default=None,
+        help="Specific expected start date for precipitation (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--pr-end-date",
+        type=str,
+        default=None,
+        help="Specific expected end date for precipitation (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--temp-start-date",
+        type=str,
+        default=None,
+        help="Specific expected start date for temperature (YYYY-MM-DD)",
+    )
+    parser.add_argument(
+        "--temp-end-date",
+        type=str,
+        default=None,
+        help="Specific expected end date for temperature (YYYY-MM-DD)",
+    )
+    parser.add_argument(
         "--output-dir",
         type=Path,
         default=Path("local/reports"),
@@ -1901,6 +1980,11 @@ def main() -> None:
         output_dir=args.output_dir,
         check_jb_ac_flags=not args.no_jb_ac_check,
         restrict_range=args.restrict_range,
+        input_dir=args.input_dir,
+        pr_start_date=args.pr_start_date,
+        pr_end_date=args.pr_end_date,
+        temp_start_date=args.temp_start_date,
+        temp_end_date=args.temp_end_date,
     )
     print(md_path.read_text(encoding="utf-8"))
     print("\nAudit completed successfully.")

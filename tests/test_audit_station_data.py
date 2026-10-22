@@ -17,6 +17,7 @@ from scripts.audit_station_data import (
     detect_streaks,
     group_contiguous_dates,
     inspect_quality_flags_only,
+    run_audit,
 )
 
 # ==============================================================================
@@ -475,3 +476,46 @@ def test_audit_file_structure_with_restrict_range(tmp_path: Path) -> None:
     assert dates == ["1990-01-01", "1995-06-15", "2000-12-31"]
     assert "1985-05-10" not in dates
     assert "2015-08-20" not in dates
+
+
+def test_run_audit_with_input_dir(tmp_path: Path) -> None:
+    """Verify that run_audit automatically discovers CSVs from an input directory."""
+    station_dir = tmp_path / "88888888"
+    station_dir.mkdir()
+
+    pr_file = station_dir / "DiaPluviometrico_TestStation.csv"
+    tmax_file = station_dir / "TempMaxima_TestStation.csv"
+    tmin_file = station_dir / "TempMinima_TestStation.csv"
+
+    content_pr = (
+        "CodigoEstacion,NombreEstacion,Fecha,Valor,NivelAprobacion\n"
+        "88888888,TEST_STATION,1990-01-01 0:00,10.0,Definitivo\n"
+        "88888888,TEST_STATION,1990-01-02 0:00,0.0,Definitivo\n"
+    )
+    content_tmax = (
+        "CodigoEstacion,NombreEstacion,Fecha,Valor,NivelAprobacion\n"
+        "88888888,TEST_STATION,1990-01-01 0:00,25.0,Definitivo\n"
+        "88888888,TEST_STATION,1990-01-02 0:00,26.0,Definitivo\n"
+    )
+    content_tmin = (
+        "CodigoEstacion,NombreEstacion,Fecha,Valor,NivelAprobacion\n"
+        "88888888,TEST_STATION,1990-01-01 0:00,15.0,Definitivo\n"
+        "88888888,TEST_STATION,1990-01-02 0:00,14.0,Definitivo\n"
+    )
+    pr_file.write_text(content_pr, encoding="utf-8")
+    tmax_file.write_text(content_tmax, encoding="utf-8")
+    tmin_file.write_text(content_tmin, encoding="utf-8")
+
+    out_dir = tmp_path / "reports"
+    md_path, json_path = run_audit(
+        input_dir=station_dir,
+        start_date="1990-01-01",
+        end_date="1990-01-02",
+        output_dir=out_dir,
+        check_jb_ac_flags=False,
+        restrict_range=True,
+    )
+
+    assert md_path.exists()
+    assert json_path.exists()
+    assert "audit_88888888.json" in json_path.name
