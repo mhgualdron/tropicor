@@ -20,11 +20,12 @@ import warnings
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Optional, Sequence, Tuple, cast
+from typing import Any, Dict, List, Literal, Optional, Sequence, Set, Tuple, cast
 
 import numpy as np
 import pandas as pd
 
+from tropicor.core.andean_registry import AndeanStation, get_andean_station
 from tropicor.core.protocol import (
     CrossingDiagnostic,
     apply_universal_crossing_rule,
@@ -1116,13 +1117,20 @@ def load_calibration_temperature_pair(
         Tuple of (obs_tmax_cal, obs_tmin_cal, mod_tmax_cal, mod_tmin_cal).
     """
     clean_id = re.sub(r"\.0$", "", str(station_id).strip())
+    valid_years_filter: Optional[Set[int]] = None
+    andean_st: Optional[AndeanStation] = None
     try:
         cal_range = get_benchmark_partitions("temperature", clean_id)[0]
     except ValueError:
-        raise ValueError(
-            f"Station '{clean_id}' has no pre-specified temperature calibration "
-            "partition."
-        ) from None
+        try:
+            andean_st = get_andean_station(clean_id)
+            cal_range = andean_st.cal_block
+            valid_years_filter = set(andean_st.valid_years)
+        except ValueError:
+            raise ValueError(
+                f"Station '{clean_id}' has no pre-specified temperature calibration "
+                "partition."
+            ) from None
 
     cal_start, cal_end = cal_range
     full_cal_index = pd.date_range(f"{cal_start}-01-01", f"{cal_end}-12-31", freq="D")
@@ -1210,7 +1218,10 @@ def load_calibration_temperature_pair(
         s_full = pd.Series(clean_num.values, index=pd.DatetimeIndex(df_st["dt_norm"]))
         s_idx = cast(pd.DatetimeIndex, s_full.index)
         # Immediately trim to calibration years before any statistic is computed
-        s_cal = s_full[(s_idx.year >= cal_start) & (s_idx.year <= cal_end)]
+        cal_mask = (s_idx.year >= cal_start) & (s_idx.year <= cal_end)
+        if valid_years_filter is not None:
+            cal_mask = cal_mask & s_idx.year.isin(valid_years_filter)
+        s_cal = s_full[cal_mask]
         return s_cal.reindex(full_cal_index)
 
     obs_tmax_cal = _read_and_slice_obs(obs_tmax_path)
@@ -1251,14 +1262,38 @@ def load_calibration_temperature_pair(
 
     catalog = StationCatalog.from_benchmark()
     st_meta = catalog.get(clean_id)
-    if st_meta is None:
-        raise ValueError(
-            f"Station ID '{clean_id}' not found in benchmark station catalog."
-        )
-    lat, lon = st_meta.latitude, st_meta.longitude
+    if st_meta is not None:
+        lat, lon = st_meta.latitude, st_meta.longitude
+    elif andean_st is not None:
+        lat, lon = andean_st.latitud_cne, andean_st.longitud_cne
+    else:
+        try:
+            andean_st = get_andean_station(clean_id)
+            lat, lon = andean_st.latitud_cne, andean_st.longitud_cne
+        except ValueError:
+            raise ValueError(
+                f"Station ID '{clean_id}' not found in benchmark station catalog."
+            ) from None
 
     var_name = adapter._resolve_variable_name("t2m")
     ds_pt = adapter.extract_point(lat, lon, method="nearest")
+
+    # Verify that the extracted ERA5 grid cell matches the registered cell
+    if andean_st is not None:
+        grid_lat = float(ds_pt["latitude"].values)
+        grid_lon = float(ds_pt["longitude"].values)
+        exp_lat = andean_st.celda_era5["lat"]
+        exp_lon = andean_st.celda_era5["lon"]
+        if not (
+            np.isclose(grid_lat, exp_lat, atol=1e-3)
+            and np.isclose(grid_lon, exp_lon, atol=1e-3)
+        ):
+            raise ValueError(
+                f"ERA5 grid cell ({grid_lat:.2f}, {grid_lon:.2f}) does not match "
+                f"registered cell ({exp_lat:.2f}, {exp_lon:.2f}) "
+                f"for Andean station '{clean_id}'."
+            )
+
     da = ds_pt[var_name]
 
     if "step" in da.dims:
