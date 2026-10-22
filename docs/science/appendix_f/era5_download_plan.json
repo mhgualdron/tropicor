@@ -1,0 +1,61 @@
+{
+  "description": "ERA5 timeseries download plan for candidate stations",
+  "catalog_source": "local/CNE_IDEAM.xls",
+  "stations": {
+    "24025040": {
+      "codigo": "24025040",
+      "nombre": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "catalogo_lat": 6.47,
+      "catalogo_lon": -72.96888889,
+      "celda_lat": 6.5,
+      "celda_lon": -73.0,
+      "margen": 0.09388889000000233,
+      "margen_menor_0_01": false,
+      "shared_cell_with": []
+    },
+    "26135040": {
+      "codigo": "26135040",
+      "nombre": "AEROPUERTO MATECAÑA [26135040]",
+      "catalogo_lat": 4.815861111,
+      "catalogo_lon": -75.737222222,
+      "celda_lat": 4.75,
+      "celda_lon": -75.75,
+      "margen": 0.05913888899999975,
+      "margen_menor_0_01": false,
+      "shared_cell_with": []
+    },
+    "27015070": {
+      "codigo": "27015070",
+      "nombre": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "catalogo_lat": 6.2246389,
+      "catalogo_lon": -75.5882,
+      "celda_lat": 6.25,
+      "celda_lon": -75.5,
+      "margen": 0.0367999999999995,
+      "margen_menor_0_01": false,
+      "shared_cell_with": []
+    },
+    "37015020": {
+      "codigo": "37015020",
+      "nombre": "BERLIN [37015020]",
+      "catalogo_lat": 7.186944444,
+      "catalogo_lon": -72.86861111,
+      "celda_lat": 7.25,
+      "celda_lon": -72.75,
+      "margen": 0.00638888999999665,
+      "margen_menor_0_01": true,
+      "shared_cell_with": []
+    },
+    "52045010": {
+      "codigo": "52045010",
+      "nombre": "OBONUCO [52045010]",
+      "catalogo_lat": 1.198222222,
+      "catalogo_lon": -77.30308333,
+      "celda_lat": 1.25,
+      "celda_lon": -77.25,
+      "margen": 0.07191666999999313,
+      "margen_menor_0_01": false,
+      "shared_cell_with": []
+    }
+  }
+}

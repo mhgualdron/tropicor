@@ -1,7 +1,7 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.3 (E.1 exclusion of Noanama from the global precipitation criterion, E.6.6 substantive linear extrapolation; see Appendix E). Earlier: v1.2 (Appendix D), v1.1 (Appendix C)  
+**Latest Amendment**: Protocol v1.4 (Appendix F: Andean Generalization Set, selection rules, temporal partitions, and timeseries point reanalysis source). Earlier: v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -747,6 +747,113 @@ The following implementation rules describe the exact execution behavior of the 
 
 ### E.8 Declaration of Validation Partition Integrity (Protocol v1.3)
 As of the registration of Protocol v1.3, no validation values have been read for Jardín Botánico (`21205710`) nor Aguas Claras (`23215030`). The observational station data audit (`scripts/audit_station_data.py`) read full source files across their entire span, but extracted and reported exclusively record counts and approval flag metadata (no validation values were inspected, summarized, or retained). Prior exposure to monthly aggregates of Noanamá is disclosed in Section E.3. The validation ledger `local/reports/validation_openings.jsonl` does not exist on this machine (it is strictly excluded by `.gitignore`), and all fitting, hyperparameter tuning, and diagnostic evaluations of Phase 2b used exclusively calibration partitions via `load_calibration_temperature_pair` (which opens the ERA5 hourly file for year `cal_end + 1` solely to aggregate the 05:00–05:00 UTC boundary hours of the final calibration day, without opening any validation observations).
+
+---
+
+## Appendix F: Andean Generalization Set (Protocol v1.4)
+
+### F.1 Purpose
+The purpose of the Andean generalization station set is to evaluate the spatial and topographical transferability of statistical downscaling and bias correction formulations across diverse mountainous regimes of the Colombian Andes, completely outside the primary global benchmark qualification criterion (Section 5.3) established by Jardín Botánico (`21205710`) and Aguas Claras (`23215030`).
+
+While the primary benchmark stations provide rigorous longitudinal evaluation under contrasting elevation regimes (high-altitude savannah vs. lowland valley), a broader sample across the three Andean branches (Cordillera Occidental, Central, and Oriental) is necessary to assess whether parsimonious bias correction architectures (Levels 1–3) generalize without local over-fitting or empirical degradation in complex terrain. To preserve methodological integrity, all performance evaluations across the Andean generalization set remain strictly diagnostic and informational; they cannot alter or override the global pass/fail status of the primary benchmark.
+
+### F.2 Selection Rules
+Candidate stations are drawn systematically from the official IDEAM National Station Catalog (*Catálogo Nacional de Estaciones*, `CNE_IDEAM.xls`). Selection is structured across pre-specified geographic and topographical strata defined by the intersection of:
+1. **Andean Cordillera**: Cordillera Occidental, Cordillera Central, Cordillera Oriental, and the southern Colombian Massif (*Nudo de los Pastos*).
+2. **Elevation Band**: Lowland (< 1,000 m), Premontane/Mid-elevation (1,000–2,000 m), and Montane/High-elevation (> 2,000 m).
+3. **Agroclimatic Context**: Predominant local moisture regime and topographical exposure.
+
+To establish representative coverage, candidate stations were organized into 10 priority slots (S1 through S10), with each slot containing up to three ordered candidate options (Plan A $\succ$ Plan B $\succ$ Plan C). Selection within each slot is governed by the following mechanical rules:
+1. **Sample Size Eligibility**: A candidate station is eligible for daily temperature downscaling if and only if:
+   - It possesses $\ge 20$ joint valid calendar years within the evaluation window $[1990, 2020]$, where a **joint valid calendar year** is a calendar year containing $\ge 330$ days on which both $T_{\max}$ and $T_{\min}$ are valid on the same day.
+   - Following temporal partitioning (Section F.3), both the calibration block and the validation block contain $\ge 8$ valid joint years ($n_{\text{cal}} \ge 8$ and $n_{\text{val}} \ge 8$).
+2. **Slot Resolution Order**: Each slot evaluates its candidate plans strictly in order of priority (Plan A $\succ$ Plan B $\succ$ Plan C). The slot resolves to the first candidate meeting the temperature eligibility criteria.
+3. **No Ad-Hoc Substitutions**: If no candidate within a slot meets the eligibility criteria, the slot remains unassigned (`PENDIENTE`). No ad-hoc, manual, or out-of-order station substitutions are permitted.
+4. **Approval Level Does Not Filter Candidates**: IDEAM approval levels (`NivelAprobacion`: `Definitivo`, `Preliminar`, `En revisión`) do not filter candidates or records; all records present in the official series enter the completeness audit regardless of approval level. The approval level is used only to resolve duplicate dates within a single file (the record with the higher approval level is retained). The coverage audit found 0 duplicate dates across all evaluated files, so this resolution step was never exercised.
+
+### F.3 Partitioning Rules
+Temporal partitioning of eligible station records into non-overlapping calibration and validation blocks follows the exact pre-specified mechanical rules:
+
+1. **Temperature Partitioning ($T_{\max}$ and $T_{\min}$)**:
+   - Let $Y$ denote the sequence of joint valid calendar years sorted in chronological order, where a **joint valid calendar year** is a calendar year containing $\ge 330$ days on which both $T_{\max}$ and $T_{\min}$ are valid on the same day.
+   - A temporal cut is placed between two consecutive valid years in $Y$ to minimize the absolute difference in sample size between blocks, $|n_{\text{cal}} - n_{\text{val}}|$.
+   - In the event of a tie ($|n_{\text{cal}} - n_{\text{val}}|$ is identical across adjacent cut points), the calibration partition receives the larger block ($n_{\text{cal}} > n_{\text{val}}$).
+   - The calibration block spans from the first year of $Y$ to the last valid year prior to the cut point ($\text{cal\_block} = [\min(Y_{\text{cal}}), \max(Y_{\text{cal}})]$).
+   - The validation block begins at the first valid year following the cut point and spans to the final year of $Y$ ($\text{val\_block} = [\min(Y_{\text{val}}), \max(Y_{\text{val}})]$).
+   - Any invalid calendar year falling between the calibration and validation blocks belongs to neither block.
+   - Invalid calendar years occurring within a block's nominal calendar span remain within the nominal calendar boundaries but are strictly excluded during statistical calculation and model fitting under the $\ge 330$ days completeness rule.
+2. **Precipitation Partitioning ($P$)**:
+   - The identical mechanical partitioning procedure is applied to daily precipitation accumulation records across the extended window $[1975, 2020]$ using its respective sequence of valid precipitation years ($\ge 330$ valid observation days).
+   - Precipitation partitioning is conducted and reported as an independent diagnostic track. Precipitation eligibility does not govern or influence station slot selection.
+3. **Slot Selection Priority**:
+   - For each geographic slot, the candidate plans are evaluated sequentially ($A \succ B \succ C$) using the temperature eligibility criteria.
+   - If only a subset of candidate plans possesses available observation files in the workspace, the rule is evaluated across the available plans, and any missing plan is recorded as pending data (`SIN_DATOS`). If an available candidate directory lacks any of the three required variable CSVs, it is classified as incomplete (`INCOMPLETO`) and treated as pending data without silent omission.
+
+### F.4 Andean Generalization Set Inventory & Addenda Clause
+Applying the mechanical selection and partitioning rules across the candidate stations evaluated in the coverage audit (`docs/science/appendix_f/coverage_audit_new_stations.json`) resolves exactly 5 slots to status `COMPLETA` (all via Plan A). The full ordered candidate list of the ten slots (Plans A, B and C) was fixed before the coverage audit and is recorded under the key slot_selection of the frozen coverage audit:
+
+| Slot | Code | Station Name | Cordillera / Region | CNE Elev. (m) | Joint Valid Yrs | Cal. Block ($n_{\text{cal}}$) | Val. Block ($n_{\text{val}}$) | SHA-256 (12-char prefix) `DiaPluviometrico` | SHA-256 (12-char prefix) `TempMaxima` | SHA-256 (12-char prefix) `TempMinima` |
+|:---:|:---:|:---|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **S2** | `37015020` | BERLIN | Oriental (Páramo) | 3,214.0 | 21 | 1991–2009 (11) | 2010–2020 (10) | `03c6837e4524` | `7f97e54aa45f` | `1628255701b8` |
+| **S3** | `24025040` | ESCUELA AGRICOLA MOGOTES | Oriental (Premontane) | 1,673.0 | 20 | 1990–2000 (10) | 2001–2020 (10) | `44f533f67def` | `3a3846817c26` | `bca87d9efd96` |
+| **S4** | `26135040` | AEROPUERTO MATECAÑA | Central (Premontane) | 1,342.0 | 24 | 1990–2005 (12) | 2006–2017 (12) | `e1c00a3cadaa` | `35262f32965e` | `0cd88ec6ea23` |
+| **S6** | `27015070` | AEROPUERTO OLAYA HERRERA | Central (Aburrá Valley) | 1,492.0 | 28 | 1990–2004 (14) | 2005–2019 (14) | `b0396bdf6218` | `cf46fb60faa6` | `3f0a70d9db42` |
+| **S8** | `52045010` | OBONUCO | Nudo de los Pastos / Nariño (Andes del sur) | 2,710.0 | 20 | 1990–1999 (10) | 2000–2020 (10) | `56ce75df08ac` | `a3f969cc3213` | `24eb0f43f6d8` |
+
+#### Frozen Station Geometry and Registry Hash
+The ERA5 cell is the nearest 0.25° grid node to the CNE coordinates. The margin to the cell edge is $0.125° - |\Delta|$ per axis (degrees); the column reports the smaller of the two axes. A small margin means a small coordinate error could change the selected cell.
+
+| Code | CNE Lat | CNE Lon | ERA5 Cell (Lat, Lon) | Margin Lat (°) | Margin Lon (°) | Min Margin (°) |
+|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| `37015020` | 7.186944444 | -72.86861111 | (7.25, -72.75) | 0.0619 | 0.0064 | 0.0064 |
+| `24025040` | 6.47 | -72.96888889 | (6.50, -73.00) | 0.0950 | 0.0939 | 0.0939 |
+| `26135040` | 4.815861111 | -75.737222222 | (4.75, -75.75) | 0.0591 | 0.1122 | 0.0591 |
+| `27015070` | 6.2246389 | -75.5882 | (6.25, -75.50) | 0.0996 | 0.0368 | 0.0368 |
+| `52045010` | 1.198222222 | -77.30308333 | (1.25, -77.25) | 0.0732 | 0.0719 | 0.0719 |
+
+- **Registry file**: `tropicor/data/andean_station_registry.json`
+- **Registry SHA-256**: `3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b`
+- **Coverage audit source (frozen)**: `docs/science/appendix_f/coverage_audit_new_stations.json`, SHA-256 `de03a7f78562ac0ea93aa2169fb5b304d47a95e875b3edbe40d4ba9851a5b33f`
+- **Download plan source (frozen)**: `docs/science/appendix_f/era5_download_plan.json`, SHA-256 `bfd4cdc9ed7957311e444cf2ffebfe8222c416791c15aba094335a6bbaffb2a1`
+- **Freeze date**: 2026-10-22
+
+#### Non-Eligible Evaluated Candidates (Counts Only)
+Two candidate stations evaluated in the audit failed the sample size eligibility threshold of $\ge 20$ joint valid calendar years and are formally designated `NO_ELEGIBLE`:
+- **`24035120` (SURBATA BONZA)**: Plan A of Slot S1. Joint valid temperature years in $[1990, 2020]$: exactly **18 years** (insufficient under the $\ge 20$ threshold; $P$ valid years: 31). Slot S1 remains `PENDIENTE` pending candidate data for Plans B (`24035130`) and C (`35075010`).
+- **`44015030` (VALENCIA)**: Plan A of Slot S7. Joint valid temperature years in $[1990, 2020]$: exactly **14 years** (insufficient under the $\ge 20$ threshold; $P$ valid years: 30). Slot S7 remains `PENDIENTE` pending candidate data for Plans B (`26040260`) and C (`26015020`).
+
+#### Addenda Clause for Remaining Slots
+Slots **S1, S5, S7, S9, and S10** currently hold status `PENDIENTE` due to unfulfilled data for remaining candidate plans. In accordance with strict pre-specification principles, these remaining slots shall be resolved exclusively under the identical mechanical eligibility and partitioning rules articulated herein via future formal protocol amendments prior to acquiring ERA5 data for or executing any calibration or downscaling comparison on those candidate stations. The definition and selection of the current five complete slots (S2, S3, S4, S6, S8) is mathematically and methodologically independent of the future resolution of the pending slots.
+
+### F.5 Exposure and Independence Disclosures
+To ensure uncompromised transparency regarding observational data handling and model separation, the following disclosures are formally recorded:
+1. **Scope of the Coverage Audit**: The station data audit (`scripts/generate_coverage_audit_new_stations.py`) read the raw IDEAM CSV files across their complete temporal span, but strictly and exclusively extracted record counts, calendar dates, and quality approval flag distributions. At no point were observation values inspected, statistically aggregated (means, variances, percentiles, or extremes), or visualized.
+2. **Prior Acquisition of Reanalysis Timeseries**: The ERA5 timeseries point extractions for the five complete stations (S2, S3, S4, S6, S8) were acquired on 2026-10-21 prior to the registration of Protocol v1.4. Zero evaluation, comparative bias calculation, or downscaling execution against IDEAM observations was conducted prior to protocol freezing.
+3. **Pre-Auditing Threshold Fixation**: The eligibility thresholds ($\ge 20$ joint valid years, $\ge 8$ valid years per partition block) were specified and documented prior to executing the comprehensive coverage audit.
+4. **Reconciliation of Exploratory Count Anomaly**: An exploratory screening script (`local/scratch/check_eligibility_and_partitions.py`) that applied non-standard physical bounds filtering produced an erroneous count of 20 joint valid years for station `37015020` (Berlín). This discrepancy was investigated and reconciled against the canonical protocol generator (`generate_coverage_audit_new_stations.py`), confirming exactly 21 joint valid years under standard protocol filtering ($\ge 330$ days of non-sentinel records).
+5. **Segregation of Diagnostic Outlier Summaries**: A preliminary single-station exploratory report containing extreme value listings (`local/scratch/audit_24035120.json` and `.md`) was segregated directly into `local/scratch/` without inspection, preserving uncompromised blinding.
+6. **Thesis Exposure**: The maintainer declares that none of the five stations in the Andean generalization set (24025040, 26135040, 27015070, 37015020, 52045010) appears in the maintainer's prior thesis work; no series or results from these stations were used before this protocol amendment.
+7. **Threshold Sensitivity**: Obonuco (52045010) has exactly 20 joint valid years, one of them (1994) at exactly the 330-day threshold; it is the most threshold-sensitive selection.
+
+### F.6 ERA5 Reanalysis Point Source & Equivalence Verification
+1. **Dataset Selection**: For the Andean generalization set, reanalysis predictors are acquired from the Climate Data Store (CDS) dataset `reanalysis-era5-single-levels-timeseries`. Hourly point time series are extracted for surface 2-meter temperature (`2m_temperature`, $t2m$) and total precipitation (`total_precipitation`, $tp$) at the nearest 0.25° grid node center (Section 2.1.1) relative to each station's official CNE catalog coordinates.
+2. **Numerical Equivalence with Annual NetCDF Files**: Numerical equivalence between the CDS timeseries service and the annual single-levels gridded NetCDF files used in Phase 2a and 2b was rigorously verified across overlapping multi-decadal records at Jardín Botánico (`21205710`, 1990–2011 for $t2m$, 1975–2001 for $tp$) and Aguas Claras (`23215030`, 1990–2011 for $t2m$, 1975–2001 for $tp$):
+   - **Temperature ($t2m$)**: The maximum absolute hourly difference evaluated to $2.44 \times 10^{-4}\text{ K}$ ($0.000244\text{ K}$). The attribution of this residual to 16-bit packing quantization was not verified.
+   - **Precipitation ($tp$)**: Maximum difference 0.0 m.
+3. **Negative Control Verification**: To verify that the source equivalence comparator detects genuine discrepancies, a negative control test compared the annual files of Jardín Botánico against those of Aguas Claras. The comparator failed decisively as required, reporting maximum hourly differences of $17.7\text{ K}$ in $t2m$ across 192,840 compared hours and $19.3\text{ mm}$ in $tp$ across 236,688 compared hours.
+4. **Primary Benchmark Continuity**: Jardín Botánico and Aguas Claras remain calibrated and evaluated strictly against the original annual NetCDF gridded extractions.
+
+### F.7 Reporting and Governance Rules
+1. **Calibration-Only Reporting Until Phase 3**: In accordance with the pre-specified protocol timeline, all downscaling models fitted to the Andean generalization set shall be reported strictly on their calibration partitions until Phase 3 is formally authorized. Out-of-sample validation partitions remain strictly closed.
+2. **Station-Level Scorecard**: Each evaluated Andean station must publish a comprehensive calibration scorecard reporting:
+   - Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 configurations (Levels 1–3).
+   - Selection of the winning configuration under the Section 4.1 tie-breaking hierarchy.
+   - Extrapolation diagnostics under Level 3 (count of extrapolated days, maximum absolute tail correction, and empirical slope ranges).
+   - Raw model biases for $T_{\max}$ and $T_{\min}$ over the calibration block.
+   - Protocol version (`1.4`) and git commit SHA of the execution codebase.
+3. **Cordillera and Elevation Aggregation (Descriptive Only)**: Scorecards shall be reported individually per station. Any aggregation by cordillera grouping is strictly descriptive: group sizes are small (Oriental: 2; Central: 2; Nudo de los Pastos / Nariño: 1) and the current set contains no station from the Cordillera Occidental. No inferential statement about cordillera-level transferability shall be drawn from these aggregates.
+4. **Elevation Mismatch Sensitivity (Conditional)**: Corrective performance and residual bias shall be evaluated as a function of the elevation discrepancy between the station CNE altitude and the ERA5 model surface height, $|h_{\text{ERA5}} - h_{\text{CNE}}|$, where $h_{\text{ERA5}} = z/g$ is the ERA5 surface geopotential divided by standard gravity at the station's grid cell. This analysis is conditional on acquiring the ERA5 static fields (geopotential); until those are downloaded and their hashes recorded, it is not executed.
+5. **Benchmark Threshold Invariance**: The Andean generalization set serves an exploratory and transferability diagnostic role. None of the pre-specified qualification thresholds, metric bounds, or primary benchmark pass/fail criteria (Section 5.3) are modified by this amendment.
 
 
 
