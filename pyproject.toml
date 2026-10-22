@@ -75,7 +75,7 @@ where = ["."]
 include = ["tropicor*"]
 
 [tool.setuptools.package-data]
-tropicor = ["data/boundaries/*.geojson", "py.typed"]
+tropicor = ["data/boundaries/*.geojson", "data/*.json", "py.typed"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

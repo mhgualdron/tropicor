@@ -1,6 +1,13 @@
 """Core scientific validation metrics and statistical algorithms."""
 
 from tropicor.core.alignment import align_common_period
+from tropicor.core.andean_registry import (
+    AndeanStation,
+    get_andean_partition,
+    get_andean_station,
+    load_andean_registry,
+    request_andean_validation_partition,
+)
 from tropicor.core.bias import (
     EmpiricalQuantileMapping,
     LinearScalingCorrection,
@@ -34,8 +41,14 @@ from tropicor.core.metrics import (
     ValidationReport,
     compute_validation_metrics,
 )
+from tropicor.core.station_selection import (
+    compute_optimal_partition,
+    evaluate_partition_eligibility,
+    evaluate_slot_status,
+)
 
 __all__ = [
+    "AndeanStation",
     "DistributionMoments",
     "EmpiricalQuantileMapping",
     "LinearScalingCorrection",
@@ -55,9 +68,16 @@ __all__ = [
     "compute_mann_kendall_trend",
     "compute_monthly_climatology",
     "compute_monthly_extreme_range",
+    "compute_optimal_partition",
     "compute_residual_diagnostics",
     "compute_validation_metrics",
+    "evaluate_partition_eligibility",
+    "evaluate_slot_status",
+    "get_andean_partition",
+    "get_andean_station",
     "linear_scale_series",
+    "load_andean_registry",
     "quantile_map_series",
+    "request_andean_validation_partition",
     "standardize_residuals",
 ]
