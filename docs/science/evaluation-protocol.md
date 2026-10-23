@@ -1,8 +1,8 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.5 (Appendix G: Andean Generalization Set Out-of-Sample Temperature Validation Protocol). Earlier: v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
-**Freeze Date (v1.5)**: 2026-10-22  
+**Latest Amendment**: Protocol v1.6 (Appendix H: Andean Generalization Set Batch 1 Definition and Candidate Coverage Audit). Earlier: v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Freeze Date (v1.6)**: 2026-10-23  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -963,3 +963,36 @@ In Section F.7.2, bullet 1:
 - **Original text**: *"Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 configurations (Levels 1–3)."*
 - **Corrected text**: *"Leave-one-year-out cross-validation tuning loss ($\mathcal{L}_{\text{tuning}}$) across all 8 Level 3 configurations."*  
 Levels 1 and 2 are deterministic analytical estimators without hyperparameter grids; the 8 cross-validation configurations belong strictly to the Level 3 hyperparameter search space.
+
+---
+
+## Appendix H: Andean Generalization Set Batch 1 Definition and Candidate Coverage Audit (Protocol v1.6)
+
+### H.1 Batch 1 Definition
+The Andean generalization set for the first opening shall consist exclusively of the five stations registered in Table F.4 (`37015020`, `24025040`, `26135040`, `27015070`, and `52045010`). All provisions, constraints, and evaluation rules of Appendix G apply to them.
+
+### H.2 Coverage-Audited Candidate Stations
+Coverage counts for non-registry candidates were determined using the unversioned local script `local/scratch/audit_non_registry_candidates.py` (SHA-256: `52841a11319de66c45ed84ddff300d3fda2ddf9703b4a2ee601f2155b9bcd3ef`; output of that run: `local/scratch/audit_batch2_candidates.json`, SHA-256: `1946ea0536f04b4d21b42845b557f1fc1934b03200ce9e107facd2284d6a4c26`):
+- `24035120`: 18 joint valid years (`NO_ELEGIBLE`).
+- `44015030`: 14 joint valid years (`NO_ELEGIBLE`).
+- `26035030` AEROPUERTO GUILLERMO LEON VALENCIA: 16 joint valid years ($T_{\max}$ 18, $T_{\min}$ 18, $P$ 24) (`NO_ELEGIBLE`).
+- `11025010` LA MANSA: 23 joint valid years (calibration 1990–2002: 12 valid years; validation 2003–2020: 11 valid years; minimum cell margin 0.0033°). Although eligible under Sections F.2 and F.3, it is not included in Batch 1 by maintainer decision taken prior to any ERA5 acquisition, calibration, or comparison for that station, and independent of any performance result. Station `11025010` remains eligible for a subsequent batch only through a formal protocol amendment; until such amendment is enacted, no ERA5 data shall be acquired and no calibration or comparison shall be run for it.
+
+### H.3 Slot Statuses
+The status of the five pending slots from Section F.2 and Section F.4 is established as follows:
+- **Slot S1**: Plan A is `NO_ELEGIBLE`; Plans B and C are `NOT_RETRIEVED`.
+- **Slot S5**: Plans A, B, and C have no usable data (maintainer-reported).
+- **Slot S7**: Plan A is `NO_ELEGIBLE`; Plans B and C are `NOT_RETRIEVED`.
+- **Slot S9**: Plan A is `NO_ELEGIBLE`; Plans B and C are `NOT_RETRIEVED`.
+- **Slot S10**: Plan A is `NOT_RETRIEVED`; Plan B is eligible under Section F.2 but not included per Section H.2; Plan C is not evaluated.
+
+All five slots (S1, S5, S7, S9, S10) remain `PENDIENTE`.
+
+### H.4 Transparency Disclosure
+It is formally disclosed that data coverage counts for station `11025010` (La Mansa) were observed prior to the maintainer's decision to proceed with the five stations of Table F.4. No performance metric, downscaling transformation, or error evaluation has been computed for that station.
+
+### H.5 Implementation Clarifications of Section G.6
+1. The 30-day blocks of G.6.4 are contiguous calendar-day windows of the daily calibration series; within each bootstrap replica, correlations are computed on the days that are valid for the observation and for both modeled series being compared.
+2. Days belonging to calendar years that are not valid for the station (fewer than 330 joint valid days, per the station registry) are masked before the lag audit, consistently with the calibration loader and with Section G.5.
+3. For a candidate lag k, the modeled daily series at day t-k is paired with the observation at day t, which is identical to lag_days=k of the calibration loader.
+4. A prior implementation of the audit using contiguous blocks of 30 rows of the compressed paired series was executed before this clarification; it activated no lag sensitivity and its output was not archived.
