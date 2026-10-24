@@ -1462,7 +1462,8 @@ def record_validation_opening(
     config: Optional[Dict[str, Any]] = None,
     ledger_path: Path = DEFAULT_LEDGER_PATH,
 ) -> Dict[str, Any]:
-    """Append a cryptographically auditable record of validation data access.
+    """Append an append-only audit record (not tamper-evident) of validation
+    data access.
 
     Appends a JSON record with timestamp (ISO 8601 UTC), git commit hash,
     configuration, seed, purpose, station, and variable to the audit ledger.
