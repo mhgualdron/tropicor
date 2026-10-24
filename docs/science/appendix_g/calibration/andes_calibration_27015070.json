@@ -1,0 +1,136 @@
+{
+  "report_type": "andes_temperature_calibration",
+  "protocol_version": "1.4",
+  "git_commit": "2c1bef347be32cb6d707f07db2a2245ab2dee9d5",
+  "station_id": "27015070",
+  "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+  "calibration_block": [
+    1990,
+    2004
+  ],
+  "raw_bias": {
+    "tmax": -5.4003,
+    "tmin": -4.9443
+  },
+  "level1": {
+    "calibration_loss": 0.3063,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level2": {
+    "calibration_loss": 0.3072,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level3": {
+    "winner_config_id": 2,
+    "winner_grouping": "monthly",
+    "winner_n_quantiles": 100,
+    "winner_extrapolation": "constant",
+    "cv_loss": 0.2507,
+    "calibration_loss": 0.2304,
+    "crossings_before": 0,
+    "crossings_after": 0,
+    "n_extrapolated_days": 320,
+    "max_abs_extrapolation_correction": 7.0193,
+    "min_n_per_group": 365,
+    "cv_configurations": [
+      {
+        "config_id": 0,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.262,
+        "min_n_per_group": 365,
+        "n_extrapolated_days": 519,
+        "max_abs_extrap_corr": 6.7369,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.2698,
+        "min_n_per_group": 365,
+        "n_extrapolated_days": 519,
+        "max_abs_extrap_corr": 8.3936,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 2,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.2507,
+        "min_n_per_group": 365,
+        "n_extrapolated_days": 320,
+        "max_abs_extrap_corr": 7.0193,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 3,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.2525,
+        "min_n_per_group": 365,
+        "n_extrapolated_days": 320,
+        "max_abs_extrap_corr": 9.8506,
+        "crossings_before": 3,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 4,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.2673,
+        "min_n_per_group": 375,
+        "n_extrapolated_days": 502,
+        "max_abs_extrap_corr": 6.7945,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 5,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.2768,
+        "min_n_per_group": 375,
+        "n_extrapolated_days": 502,
+        "max_abs_extrap_corr": 9.6768,
+        "crossings_before": 4,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 6,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.2547,
+        "min_n_per_group": 375,
+        "n_extrapolated_days": 314,
+        "max_abs_extrap_corr": 7.2287,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 7,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.2562,
+        "min_n_per_group": 375,
+        "n_extrapolated_days": 314,
+        "max_abs_extrap_corr": 10.7198,
+        "crossings_before": 4,
+        "crossings_after": 0
+      }
+    ]
+  }
+}

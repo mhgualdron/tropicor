@@ -1,0 +1,136 @@
+{
+  "report_type": "andes_temperature_calibration",
+  "protocol_version": "1.4",
+  "git_commit": "2c1bef347be32cb6d707f07db2a2245ab2dee9d5",
+  "station_id": "52045010",
+  "station_name": "OBONUCO [52045010]",
+  "calibration_block": [
+    1990,
+    1999
+  ],
+  "raw_bias": {
+    "tmax": 1.1738,
+    "tmin": 0.2605
+  },
+  "level1": {
+    "calibration_loss": 0.6804,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level2": {
+    "calibration_loss": 0.8782,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level3": {
+    "winner_config_id": 7,
+    "winner_grouping": "moving_window",
+    "winner_n_quantiles": 100,
+    "winner_extrapolation": "linear",
+    "cv_loss": 0.1434,
+    "calibration_loss": 0.1558,
+    "crossings_before": 2,
+    "crossings_after": 0,
+    "n_extrapolated_days": 229,
+    "max_abs_extrapolation_correction": 9.5647,
+    "min_n_per_group": 248,
+    "cv_configurations": [
+      {
+        "config_id": 0,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.1708,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 392,
+        "max_abs_extrap_corr": 2.9786,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.1616,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 392,
+        "max_abs_extrap_corr": 11.1148,
+        "crossings_before": 10,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 2,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.1523,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 230,
+        "max_abs_extrap_corr": 2.9477,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 3,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.1468,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 230,
+        "max_abs_extrap_corr": 7.1964,
+        "crossings_before": 4,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 4,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.1642,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 367,
+        "max_abs_extrap_corr": 3.2407,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 5,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.1569,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 367,
+        "max_abs_extrap_corr": 5.5477,
+        "crossings_before": 1,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 6,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.1464,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 229,
+        "max_abs_extrap_corr": 3.0975,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 7,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.1434,
+        "min_n_per_group": 248,
+        "n_extrapolated_days": 229,
+        "max_abs_extrap_corr": 9.5647,
+        "crossings_before": 5,
+        "crossings_after": 0
+      }
+    ]
+  }
+}

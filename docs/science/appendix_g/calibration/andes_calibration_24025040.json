@@ -1,0 +1,136 @@
+{
+  "report_type": "andes_temperature_calibration",
+  "protocol_version": "1.4",
+  "git_commit": "2c1bef347be32cb6d707f07db2a2245ab2dee9d5",
+  "station_id": "24025040",
+  "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+  "calibration_block": [
+    1990,
+    2000
+  ],
+  "raw_bias": {
+    "tmax": -1.9657,
+    "tmin": 0.9075
+  },
+  "level1": {
+    "calibration_loss": 0.8946,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level2": {
+    "calibration_loss": 0.6212,
+    "crossings_before": 0,
+    "crossings_after": 0
+  },
+  "level3": {
+    "winner_config_id": 7,
+    "winner_grouping": "moving_window",
+    "winner_n_quantiles": 100,
+    "winner_extrapolation": "linear",
+    "cv_loss": 0.2281,
+    "calibration_loss": 0.2363,
+    "crossings_before": 0,
+    "crossings_after": 0,
+    "n_extrapolated_days": 250,
+    "max_abs_extrapolation_correction": 12.7622,
+    "min_n_per_group": 267,
+    "cv_configurations": [
+      {
+        "config_id": 0,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.2537,
+        "min_n_per_group": 249,
+        "n_extrapolated_days": 405,
+        "max_abs_extrap_corr": 3.1673,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.2438,
+        "min_n_per_group": 249,
+        "n_extrapolated_days": 405,
+        "max_abs_extrap_corr": 8.1001,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 2,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.2299,
+        "min_n_per_group": 249,
+        "n_extrapolated_days": 256,
+        "max_abs_extrap_corr": 3.5295,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 3,
+        "grouping": "monthly",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.2288,
+        "min_n_per_group": 249,
+        "n_extrapolated_days": 256,
+        "max_abs_extrap_corr": 10.3341,
+        "crossings_before": 1,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 4,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+        "cv_loss": 0.256,
+        "min_n_per_group": 267,
+        "n_extrapolated_days": 393,
+        "max_abs_extrap_corr": 3.2864,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 5,
+        "grouping": "moving_window",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+        "cv_loss": 0.2315,
+        "min_n_per_group": 267,
+        "n_extrapolated_days": 393,
+        "max_abs_extrap_corr": 6.3514,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 6,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "constant",
+        "cv_loss": 0.2419,
+        "min_n_per_group": 267,
+        "n_extrapolated_days": 250,
+        "max_abs_extrap_corr": 3.7829,
+        "crossings_before": 0,
+        "crossings_after": 0
+      },
+      {
+        "config_id": 7,
+        "grouping": "moving_window",
+        "n_quantiles": 100,
+        "extrapolation": "linear",
+        "cv_loss": 0.2281,
+        "min_n_per_group": 267,
+        "n_extrapolated_days": 250,
+        "max_abs_extrap_corr": 12.7622,
+        "crossings_before": 1,
+        "crossings_after": 0
+      }
+    ]
+  }
+}
