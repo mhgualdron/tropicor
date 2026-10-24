@@ -1,8 +1,8 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.6 (Appendix H: Andean Generalization Set Batch 1 Definition and Candidate Coverage Audit). Earlier: v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
-**Freeze Date (v1.6)**: 2026-10-23  
+**Latest Amendment**: Protocol v1.7 (Appendix I: Phase 3 Evaluator Specification for the Andean Batch 1 Temperature Opening). Earlier: v1.6 (Appendix H), v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Freeze Date (v1.7)**: 2026-10-23  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -996,3 +996,51 @@ It is formally disclosed that data coverage counts for station `11025010` (La Ma
 2. Days belonging to calendar years that are not valid for the station (fewer than 330 joint valid days, per the station registry) are masked before the lag audit, consistently with the calibration loader and with Section G.5.
 3. For a candidate lag k, the modeled daily series at day t-k is paired with the observation at day t, which is identical to lag_days=k of the calibration loader.
 4. A prior implementation of the audit using contiguous blocks of 30 rows of the compressed paired series was executed before this clarification; it activated no lag sensitivity and its output was not archived.
+
+---
+
+## Appendix I: Phase 3 Evaluator Specification for the Andean Batch 1 Temperature Opening (Protocol v1.7)
+
+### I.1 Scope and Status
+This appendix specifies the Phase 3 runner (the "evaluator") for daily temperature on the five stations of Batch 1 (Section H.1). It does not authorize Phase 3; authorization follows Section G.11 only. The validation partitions of the primary benchmark stations (`21205710`, `23215030`) and all precipitation validation partitions remain closed and require their own formal authorization. Under Section F.1, no result of this evaluator alters the status of the primary benchmark.
+
+### I.2 Evaluation Track
+Andean scorecards use the primary split only (calibration block, then validation block). The 5-year contiguous block track (Section 4.2) and the weaker-of-two concordance (Section 4.3) are not executed on the Andean set, consistently with Sections G.1 and G.10.1.
+
+### I.3 Pre-Opening Verification
+Before any ledger record is written for any station, the evaluator verifies for all five stations, and aborts without opening any station if any check fails:
+1. The working tree is clean and no git command fails (a placeholder commit value is never accepted).
+2. The annotated tag `phase3-authorization` exists and its target commit equals HEAD.
+3. The SHA-256 of the registry equals the value in Section F.4; the SHA-256 of the archived lag audit report and of each archived calibration report equals the value recorded in `docs/science/appendix_g/README.md` and fixed in the evaluator's committed configuration; and no station has an activated lag (Section G.6.4). If any lag were activated, the evaluator aborts, because lag sensitivity is not implemented in this version.
+4. The configuration fields stored in each calibration report equal the entry of `LEVEL3_TEMPERATURE_CONFIGS` for the stored identifier.
+5. Every observation file and every ERA5 file required for the validation block, including the ERA5 file of the year following the last validation year (boundary hours of 31 December), exists. Their SHA-256 values are computed (hashing does not read or compare any value).
+6. The ledger path is resolved from the repository root, never from the current working directory.
+
+### I.4 Fitting
+Levels 1, 2, the Level 3 winner read from the archived calibration report (no re-tuning), and Level 3 with constant extrapolation (same grouping and bin count as the winner) are fitted once on the full calibration block, with invalid calendar years excluded (Section F.3), using the calibration loader with `window_start_utc=5`, `lag_days=0`, `min_hours=24`. If the winner already uses constant extrapolation, Level 3 constant is reported with identical results and flagged `identical_to_winner`.
+
+### I.5 Opening Mechanics
+1. For each station, after fitting and before reading any validation observation, the evaluator calls `validate_validation_access(open_validation=True, ...)` with seed 42. The record `config` includes the evaluator commit, `run_kind` (`formal` or `reproduction`), the SHA-256 of the calibration report, the method list, and the bootstrap parameters.
+2. The validation observation loader requires that record and verifies that it is present in the ledger.
+3. A station with a prior ledger record cannot be opened formally. A reproduction requires `run_kind = reproduction` and HEAD equal to the commit of the earlier record, and its outputs are labeled as such (Section G.10.3). If a formal opening is interrupted before its outputs are written, the only permitted continuation is a labeled reproduction; that output is then the sole record and the report discloses the interruption.
+4. The five stations are processed in a single invocation, sequentially, without inspection of intermediate results and without changes to evaluation code between stations.
+
+### I.6 Validation Series Preparation
+Observations of validation-block years that are not in the registry `valid_years` are set to NaN before any metric or bootstrap (Section G.5.2). ERA5 daily series are built with the calibration aggregation (05:00–05:00 UTC, lag 0, `min_hours = 24`).
+
+### I.7 Metrics and Scorecards
+For each station and each of Level 0, Level 1, Level 2, Level 3 winner and Level 3 constant:
+1. The three decisive metrics, their 95% intervals (1,000 replicas, annual blocks, seed 42, `MIN_BOOTSTRAP_BLOCKS = 7`), the physical consistency gate on the final output, and the crossing diagnostic of Section 3.5. Level 0 is not modified by the crossing rule; its gate is evaluated on the raw series.
+2. The scorecard of Section 5.3 and the descriptive metrics of Section G.9.
+3. A descriptive count per level of stations satisfying Section 5.3 (Section G.3.3), with no global verdict.
+
+### I.8 Progression Diagnostics (Section 6.4)
+The chain is Level 0 to 1, 1 to 2, and 2 to 3 (winner). Level 3 constant is not part of the chain. $\Delta\text{Error} = |\text{Error}_{k-1}| - |\text{Error}_k|$ is computed with a paired annual block bootstrap in which every replica uses the same resampled years for both levels. The improvement family is $DTR$ bias, $\Delta P_5(T_{\min})$ and $\Delta P_{95}(T_{\max})$. The non-degradation check covers the three decisive metrics of Section 3.4. The intervals of all comparisons are published together. This analysis is diagnostic and designates no operational method (Section G.1).
+
+### I.9 Outputs
+One deterministic report per station (sorted keys, LF endings, no NaN; undefined values as null with an explicit flag) containing the ledger record, commit, tag target, library versions, SHA-256 of every input, the winner configuration, all scorecards, descriptive metrics, progression results, and crossing diagnostics. A dry-run mode executes Sections I.3 and I.4 on real calibration data; it writes no ledger record and reads no validation observation.
+
+### I.10 Disclosures
+1. The evaluator has been tested only on synthetic data prior to the opening.
+2. This specification was written after the calibration results of the five stations were known (including winner configurations) and before any validation observation was read; none of its provisions depends on a performance outcome.
+3. After the first formal opening, any change to code shared with the primary benchmark evaluation is classified as exploratory (Section G.10.4).
