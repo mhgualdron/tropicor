@@ -1,0 +1,265 @@
+{
+  "metadata": {
+    "protocol_section": "Appendix G.7",
+    "registry_path": "tropicor/data/andean_station_registry.json",
+    "registry_sha256": "3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b",
+    "standard_gravity": 9.80665
+  },
+  "stations": {
+    "24025040": {
+      "cds_request": {
+        "area": [
+          6.5,
+          -73.0,
+          6.5,
+          -73.0
+        ],
+        "data_format": "netcdf",
+        "dataset": "reanalysis-era5-single-levels",
+        "day": [
+          "01"
+        ],
+        "download_format": "unarchived",
+        "month": [
+          "01"
+        ],
+        "product_type": [
+          "reanalysis"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "variable": [
+          "geopotential",
+          "land_sea_mask"
+        ],
+        "year": [
+          "2020"
+        ]
+      },
+      "celda_exacta": true,
+      "delta_h_m": 118.47528399096541,
+      "dims": {
+        "latitude": 1,
+        "longitude": 1,
+        "valid_time": 1
+      },
+      "h_cne_m": 1673.0,
+      "h_era5_m": 1791.4752839909654,
+      "land_sea_mask": 1.0,
+      "lat_celda": 6.5,
+      "lat_registro": 6.47,
+      "lon_celda": -73.0,
+      "lon_registro": -72.96888889,
+      "nombre": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "sha256": "69df022eaaa3c8c56ed6901191d59da70659e7526d8866ed53e96bc27806648f",
+      "tamano_bytes": 34505,
+      "valid_time": "2020-01-01T00:00:00",
+      "z_m2_s2": 17568.37109375
+    },
+    "26135040": {
+      "cds_request": {
+        "area": [
+          4.75,
+          -75.75,
+          4.75,
+          -75.75
+        ],
+        "data_format": "netcdf",
+        "dataset": "reanalysis-era5-single-levels",
+        "day": [
+          "01"
+        ],
+        "download_format": "unarchived",
+        "month": [
+          "01"
+        ],
+        "product_type": [
+          "reanalysis"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "variable": [
+          "geopotential",
+          "land_sea_mask"
+        ],
+        "year": [
+          "2020"
+        ]
+      },
+      "celda_exacta": true,
+      "delta_h_m": 89.78672125547473,
+      "dims": {
+        "latitude": 1,
+        "longitude": 1,
+        "valid_time": 1
+      },
+      "h_cne_m": 1342.0,
+      "h_era5_m": 1431.7867212554747,
+      "land_sea_mask": 0.999947190284729,
+      "lat_celda": 4.75,
+      "lat_registro": 4.815861111,
+      "lon_celda": -75.75,
+      "lon_registro": -75.737222222,
+      "nombre": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "sha256": "a27d2e647004fa7ebb9f408bc0924242dbd5d216f7212dc4621e3f3c3a917830",
+      "tamano_bytes": 34505,
+      "valid_time": "2020-01-01T00:00:00",
+      "z_m2_s2": 14041.03125
+    },
+    "27015070": {
+      "cds_request": {
+        "area": [
+          6.25,
+          -75.5,
+          6.25,
+          -75.5
+        ],
+        "data_format": "netcdf",
+        "dataset": "reanalysis-era5-single-levels",
+        "day": [
+          "01"
+        ],
+        "download_format": "unarchived",
+        "month": [
+          "01"
+        ],
+        "product_type": [
+          "reanalysis"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "variable": [
+          "geopotential",
+          "land_sea_mask"
+        ],
+        "year": [
+          "2020"
+        ]
+      },
+      "celda_exacta": true,
+      "delta_h_m": 540.5624862975635,
+      "dims": {
+        "latitude": 1,
+        "longitude": 1,
+        "valid_time": 1
+      },
+      "h_cne_m": 1492.0,
+      "h_era5_m": 2032.5624862975635,
+      "land_sea_mask": 0.9999969005584717,
+      "lat_celda": 6.25,
+      "lat_registro": 6.2246389,
+      "lon_celda": -75.5,
+      "lon_registro": -75.5882,
+      "nombre": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "sha256": "683c56bb28b75b3fbe59ad01551dce974608718716fa5c6288d1fc216f616d36",
+      "tamano_bytes": 34505,
+      "valid_time": "2020-01-01T00:00:00",
+      "z_m2_s2": 19932.62890625
+    },
+    "37015020": {
+      "cds_request": {
+        "area": [
+          7.25,
+          -72.75,
+          7.25,
+          -72.75
+        ],
+        "data_format": "netcdf",
+        "dataset": "reanalysis-era5-single-levels",
+        "day": [
+          "01"
+        ],
+        "download_format": "unarchived",
+        "month": [
+          "01"
+        ],
+        "product_type": [
+          "reanalysis"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "variable": [
+          "geopotential",
+          "land_sea_mask"
+        ],
+        "year": [
+          "2020"
+        ]
+      },
+      "celda_exacta": true,
+      "delta_h_m": -336.11268947601866,
+      "dims": {
+        "latitude": 1,
+        "longitude": 1,
+        "valid_time": 1
+      },
+      "h_cne_m": 3214.0,
+      "h_era5_m": 2877.8873105239813,
+      "land_sea_mask": 1.0,
+      "lat_celda": 7.25,
+      "lat_registro": 7.186944444,
+      "lon_celda": -72.75,
+      "lon_registro": -72.86861111,
+      "nombre": "BERLIN [37015020]",
+      "sha256": "6865e0fbb112793fdf425deacf1ae8e48e40e7a0a14200e68be3d3c1ff57f9ea",
+      "tamano_bytes": 34505,
+      "valid_time": "2020-01-01T00:00:00",
+      "z_m2_s2": 28222.43359375
+    },
+    "52045010": {
+      "cds_request": {
+        "area": [
+          1.25,
+          -77.25,
+          1.25,
+          -77.25
+        ],
+        "data_format": "netcdf",
+        "dataset": "reanalysis-era5-single-levels",
+        "day": [
+          "01"
+        ],
+        "download_format": "unarchived",
+        "month": [
+          "01"
+        ],
+        "product_type": [
+          "reanalysis"
+        ],
+        "time": [
+          "00:00"
+        ],
+        "variable": [
+          "geopotential",
+          "land_sea_mask"
+        ],
+        "year": [
+          "2020"
+        ]
+      },
+      "celda_exacta": true,
+      "delta_h_m": -45.63728120713995,
+      "dims": {
+        "latitude": 1,
+        "longitude": 1,
+        "valid_time": 1
+      },
+      "h_cne_m": 2710.0,
+      "h_era5_m": 2664.36271879286,
+      "land_sea_mask": 0.998239278793335,
+      "lat_celda": 1.25,
+      "lat_registro": 1.198222222,
+      "lon_celda": -77.25,
+      "lon_registro": -77.30308333,
+      "nombre": "OBONUCO [52045010]",
+      "sha256": "e927d9cded36a22fcd3a4cab5aa0a1e0fd658198cbc1cd325140df0d6f4cf633",
+      "tamano_bytes": 34505,
+      "valid_time": "2020-01-01T00:00:00",
+      "z_m2_s2": 26128.47265625
+    }
+  }
+}

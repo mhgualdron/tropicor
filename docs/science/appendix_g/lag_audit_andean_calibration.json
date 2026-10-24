@@ -1,0 +1,602 @@
+{
+  "commit_hash": "dd2611cc4454d48a66de58908bc373aa6cf1e4ba",
+  "config": {
+    "audit_lags": [
+      -2,
+      -1,
+      0,
+      1,
+      2
+    ],
+    "block_size_days": 30,
+    "bootstrap_replicas": 1000,
+    "bootstrap_seed": 42,
+    "bootstrap_unit": "calendar_30d_moving_block",
+    "candidate_lags": [
+      -1,
+      1
+    ],
+    "invalid_years_masked": true,
+    "lag_convention": "model[t-k] paired with obs[t]",
+    "min_hours": 24,
+    "numpy_version": "2.5.3",
+    "pandas_version": "3.0.6",
+    "protocol_section": "Appendix G.6 / H.5",
+    "python_version": "3.12.7",
+    "window_start_utc": 5
+  },
+  "input_hashes": {
+    "24025040/TempMaxima_EscAgricolaMogotes.csv": "3a3846817c262d53e52d02122ea1026b6c506330ba2e1cee81fbc5ca1beb8c34",
+    "24025040/TempMinima_EscAgricolaMogotes.csv": "bca87d9efd96d600f79222e3c2163bd24b2aeeb34512b1c15ea74385ddb99707",
+    "24025040/era5_2m_temperature_1990.nc": "dd26e67b9dbd85340c173b9f753c2c792a24c516d67db892dbb33ef9ec7a3e67",
+    "24025040/era5_2m_temperature_1991.nc": "a53bf47c76121455436bdc54c117ffb964aa15ef6ef2604a99be68965d47b760",
+    "24025040/era5_2m_temperature_1992.nc": "e908ea0bf45a80abf4244d222394a497b1977faaec00f14a455b8d330fbf34fb",
+    "24025040/era5_2m_temperature_1993.nc": "a34e8b42b03620d2a03c0301e2d303ad312326d490fd4cf9443ec647a57864aa",
+    "24025040/era5_2m_temperature_1994.nc": "50bf519fb69afaf644f290d8da5e3b2f87d03cd5704ff70d8f14dfa0781e1eff",
+    "24025040/era5_2m_temperature_1995.nc": "e587b9911167580db6c208c8f4520b29cc47aee93334f6158132d988bf51fb63",
+    "24025040/era5_2m_temperature_1996.nc": "02feb4d3694bb634303165a116e15879c05db137cca96cffb5adf68778c1a6cb",
+    "24025040/era5_2m_temperature_1997.nc": "29781f001b0197532bdb8a67fa9151e631c41c088da20e879d440b1e1785ac22",
+    "24025040/era5_2m_temperature_1998.nc": "d5e6336e419de20063c7df906071787bce90f65a1dc64c2f68a7a930cf40a58d",
+    "24025040/era5_2m_temperature_1999.nc": "6b5739b0e8cdaf18e95e8c8b198b9f5ace5a3fa478e19b0ee793fcc4e5298b0c",
+    "24025040/era5_2m_temperature_2000.nc": "d8fabb72312df206030912a2036be3ab23f159fc37caa758362d631d8f9d4447",
+    "24025040/era5_2m_temperature_2001.nc": "105ca0eac22da52bc10829c62f583cc45fd416d8ed2175c49295590f93f48e16",
+    "26135040/TempMaxima_AeroMateca\u00f1a.csv": "35262f32965e37bf7fb32f4b977e9505f819f4ce409869f166d68e736586cedf",
+    "26135040/TempMinima_AeroMateca\u00f1a.csv": "0cd88ec6ea23c33dea6341d92953ddd1f5b0f5bd1cbd668e6059da7c1af84ef4",
+    "26135040/era5_2m_temperature_1990.nc": "142805f5a8d9e4d07443319d2bb7db0a8cea9a9b3e03bc23b177a23fe9b6e53a",
+    "26135040/era5_2m_temperature_1991.nc": "b38af293e615ebaa87d76060e2a6bd9daa882fb4398a4c0b0e4d0c1b5835ad53",
+    "26135040/era5_2m_temperature_1992.nc": "665e919a36c13a7e6cacf418ca1db1fbc2334fd764d1c9e6c3efecaa257ad209",
+    "26135040/era5_2m_temperature_1993.nc": "6ba719ef0b65967d418459be84214b38ad2011d5a740e4d51d253b3dada0e944",
+    "26135040/era5_2m_temperature_1994.nc": "73ee06683390a821f0078f134f1f207c1fec9ebc9a1e4bd0d3f0ff69289006a3",
+    "26135040/era5_2m_temperature_1995.nc": "1362b5bfb81283b9382e3c75494073cd2e23e0b657f6823ce63e805672b0d036",
+    "26135040/era5_2m_temperature_1996.nc": "b66f09d528142b922063212c37c83c3001f0c4df304aba00a98ffb2eb83203a1",
+    "26135040/era5_2m_temperature_1997.nc": "0c02cad4bd213a74cb65852f20adaaeb040e15f54aafb48007935df5ec3b23ff",
+    "26135040/era5_2m_temperature_1998.nc": "af5a837b85274103e27e118cae9afe8357c6242aa061da9dfbb9229744e0a7af",
+    "26135040/era5_2m_temperature_1999.nc": "71cb0123bcf8963a94cba5b2e250c4d845f1286a95bc16b65728c9365e113974",
+    "26135040/era5_2m_temperature_2000.nc": "8c6a354c7626dcbbdff725b58c462d63f792acaf37c70fdd4c02078c306954ce",
+    "26135040/era5_2m_temperature_2001.nc": "e40c1b6d46d7cd5213b6eab4ba9fdb1abcca3239379d68e355e84fde6ed0932b",
+    "26135040/era5_2m_temperature_2002.nc": "c6f4f087a7cb88a716ee41030be7239ce7bf580ba1d6f7432a4e80190a1cb4a8",
+    "26135040/era5_2m_temperature_2003.nc": "ec6c83cac1f12fccf0eebdf524591f6e51420481b5c4f98f7ae7b8434c836e49",
+    "26135040/era5_2m_temperature_2004.nc": "b8e7a701db9245cd79c95cded7471de7a1cc93985cf193111e56b3ac77b2f0aa",
+    "26135040/era5_2m_temperature_2005.nc": "aaf754b7a21af975c738a4cb5a1c2112b64437caa656482ea3ab570bfdbc79b5",
+    "26135040/era5_2m_temperature_2006.nc": "46cfdf19598c3ca109878aa973fb069d2461e9370d7c4a9540c99b382fbc887f",
+    "27015070/TempMaxima_AeroOlayaHerrera.csv": "cf46fb60faa663a634ed44afb32573075b45fe9c033bf7bc40a27cf8da05dc2c",
+    "27015070/TempMinima_AeroOlayaHerrera.csv": "3f0a70d9db425dfb4586267ac3604d4157642d59856dc01b78c9e948743c1d01",
+    "27015070/era5_2m_temperature_1990.nc": "a052bfd50a86ff9d112c2430db24d886cc2a60ae58e928a5b6d48fc26c6071af",
+    "27015070/era5_2m_temperature_1991.nc": "8d118b30f126d6e656706c7d3a16cad5547d2a9b90c92cb2ef321b46264193f0",
+    "27015070/era5_2m_temperature_1992.nc": "3523e167aefaa7e8b78cb86f0d39497bf613db5dc86b00ee7dfdc68496839846",
+    "27015070/era5_2m_temperature_1993.nc": "5bb58a756304d7c726804d65bc7ccd9ff1136de46b0953248b86ee63f5015b03",
+    "27015070/era5_2m_temperature_1994.nc": "a5a2cad202b3d23b7f28e89beb81e2a1e0758f78b0e340b842624d1d16247b02",
+    "27015070/era5_2m_temperature_1995.nc": "14c0c3b6a6a2ae437a01dfd2216989ac23dbea805cc153a9bc4113434c0f88bf",
+    "27015070/era5_2m_temperature_1996.nc": "e8352bdb8a71001a250542af7adcb98fc936711c8cacc807ea1471ce59ce529b",
+    "27015070/era5_2m_temperature_1997.nc": "4c7444b1deeae1032cf8d86bf5c9608edecfe00fbe6175f662ae87790ed6af24",
+    "27015070/era5_2m_temperature_1998.nc": "dea6820aeb590c4184adf1ad554812866077ea2360255f1c69d159783abdd8b6",
+    "27015070/era5_2m_temperature_1999.nc": "54750df982353f78a1d660894dd6f58973b92e336b8210a67955f0a2f2c38603",
+    "27015070/era5_2m_temperature_2000.nc": "2fefff68e2223acc1cd0fc65e954fad674544d9f31bf57aa7d1211aaf1322801",
+    "27015070/era5_2m_temperature_2001.nc": "891b9c9a9252f80e045f64e4ae8db81eab901bcca1cfe4ced43692f98f353f1b",
+    "27015070/era5_2m_temperature_2002.nc": "c86f1452c97901497d24bd544bb494fbd5d9681249eef21fc7818ffa5a4b4e74",
+    "27015070/era5_2m_temperature_2003.nc": "91e293d528735d1894c7ae2246af8cd467a036739d614e3c97ce76e53b56d7ab",
+    "27015070/era5_2m_temperature_2004.nc": "786ef37d976054fed8bdc41f43bba9f182509f5f01fdd3aea83e9e653cc88aa7",
+    "27015070/era5_2m_temperature_2005.nc": "1df3aa41b9ba19e0dd155a1523c3bc38c5f3efcd56846e118546a9421f93e6c2",
+    "37015020/TempMaxima_Berlin.csv": "7f97e54aa45f334c02c7c1a4f5255bc5f5b3bf44efd58324f085097a0eb2f76d",
+    "37015020/TempMinima_Berlin.csv": "1628255701b81417ba5eaeb287b06c5cf7befb7312215c83d3064897d2cf7d01",
+    "37015020/era5_2m_temperature_1991.nc": "bd2e5b406d324327e2bed5c952d4cf07d3e6b3e4e60d11a3a7b2a66601005cb1",
+    "37015020/era5_2m_temperature_1992.nc": "5e8c10ad8533cb2ac7a481d30d68dfe255ae450b51e7287cb0292d10fa95290c",
+    "37015020/era5_2m_temperature_1993.nc": "4eca01024a23d9041bbfc109378d58e31a801c3e15b6edf3b96ff26ffab19d62",
+    "37015020/era5_2m_temperature_1994.nc": "31fa78912e79e8e1811b7dce546df70303681f38b7fbef510de91ba82bf14e81",
+    "37015020/era5_2m_temperature_1995.nc": "227d49ba5d0bdf63d078124501c39ca7a38dee48bd51a70665596322e9a2ee84",
+    "37015020/era5_2m_temperature_1996.nc": "1c96f0a1b429d3326b9a05e165ebb0511d3e254b8220d1b31ff6ead6ca30b1a8",
+    "37015020/era5_2m_temperature_1997.nc": "1044b7724b28ec3a064d5f536ab739cc86eca4ddee43b39d9965c064bbc3b63d",
+    "37015020/era5_2m_temperature_1998.nc": "605b612601a9f2afe9fa65ecb1e32bf4607311771501430f39236d45a97055dc",
+    "37015020/era5_2m_temperature_1999.nc": "2995de237b462c74b60177c3560af232542acf031a9983341107174374f5a530",
+    "37015020/era5_2m_temperature_2000.nc": "3e013f3ef5b2749cb1c093a3cd8baa2ef43f622a8d2de62963f311c87e81ba35",
+    "37015020/era5_2m_temperature_2001.nc": "ebdd3dadb9653364399742d8413b60181331a8beb77a5236c2df7c95436efc1c",
+    "37015020/era5_2m_temperature_2002.nc": "70154bff3994bd1737ad60734dad1b9508b480f0c360c4be41b12a1a57d48ff0",
+    "37015020/era5_2m_temperature_2003.nc": "3f2a89efda7d2af76f992c2520496aeed964d3953a2332856772fe11c8f5a1ed",
+    "37015020/era5_2m_temperature_2004.nc": "a8c1de7de9cdb69aedbed7c3c334d49abdf737a3d2b36089c46176eb439a0bf1",
+    "37015020/era5_2m_temperature_2005.nc": "b62f4d7f1d8714824013278042e3b58217e0b47973bb8ce5757c0ed03e968124",
+    "37015020/era5_2m_temperature_2006.nc": "9d94001071ae9918d1ea3f0b5dca3d446bdab8eca109e3a0421707130f78532c",
+    "37015020/era5_2m_temperature_2007.nc": "8f5a7bdae5c855847db33fa349c0fb201e210f8f9bac2b417a93f02fc1afccc4",
+    "37015020/era5_2m_temperature_2008.nc": "3d30bc7078c6491c4888d8bb9ae1bb14c8d209ac28bc3f597b0b27351ee1ab6c",
+    "37015020/era5_2m_temperature_2009.nc": "9a82c01c6113f7caa209ebde01a7ae1ee656164548e5afee7de66f22973e7fed",
+    "37015020/era5_2m_temperature_2010.nc": "2c4377a8f1ce9040ff6924a739cdf812d852cc105a62450c4b620b6f9267163e",
+    "52045010/TempMaxima_Obonuco.csv": "a3f969cc3213ea0337a58ec4e99f74436514a912882f7521fc5f8ba404847799",
+    "52045010/TempMinima_Obonuco.csv": "24eb0f43f6d888ddf4646c07bc716dd84b09626e3d291b07fe552a2ed49e6861",
+    "52045010/era5_2m_temperature_1990.nc": "f7472f48f6d15d19bab2fdaa41b6b47045376f6473e73f346acdd44f086a03f7",
+    "52045010/era5_2m_temperature_1991.nc": "eb8b1b130f8b09ddd1c0ad1ceebcc2fc02fdf505590ae733eb5f652e9a9e0afe",
+    "52045010/era5_2m_temperature_1992.nc": "a85c0aabca908d40faa46e3078d9c78d5ad1f9bbdc38695a7a45980f5f0b4373",
+    "52045010/era5_2m_temperature_1993.nc": "683449cfcf3d9e2e1c2b67e5189b410702a2cc518b9b0e5ac446ca22032d5b72",
+    "52045010/era5_2m_temperature_1994.nc": "26729abcb085e4377a70cbc3655321e664bde34122d7a78b87dfa23730699c13",
+    "52045010/era5_2m_temperature_1995.nc": "3591c6437529fba953503553c4b67b044bfe3cad443f53453c6ce847cd269826",
+    "52045010/era5_2m_temperature_1996.nc": "5534b1be15d0d44e3a0c613992b8c55d8379f05b1c7a0ba2a30a2b161c6ac772",
+    "52045010/era5_2m_temperature_1997.nc": "b2d3f28fbd6dfbf3dd364281b62678353a1d0bce4713edd0f7efef84539abbea",
+    "52045010/era5_2m_temperature_1998.nc": "1f5e9cec65906caeb46c2ae9a561a8e25641578a4e18f10af6e3272f3baffbf9",
+    "52045010/era5_2m_temperature_1999.nc": "a238cf216acf76bb75f928d6f849f62eca17a30635d77789f2440d412e00653d",
+    "52045010/era5_2m_temperature_2000.nc": "25f88bf4d98e3b389a2557d5a863832ddeceed96e4b3acb26060ac0984f2be32",
+    "registry": "3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b"
+  },
+  "is_dirty": false,
+  "stations": {
+    "24025040": {
+      "activated_lags": [],
+      "cal_block": [
+        1990,
+        2000
+      ],
+      "lag_sensitivity_activated": false,
+      "n_cal_years": 10,
+      "station_code": "24025040",
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "tmax": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.248331,
+            "ci_95_upper": -0.186622,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3617,
+            "point_delta_r": -0.214368,
+            "r_0_paired": 0.630346,
+            "r_k_paired": 0.415978
+          },
+          "1": {
+            "ci_95_lower": -0.256552,
+            "ci_95_upper": -0.194634,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3617,
+            "point_delta_r": -0.222919,
+            "r_0_paired": 0.630334,
+            "r_k_paired": 0.407415
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.630324,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.415978,
+          "-2": 0.260513,
+          "0": 0.630324,
+          "1": 0.407415,
+          "2": 0.264426
+        },
+        "triggered_lags": []
+      },
+      "tmin": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.119618,
+            "ci_95_upper": -0.071993,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3626,
+            "point_delta_r": -0.096031,
+            "r_0_paired": 0.323284,
+            "r_k_paired": 0.227253
+          },
+          "1": {
+            "ci_95_lower": -0.05829,
+            "ci_95_upper": -0.009076,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3626,
+            "point_delta_r": -0.03301,
+            "r_0_paired": 0.322386,
+            "r_k_paired": 0.289376
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.323357,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.227253,
+          "-2": 0.179421,
+          "0": 0.323357,
+          "1": 0.289376,
+          "2": 0.262305
+        },
+        "triggered_lags": []
+      },
+      "valid_cal_years": [
+        1990,
+        1991,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000
+      ]
+    },
+    "26135040": {
+      "activated_lags": [],
+      "cal_block": [
+        1990,
+        2005
+      ],
+      "lag_sensitivity_activated": false,
+      "n_cal_years": 12,
+      "station_code": "26135040",
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "tmax": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.303597,
+            "ci_95_upper": -0.244053,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 4347,
+            "point_delta_r": -0.273999,
+            "r_0_paired": 0.659959,
+            "r_k_paired": 0.38596
+          },
+          "1": {
+            "ci_95_lower": -0.338474,
+            "ci_95_upper": -0.277077,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 4347,
+            "point_delta_r": -0.307508,
+            "r_0_paired": 0.659984,
+            "r_k_paired": 0.352476
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.659973,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.38596,
+          "-2": 0.246577,
+          "0": 0.659973,
+          "1": 0.352476,
+          "2": 0.265567
+        },
+        "triggered_lags": []
+      },
+      "tmin": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.037421,
+            "ci_95_upper": 0.005473,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 4308,
+            "point_delta_r": -0.016675,
+            "r_0_paired": 0.292841,
+            "r_k_paired": 0.276166
+          },
+          "1": {
+            "ci_95_lower": -0.117351,
+            "ci_95_upper": -0.072667,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 4308,
+            "point_delta_r": -0.093801,
+            "r_0_paired": 0.292572,
+            "r_k_paired": 0.198771
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.292644,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.276166,
+          "-2": 0.244105,
+          "0": 0.292644,
+          "1": 0.198771,
+          "2": 0.162608
+        },
+        "triggered_lags": []
+      },
+      "valid_cal_years": [
+        1990,
+        1991,
+        1992,
+        1994,
+        1997,
+        1998,
+        1999,
+        2000,
+        2002,
+        2003,
+        2004,
+        2005
+      ]
+    },
+    "27015070": {
+      "activated_lags": [],
+      "cal_block": [
+        1990,
+        2004
+      ],
+      "lag_sensitivity_activated": false,
+      "n_cal_years": 14,
+      "station_code": "27015070",
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "tmax": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.282467,
+            "ci_95_upper": -0.233229,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 5064,
+            "point_delta_r": -0.255089,
+            "r_0_paired": 0.711535,
+            "r_k_paired": 0.456446
+          },
+          "1": {
+            "ci_95_lower": -0.313776,
+            "ci_95_upper": -0.25762,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 5064,
+            "point_delta_r": -0.283568,
+            "r_0_paired": 0.71172,
+            "r_k_paired": 0.428152
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.711478,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.456446,
+          "-2": 0.293082,
+          "0": 0.711478,
+          "1": 0.428152,
+          "2": 0.308396
+        },
+        "triggered_lags": []
+      },
+      "tmin": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.053488,
+            "ci_95_upper": -0.006995,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 5067,
+            "point_delta_r": -0.02917,
+            "r_0_paired": 0.261154,
+            "r_k_paired": 0.231984
+          },
+          "1": {
+            "ci_95_lower": -0.107485,
+            "ci_95_upper": -0.060429,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 5067,
+            "point_delta_r": -0.085685,
+            "r_0_paired": 0.260957,
+            "r_k_paired": 0.175272
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.261191,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.231984,
+          "-2": 0.222656,
+          "0": 0.261191,
+          "1": 0.175272,
+          "2": 0.158164
+        },
+        "triggered_lags": []
+      },
+      "valid_cal_years": [
+        1990,
+        1991,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004
+      ]
+    },
+    "37015020": {
+      "activated_lags": [],
+      "cal_block": [
+        1991,
+        2009
+      ],
+      "lag_sensitivity_activated": false,
+      "n_cal_years": 11,
+      "station_code": "37015020",
+      "station_name": "BERLIN [37015020]",
+      "tmax": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.180674,
+            "ci_95_upper": -0.122841,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3924,
+            "point_delta_r": -0.149862,
+            "r_0_paired": 0.496102,
+            "r_k_paired": 0.34624
+          },
+          "1": {
+            "ci_95_lower": -0.115737,
+            "ci_95_upper": -0.066572,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3924,
+            "point_delta_r": -0.091375,
+            "r_0_paired": 0.496007,
+            "r_k_paired": 0.404632
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.495901,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.34624,
+          "-2": 0.287094,
+          "0": 0.495901,
+          "1": 0.404632,
+          "2": 0.329427
+        },
+        "triggered_lags": []
+      },
+      "tmin": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.09756,
+            "ci_95_upper": -0.058034,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3867,
+            "point_delta_r": -0.075607,
+            "r_0_paired": 0.559131,
+            "r_k_paired": 0.483524
+          },
+          "1": {
+            "ci_95_lower": -0.081592,
+            "ci_95_upper": -0.045674,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3867,
+            "point_delta_r": -0.063516,
+            "r_0_paired": 0.559596,
+            "r_k_paired": 0.49608
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.559514,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.483524,
+          "-2": 0.415733,
+          "0": 0.559514,
+          "1": 0.49608,
+          "2": 0.418334
+        },
+        "triggered_lags": []
+      },
+      "valid_cal_years": [
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        2005,
+        2007,
+        2008,
+        2009
+      ]
+    },
+    "52045010": {
+      "activated_lags": [],
+      "cal_block": [
+        1990,
+        1999
+      ],
+      "lag_sensitivity_activated": false,
+      "n_cal_years": 10,
+      "station_code": "52045010",
+      "station_name": "OBONUCO [52045010]",
+      "tmax": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.265335,
+            "ci_95_upper": -0.201873,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3559,
+            "point_delta_r": -0.233687,
+            "r_0_paired": 0.505279,
+            "r_k_paired": 0.271592
+          },
+          "1": {
+            "ci_95_lower": -0.228175,
+            "ci_95_upper": -0.166769,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3559,
+            "point_delta_r": -0.193296,
+            "r_0_paired": 0.505028,
+            "r_k_paired": 0.311732
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.505283,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.271592,
+          "-2": 0.167426,
+          "0": 0.505283,
+          "1": 0.311732,
+          "2": 0.229977
+        },
+        "triggered_lags": []
+      },
+      "tmin": {
+        "candidate_lags": {
+          "-1": {
+            "ci_95_lower": -0.22348,
+            "ci_95_upper": -0.163844,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3611,
+            "point_delta_r": -0.190844,
+            "r_0_paired": 0.547671,
+            "r_k_paired": 0.356827
+          },
+          "1": {
+            "ci_95_lower": -0.153641,
+            "ci_95_upper": -0.098721,
+            "excludes_zero_in_favor_of_k": false,
+            "n_discarded_replicas": 0,
+            "n_paired_days": 3611,
+            "point_delta_r": -0.125607,
+            "r_0_paired": 0.547602,
+            "r_k_paired": 0.421995
+          }
+        },
+        "extrema_timing": {
+          "max_r": 0.547641,
+          "optimal_lag": 0
+        },
+        "lag_correlations": {
+          "-1": 0.356827,
+          "-2": 0.272157,
+          "0": 0.547641,
+          "1": 0.421995,
+          "2": 0.278729
+        },
+        "triggered_lags": []
+      },
+      "valid_cal_years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999
+      ]
+    }
+  }
+}
