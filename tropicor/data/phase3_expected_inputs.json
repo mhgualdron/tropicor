@@ -1,0 +1,22 @@
+{
+  "archived_paths": {
+    "calibration": {
+      "24025040": "docs/science/appendix_g/calibration/andes_calibration_24025040.json",
+      "26135040": "docs/science/appendix_g/calibration/andes_calibration_26135040.json",
+      "27015070": "docs/science/appendix_g/calibration/andes_calibration_27015070.json",
+      "37015020": "docs/science/appendix_g/calibration/andes_calibration_37015020.json",
+      "52045010": "docs/science/appendix_g/calibration/andes_calibration_52045010.json"
+    },
+    "lag_audit": "docs/science/appendix_g/lag_audit_andean_calibration.json",
+    "registry": "tropicor/data/andean_station_registry.json"
+  },
+  "calibration": {
+    "24025040": "2e645c5bb8ef688b276078dd3f9778061acd5403b8e4100a579963e5967c0432",
+    "26135040": "fb88608602b7e483ff47cb8916a1918696e3ebb583e1d071e8683781651464bc",
+    "27015070": "6488c9baec9e14ea8c8cc23a986520b95afff26ddc8082ede1444838c6e006b7",
+    "37015020": "60c44d429adfda297e712d741fd3e8973455b1aa1c2e403b3bd9d5197750e296",
+    "52045010": "f4950b595cf87ea2620709f45633552ea998055cb3d625f08a6875e6ea11a37b"
+  },
+  "lag_audit": "5134901fc850b4ad60079d9dd9faaab7b49370e3e868b2c6a0e54777a34a662b",
+  "registry": "3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b"
+}
