@@ -1,0 +1,219 @@
+{
+  "disclosure_csv_parsing": "Observation CSV files contain both calibration and validation blocks in a single file; the frozen calibration loader and _read_obs_block parse the entire file and slice by block prior to any use. No validation values are used prior to ledger recording.",
+  "evaluator_commit": "9b2dcf24ddb20da8ad2c8af0b716d67966cbf015",
+  "governance_disclosure": "No global pass/fail verdict, composite acceptance threshold, or synthetic transferability claim is applied to the Andean generalization set as a whole (Protocol Section G.3 / I.7.3).",
+  "identical_to_winner": {
+    "24025040": false,
+    "26135040": true,
+    "27015070": true,
+    "37015020": false,
+    "52045010": false
+  },
+  "independence_note": "Level 3 Constant extrapolation is identical to the winning Level 3 configuration for stations whose winner uses constant extrapolation; for those stations, Level 3 Constant does not constitute an independent method.",
+  "protocol_version": "1.7",
+  "report_type": "Phase 3 Andean Temperature Summary",
+  "run_kind": "formal",
+  "station_ids": [
+    "24025040",
+    "26135040",
+    "27015070",
+    "37015020",
+    "52045010"
+  ],
+  "station_summaries": {
+    "24025040": {
+      "identical_to_winner": false,
+      "outcomes": {
+        "level0": "GlobalOutcome.FALSIFIED",
+        "level1": "GlobalOutcome.NOT_ESTABLISHED",
+        "level2": "GlobalOutcome.FALSIFIED",
+        "level3_constant": "GlobalOutcome.NOT_ESTABLISHED",
+        "level3_winner": "GlobalOutcome.NOT_ESTABLISHED"
+      },
+      "promotions": {
+        "0_to_1": true,
+        "1_to_2": true,
+        "2_to_3": false
+      },
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "valid_paired_days": {
+        "tmax": 3633,
+        "tmin": 3602
+      },
+      "valid_years_used": [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2010,
+        2019,
+        2020
+      ],
+      "validation_block": [
+        2001,
+        2020
+      ]
+    },
+    "26135040": {
+      "identical_to_winner": true,
+      "outcomes": {
+        "level0": "GlobalOutcome.FALSIFIED",
+        "level1": "GlobalOutcome.NOT_ESTABLISHED",
+        "level2": "GlobalOutcome.NOT_ESTABLISHED",
+        "level3_constant": "GlobalOutcome.NOT_ESTABLISHED",
+        "level3_winner": "GlobalOutcome.NOT_ESTABLISHED"
+      },
+      "promotions": {
+        "0_to_1": true,
+        "1_to_2": true,
+        "2_to_3": false
+      },
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "valid_paired_days": {
+        "tmax": 4379,
+        "tmin": 4380
+      },
+      "valid_years_used": [
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017
+      ],
+      "validation_block": [
+        2006,
+        2017
+      ]
+    },
+    "27015070": {
+      "identical_to_winner": true,
+      "outcomes": {
+        "level0": "GlobalOutcome.FALSIFIED",
+        "level1": "GlobalOutcome.FALSIFIED",
+        "level2": "GlobalOutcome.FALSIFIED",
+        "level3_constant": "GlobalOutcome.FALSIFIED",
+        "level3_winner": "GlobalOutcome.FALSIFIED"
+      },
+      "promotions": {
+        "0_to_1": true,
+        "1_to_2": true,
+        "2_to_3": false
+      },
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "valid_paired_days": {
+        "tmax": 5104,
+        "tmin": 5098
+      },
+      "valid_years_used": [
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+      ],
+      "validation_block": [
+        2005,
+        2019
+      ]
+    },
+    "37015020": {
+      "identical_to_winner": false,
+      "outcomes": {
+        "level0": "GlobalOutcome.FALSIFIED",
+        "level1": "GlobalOutcome.FALSIFIED",
+        "level2": "GlobalOutcome.FALSIFIED",
+        "level3_constant": "GlobalOutcome.FALSIFIED",
+        "level3_winner": "GlobalOutcome.FALSIFIED"
+      },
+      "promotions": {
+        "0_to_1": true,
+        "1_to_2": true,
+        "2_to_3": true
+      },
+      "station_name": "BERLIN [37015020]",
+      "valid_paired_days": {
+        "tmax": 3624,
+        "tmin": 3540
+      },
+      "valid_years_used": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2018,
+        2019,
+        2020
+      ],
+      "validation_block": [
+        2010,
+        2020
+      ]
+    },
+    "52045010": {
+      "identical_to_winner": false,
+      "outcomes": {
+        "level0": "GlobalOutcome.FALSIFIED",
+        "level1": "GlobalOutcome.FALSIFIED",
+        "level2": "GlobalOutcome.FALSIFIED",
+        "level3_constant": "GlobalOutcome.FALSIFIED",
+        "level3_winner": "GlobalOutcome.FALSIFIED"
+      },
+      "promotions": {
+        "0_to_1": true,
+        "1_to_2": false,
+        "2_to_3": true
+      },
+      "station_name": "OBONUCO [52045010]",
+      "valid_paired_days": {
+        "tmax": 3516,
+        "tmin": 3547
+      },
+      "valid_years_used": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2008,
+        2009,
+        2011,
+        2014,
+        2020
+      ],
+      "validation_block": [
+        2000,
+        2020
+      ]
+    }
+  },
+  "success_counts_by_level": {
+    "level0": 0,
+    "level1": 0,
+    "level2": 0,
+    "level3_constant": 0,
+    "level3_winner": 0
+  },
+  "tag_target": "9b2dcf24ddb20da8ad2c8af0b716d67966cbf015"
+}
