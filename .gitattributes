@@ -2,3 +2,7 @@ docs/science/appendix_f/*.json -text
 tropicor/data/andean_station_registry.json -text
 docs/science/appendix_g/calibration/*.json text eol=crlf
 docs/science/appendix_g/phase3_andes/validation_openings.jsonl text eol=crlf
+docs/science/appendix_g/lag_audit_andean_calibration.json text eol=lf
+docs/science/appendix_g/statics_g7.json text eol=lf
+docs/science/appendix_g/phase3_andes/phase3_summary.json text eol=lf
+docs/science/appendix_g/phase3_andes/phase3_scorecard_*.json text eol=lf

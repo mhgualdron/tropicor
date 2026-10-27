@@ -54,11 +54,13 @@ The SHA-256 values of the five calibration reports in this README (`calibration/
 
 The repository stores these files with LF in the index and `.gitattributes` (`eol=crlf`) restores CRLF at checkout on every platform.
 
-The evaluator hashes raw bytes without normalising line endings (`hashlib.sha256(path.read_bytes())`), so checking out these files with CRLF line endings is required for exact bitwise verification.
+The evaluator (`compute_sha256` in `tropicor/core/phase3_evaluator.py`) reads each file in binary chunks and hashes the raw bytes without normalising line endings, so a checkout must reproduce the exact bytes for the hashes to match.
+
+The hashes of all other files in the table above (lag audit, `statics_g7.json`, the Phase 3 summary and the five scorecards) were computed on files with LF line endings. `.gitattributes` (`eol=lf`) enforces LF for them at checkout on every platform, including Windows with `core.autocrlf=true`. The ERA5 static NetCDF files are binary and unaffected.
 
 If `phase3_andes/validation_openings.jsonl` is checked out or inspected with LF line endings, its LF-normalised SHA-256 is `2BA62132E4218A68C6C05AB7B07114874B2DF106269404733F5BAD220A50CA57`.
 
-If a copy was obtained with LF endings, the following portable verification snippet in Python reads a file in binary mode, replaces `b"\r\n"` by `b"\n"`, then `b"\n"` by `b"\r\n"`, and prints the SHA-256:
+If a copy was obtained with LF endings, the following portable verification snippet in Python reads a file in binary mode, replaces `b"\r\n"` by `b"\n"`, then `b"\n"` by `b"\r\n"`, and prints the SHA-256. The snippet applies only to files whose reference hash is CRLF-based (the calibration reports and the ledger):
 
 ```python
 import hashlib
