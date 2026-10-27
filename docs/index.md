@@ -64,7 +64,7 @@ If you use TROPICOR in your research, please cite:
 @software{hernandez_gualdron_tropicor_2026,
   author = {Hernández Gualdrón, Mateo},
   title = {TROPICOR: Tropical Correction and Orographic Resolution},
-  version = {0.1.4},
+  version = {0.1.5},
   year = {2026},
   doi = {10.5281/zenodo.23219418},
   url = {https://doi.org/10.5281/zenodo.23219418}

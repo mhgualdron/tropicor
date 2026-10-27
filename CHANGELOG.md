@@ -5,6 +5,43 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2026-10-26
+
+### Added
+- **Statistical Bias Correction Engine** (`tropicor.core.bias`):
+  - Added Empirical Quantile Mapping (EQM) and Linear Scaling correction tailored for monthly and multi-annual climate series in complex tropical terrain (`EmpiricalQuantileMapping`, `LinearScalingCorrection`, `linear_scale_series`, `quantile_map_series`).
+- **Pre-Specified Evaluation Protocol Verification Engine** (`tropicor.core.protocol`):
+  - Added verification engine implementing criteria pre-specified in `docs/science/evaluation-protocol.md`: paired masking, universal crossing rule, decisive and descriptive hydroclimatic metrics, annual block bootstrap uncertainty, three-tier state mapping, cross-validation partitioners, and validation access audit guard.
+- **Station Selection & Partitioning Engine** (`tropicor.core.station_selection`):
+  - Added `compute_optimal_partition()` for partitioning candidate station records into non-overlapping calibration and validation blocks with tie-breaking rules.
+- **Andean Station Registry** (`tropicor.core.andean_registry`):
+  - Added data-driven Andean station registry with `tropicor/data/andean_station_registry.json` providing validated metadata, coordinates, and partition ranges with strict block separation.
+- **Phase 3 Evaluator** (`tropicor.core.phase3_evaluator`):
+  - Added Phase 3 evaluation engine with `tropicor/data/phase3_expected_inputs.json` for Andean temperature validation openings under Protocol v1.7, enforcing pre-opening verification of repository state, input hashes, single opening via audit ledger, and deterministic scorecard generation.
+- **Daily Temperature Downscaling Hierarchy** (`tropicor.downscale.temperature`):
+  - Added daily temperature downscaling hierarchy (Levels 1 to 3: Level 1 monthly additive bias correction, Level 2 mean state additive + DTR multiplicative scaling, Level 3 empirical quantile mapping with universal crossing rule).
+  - Added `load_andean_calibration()` utility for loading frozen Andean calibration configurations and tuning parameters.
+- **Daily Precipitation Downscaling Hierarchy** (`tropicor.downscale.precipitation`):
+  - Added daily precipitation downscaling hierarchy (Levels 1 to 3, calibration-only: Level 1 Linear Scaling, Level 2 Threshold Matching & Scaling, Level 3 wet-day EQM with nested cross-validation hyperparameter tuning).
+
+### Changed
+- `tropicor.downscale.orography`: added `apply_orographic_correction_daily()` for lapse-rate vertical adjustments on daily temperature time series.
+- `tropicor.io.era5`: added `ERA5DailyTemperatureAdapter`, `read_era5_daily_temperature()`, and `aggregate_hourly_to_daily_temperature()` for daily temperature extraction and hourly aggregation.
+- `tropicor.io.ideam`: added `DhimeDailyTemperatureAdapter` and `read_dhime_daily_temperature()` for parsing and normalizing daily maximum and minimum temperature observations into CF-compliant datasets.
+- `tropicor.io.stations`: added documentation clarification comment regarding Aguachica station metadata.
+- `tropicor.core`: extended with bias correction, evaluation protocol, Andean registry, and Phase 3 evaluator exports.
+- `tropicor.downscale`: extended with temperature downscaling, precipitation downscaling, and calibration loader exports.
+- `tropicor.io`: extended with daily temperature adapter exports for IDEAM and ERA5.
+
+### Documentation
+- Evaluation protocol versions v1.0 to v1.7 and technical appendices in `docs/science/evaluation-protocol.md`.
+- Appendix G pre-validation archive in `docs/science/appendix_g/README.md`.
+- Archived Phase 3 reports, scorecards, and summary (commit 9450057).
+
+### Notes
+- Andean Phase 3 results are anchored to evaluator commit 9b2dcf24 and archived at commit 9450057. Relative to commit 9b2dcf24, this release changes tropicor/ only in the version string.
+- Archived Phase 3 inputs are now checked out with CRLF line endings on every platform (.gitattributes), which is the convention their frozen SHA-256 values were computed with.
+
 ## [0.1.4] - 2026-10-11
 
 ### Added
