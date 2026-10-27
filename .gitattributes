@@ -1,2 +1,4 @@
 docs/science/appendix_f/*.json -text
 tropicor/data/andean_station_registry.json -text
+docs/science/appendix_g/calibration/*.json text eol=crlf
+docs/science/appendix_g/phase3_andes/validation_openings.jsonl text eol=crlf
