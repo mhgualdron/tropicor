@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Notes
 - Andean Phase 3 results are anchored to evaluator commit 9b2dcf24 and archived at commit 9450057. Relative to commit 9b2dcf24, this release changes tropicor/ only in the version string.
-- Archived Phase 3 inputs are now checked out with CRLF line endings on every platform (.gitattributes), which is the convention their frozen SHA-256 values were computed with.
+- Archived Phase 3 files are now checked out byte-stable on every platform (`.gitattributes`): the five calibration reports and the validation opening ledger with CRLF line endings; the lag audit, the ERA5 statics summary, the Phase 3 scorecards and summary with LF. These are the conventions their frozen SHA-256 values were computed with.
 
 ## [0.1.4] - 2026-10-11
 
