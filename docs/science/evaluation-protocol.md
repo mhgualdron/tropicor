@@ -1,8 +1,8 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.7 (Appendix I: Phase 3 Evaluator Specification for the Andean Batch 1 Temperature Opening). Earlier: v1.6 (Appendix H), v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
-**Freeze Date (v1.7)**: 2026-10-23  
+**Latest Amendment**: Protocol v1.8 (Appendix J: Phase 3 Evaluator Specification for the Primary Benchmark Temperature Opening). Earlier: v1.7 (Appendix I), v1.6 (Appendix H), v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Freeze Date (v1.8)**: 2026-10-28  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -1044,3 +1044,82 @@ One deterministic report per station (sorted keys, LF endings, no NaN; undefined
 1. The evaluator has been tested only on synthetic data prior to the opening.
 2. This specification was written after the calibration results of the five stations were known (including winner configurations) and before any validation observation was read; none of its provisions depends on a performance outcome.
 3. After the first formal opening, any change to code shared with the primary benchmark evaluation is classified as exploratory (Section G.10.4).
+
+---
+
+## Appendix J: Phase 3 Evaluator Specification for the Primary Benchmark Temperature Opening (Protocol v1.8)
+
+### J.1 Scope and Status
+This appendix specifies the Phase 3 evaluator for daily temperature ($T_{\max}$, $T_{\min}$) on the two primary benchmark stations, Jardín Botánico (`21205710`) and Aguas Claras (`23215030`). It introduces no new decision rule: metrics, thresholds, outcome mapping, progression and operational designation are those of Sections 3.4, 3.5, 4.2, 4.3, 5.1–5.4 and 6.4. It only fixes execution details that the main protocol leaves open. Precipitation validation partitions remain closed and require their own appendix. This appendix does not authorize any opening; authorization requires the annotated tag `phase3-benchmark-authorization` (Section J.10) and written confirmation by the author.
+
+### J.2 Station Constants
+The evaluator uses the audited values of Section 2.1 as fixed constants and does not read station metadata from `StationCatalog`:
+
+| Station | Latitude | Longitude | Elevation (m) | ERA5 cell | $z_{\text{era5}}$ (m) | $\Delta z$ (m) |
+|---|---|---|---|---|---|---|
+| `21205710` | 4.667867 | −74.101034 | 2552.0 | 4.75° N, 74.00° W | 2753.4 | −201.4 |
+| `23215030` | 8.228889 | −73.602778 | 133.8 | 8.25° N, 73.50° W | 762.4 | −628.6 |
+
+Before opening, the evaluator recomputes the nearest cell and $z_{\text{era5}} = z / 9.80665$ from the ERA5 static file and aborts if the cell differs or $|z_{\text{era5}} - \text{value above}| > 0.1$ m.
+
+### J.3 Observational Data Handling
+1. **Non-intervention.** Consistent with Section E.4.3, no observation is edited, deleted or filtered on quality grounds. The only masking is the paired missingness mask of Section 2.4 and the plausibility check of Section E.6.1.
+2. **Approval level.** Aguas Claras temperature is 100 % `Preliminar` in both partitions (Sections 2.1 and E.4.1). Jardín Botánico validation contains 867 ($T_{\max}$) and 879 ($T_{\min}$) `Preliminar` records. All records are used in the primary evaluation.
+3. **Diagnostic screening (reported, never applied).** For each station, variable and partition the evaluator reports the number of days: outside the screening limits of Section E.4.2; with observed $T_{\max} < T_{\min}$; belonging to runs of ≥ 7 consecutive identical values; and with $|x - \mu_m| > 6\sigma_m$, where $\mu_m$, $\sigma_m$ are calendar-month statistics of the calibration partition. The last count is expected to be inflated in validation by climate warming relative to calibration and is not evidence of error.
+4. **Secondary analysis (pre-specified, non-decisive).** The Jardín Botánico scorecards are recomputed using only `Definitivo` validation records. They are reported next to the primary scorecards and cannot change any outcome.
+
+### J.4 Archived Calibration Reports
+1. Before the tag of Section J.10, one deterministic calibration report per station is generated from calibration data only (loader parameters of Section E.6.10) and committed under `docs/science/appendix_j/calibration/`, with its SHA-256 recorded in `docs/science/appendix_j/README.md`.
+2. The report must reproduce the Level 3 winners declared in Section E.7: configuration 7 (moving window, 100 bins, linear) for `21205710` and configuration 6 (moving window, 100 bins, constant) for `23215030`. If either winner differs, the procedure stops and no tag is created.
+3. Because the Aguas Claras winner already uses constant extrapolation, its Level 3 constant result is reported as identical and flagged `identical_to_winner` (Section I.4).
+
+### J.5 Lag Audit (Section 8)
+1. The audit of Section 8 is executed on the validation partitions of both stations (`21205710`: 2005–2020; `23215030`: 2001–2011) before any method is evaluated. Section 8 names 2005–2020; extending it to the Aguas Claras validation window is a conservative clarification.
+2. Output is restricted to Section 8.2: lag correlations for lags −2 to +2 days, cross-correlation curves and extrema timing. No bias, error or dispersion statistic is computed.
+3. Criterion: Section 8.3, with the paired 30-day block bootstrap of Section G.6.4 (1,000 replicas, seed 42).
+4. **Ledger.** The audit reads validation observations, so it is a separate, pre-declared access: one ledger record per station with `purpose = "lag_audit"`, written before reading. The single-opening principle of Section G.10.1 applies to the method evaluation (J.10); the audit record does not count as that opening and authorizes no metric other than those of item 2. It requires written confirmation by the author before execution.
+5. If the criterion of Section 8.3 is met for either station, the procedure stops and the protocol is amended before any evaluation.
+
+### J.6 Evaluation Tracks
+1. **Primary split:** calibration and validation partitions of Section 2.2.
+2. **5-year block CV (Section 4.2).** Blocks per station, on the full temperature record:
+   - `21205710` (1990–2020): 1990–94, 1995–99, 2000–04, 2005–09, 2010–14, 2015–20.
+   - `23215030` (1990–2011): 1990–94, 1995–99, 2000–04, 2005–11.
+
+   Hyperparameters stay fixed at the Section E.7 winner; only parameters are refitted in each fold. The track outcome is computed on the concatenated out-of-sample predictions of all folds, with the annual block bootstrap of Section 5.1 (as Section D.15 does for the tuning loss). A fold whose training set raises a safeguard of Section E.6.4 aborts the station, which is reported as such.
+3. **Concordance:** Section 4.3. The global outcome is the weaker of the two tracks.
+4. Both tracks read validation-partition years and are executed within the single evaluation opening of Section J.10.
+
+### J.7 Valid Years and Minimum Sample
+1. A calendar year is valid if it contains at least one paired day with all four values valid (Sections D.16 and E.6.9).
+2. A track is computed only if its evaluation series contains at least `MIN_BOOTSTRAP_BLOCKS = 7` valid years. Otherwise the station–variable–track is reported as **Not Established (insufficient sample)**; under Section 5.4 no level can then reach Global Success at that station.
+
+### J.8 Levels, Metrics and Outcomes
+Levels 0, 1, 2, Level 3 winner and Level 3 constant (Sections 6.2 and E.7). For each: decisive metrics with 95 % intervals (Section 3.4; 1,000 replicas, annual blocks, seed 42), physical consistency gate and crossing diagnostics (Section 3.5), three-tier outcomes (Section 5.2), state mapping (Section 5.3), concordance (Section 4.3), progression diagnostics with paired bootstrap (Section 6.4), and operational designation across both stations (Section 5.4).
+
+### J.9 Elevation Adjustment (Descriptive Diagnostic)
+1. Section 6.2 defines the elevation adjustment $-\Gamma\Delta z$ as optional preprocessing, not as a tier. The evaluator reports, as a descriptive diagnostic only, Level 0-E: $T_{\text{E}} = T_{\text{raw}} - \Gamma\Delta z$ with $\Gamma = 6.5\,\text{K km}^{-1}$ fixed a priori and $\Delta z$ from Section J.2 (+1.31 K at `21205710`, +4.09 K at `23215030`).
+2. Level 0-E is scored with Section 3.4 metrics and shown next to Level 0. It is not part of the hierarchy, takes no part in progression or designation, and cannot change any outcome.
+3. Levels 1–3 are invariant to a constant additive shift of the model input. The evaluator verifies this numerically on calibration data (maximum absolute difference ≤ $10^{-9}$ °C between each level fitted on $T_{\text{raw}}$ and on $T_{\text{E}}$) and reports the result. Their -E versions are not evaluated.
+4. **Disclosure.** The raw $T_{\max}$ bias at the center cells in the 1990–1994 baseline analysis of Section 2.1.1 (−1.66 °C at `21205710`, −5.54 °C at `23215030`), the corresponding lapse-rate-adjusted biases for $T_{\max}$ and $T_{\min}$ reported in `docs/guides/era5-extraction.md`, and the calibration-partition summaries of Section J.12.1 were known when this diagnostic was specified. The direction of the change from Level 0 to Level 0-E (lower $T_{\max}$ bias, higher $T_{\min}$ bias at `21205710`) was therefore largely predictable and is not evidence for any orographic hypothesis. This benchmark does not test whether explicit orographic information improves calibrated levels.
+
+### J.10 Pre-Opening Verification and Opening Mechanics
+As Sections I.3, I.5 and I.9, with these substitutions: stations `21205710` and `23215030`; tag `phase3-benchmark-authorization` targeting HEAD; calibration report hashes from Section J.4; lag audit records of Section J.5 present in the ledger with no lag activated; constants of Section J.2 verified; input hashes of Section J.11 verified. Both stations are processed in a single invocation, sequentially, without inspection of intermediate results.
+
+### J.11 Frozen Inputs
+| File | SHA-256 |
+|---|---|
+| `local/newFiles/TempMaxima_JardinBotanico.csv` | `d5c5a1e78205299f1022071974653e47d5846b12f5e4de5bec13de0f1439936c` |
+| `local/newFiles/TempMinima_JardinBotanico.csv` | `41e6a8df65e5282c33d60c4a3a0907d0b0a034d98982fe4faef99ed3f9b550f1` |
+| `local/newFiles/TempMaxima_AguasClaras.csv` | `46a44e5b2f45068a5fafcd37688f21c2279aa70392ee79f682258953686c7056` |
+| `local/newFiles/TempMinima_AguasClaras.csv` | `5e0c3d22d63868e63e6e581557dfc03376c7da26ece5e8baa13631e1544d9ea3` |
+| `local/era5_hourly/21205710/era5_static.nc` | `f22a17f169c1897430faf5819f42f1958df24fd535ba731d90810f75b50d70a1` |
+| `local/era5_hourly/23215030/era5_static.nc` | `4b2ffbdf5c8dd674c00f405fed62288e2d4ffd34b8e228d5eda17f10aa69c7f9` |
+
+Hourly ERA5 files are hashed at pre-opening (Section I.3.5).
+
+### J.12 Disclosures
+1. Before this appendix was written, the author saw: calibration-window monthly summaries ($n$, mean, SD, min, max) of both stations; validation-window availability counts per month and `NivelAprobacion` counts per partition; no validation observation value.
+2. `StationCatalog` (`tropicor/io/stations.py`) stores the DHIME export coordinates and elevations (`21205710`: 4.669333, −74.102667, 2553.0 m; `23215030`: 134.0 m), which differ from the audited values of Section 2.1. The audited source `local/station_coords_audit.csv` is not versioned. The evaluator uses Section 2.1 (J.2); the catalog is not modified, as it is shared with the Phase 3 Andean evaluation.
+3. Under the valid-year rule of J.7.1, a year with a single paired day counts as a full bootstrap block (e.g. `21205710` $T_{\min}$ 2000). The rule is retained because it predates this appendix.
+4. Draft versions of this appendix proposed quality-control filtering and an orographic-hypothesis criterion; both were withdrawn because Sections E.4.3 and 6.2 already settle data handling and the status of the elevation adjustment.
