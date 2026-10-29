@@ -1,0 +1,163 @@
+{
+  "calibration_block": [
+    1990,
+    2000
+  ],
+  "git_commit": "971917d02de700fbc667a552ea7d53da28712cb0",
+  "input_hashes": {
+    "era5_calibration_files": {
+      "era5_2m_temperature_1990.nc": "feee1a5d98b5a4126e4c7820c8b8a23fbddcd946a26861b38d21e13527011d3a",
+      "era5_2m_temperature_1991.nc": "b9da86fdfc1693a4e4814b9f5bbc40936748a9c8dbb25588ed3d031c541f2478",
+      "era5_2m_temperature_1992.nc": "230675d173c2425c4acfda0067bbc872ede7cf185d958aa3ed612ae0b686295c",
+      "era5_2m_temperature_1993.nc": "c94c52a3cdff6abcb401f3ff0bf4f92c07eaa58c97e53ca56fd34a618fad70e5",
+      "era5_2m_temperature_1994.nc": "b47a809cf3616ce7a4ce3dd407351c57eafa9800e7dcec18198e013d6333afeb",
+      "era5_2m_temperature_1995.nc": "6b182cdd034376984a6ca16ad5a304cdc032cd4c805abf86949ab14cea1ac593",
+      "era5_2m_temperature_1996.nc": "72017f17dab3f67284be9e1114a81bb54558921e891ce2d3729855920a48c90c",
+      "era5_2m_temperature_1997.nc": "927b34f1cc629bcd406116f6123d3cb52bf90f78ad276e8b03364bd6592313ea",
+      "era5_2m_temperature_1998.nc": "3cfb87301bfcc426468ad52812d0c9077b6601c136ea823150482e7703651f07",
+      "era5_2m_temperature_1999.nc": "3c9e7477e8947d89a8c31a88127cb80f93f52d51adc5abb26e4d079dfd271567",
+      "era5_2m_temperature_2000.nc": "cd84aa49a1c480a74a030c0791a7dc5873e88d34d51124a7c6509decdbe01fe0",
+      "era5_2m_temperature_2001.nc": "419c2310f9483b7c6a61cd0f85dec9f739326ad334b22abc61e4f705e5467fa9"
+    },
+    "obs_tmax_csv": "46a44e5b2f45068a5fafcd37688f21c2279aa70392ee79f682258953686c7056",
+    "obs_tmin_csv": "5e0c3d22d63868e63e6e581557dfc03376c7da26ece5e8baa13631e1544d9ea3"
+  },
+  "level1": {
+    "calibration_loss": 0.5941,
+    "crossings_after": 0,
+    "crossings_before": 0
+  },
+  "level2": {
+    "calibration_loss": 0.4355,
+    "crossings_after": 0,
+    "crossings_before": 0
+  },
+  "level3": {
+    "calibration_loss": 0.0561,
+    "crossings_after": 0,
+    "crossings_before": 0,
+    "cv_configurations": [
+      {
+        "config_id": 0,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.107,
+        "extrapolation": "constant",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 6.3077,
+        "min_n_per_group": 272,
+        "n_extrapolated_days": 428,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 1,
+        "crossings_after": 0,
+        "crossings_before": 1,
+        "cv_loss": 0.1117,
+        "extrapolation": "linear",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 9.4865,
+        "min_n_per_group": 272,
+        "n_extrapolated_days": 428,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 2,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.097,
+        "extrapolation": "constant",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 6.2917,
+        "min_n_per_group": 272,
+        "n_extrapolated_days": 275,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 3,
+        "crossings_after": 0,
+        "crossings_before": 1,
+        "cv_loss": 0.0994,
+        "extrapolation": "linear",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 10.2804,
+        "min_n_per_group": 272,
+        "n_extrapolated_days": 275,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 4,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.0973,
+        "extrapolation": "constant",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 6.5968,
+        "min_n_per_group": 292,
+        "n_extrapolated_days": 415,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 5,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1008,
+        "extrapolation": "linear",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 12.7535,
+        "min_n_per_group": 292,
+        "n_extrapolated_days": 415,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 6,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.0798,
+        "extrapolation": "constant",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 6.9209,
+        "min_n_per_group": 292,
+        "n_extrapolated_days": 260,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 7,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.0836,
+        "extrapolation": "linear",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 14.992,
+        "min_n_per_group": 292,
+        "n_extrapolated_days": 260,
+        "n_quantiles": 100
+      }
+    ],
+    "cv_loss": 0.0798,
+    "max_abs_extrapolation_correction": 6.9209,
+    "min_n_per_group": 292,
+    "n_extrapolated_days": 260,
+    "winner_config_id": 6,
+    "winner_extrapolation": "constant",
+    "winner_grouping": "moving_window",
+    "winner_n_quantiles": 100
+  },
+  "level3_constant": {
+    "calibration_loss": 0.0561,
+    "crossings_after": 0,
+    "crossings_before": 0,
+    "extrapolation": "constant",
+    "grouping": "moving_window",
+    "identical_to_winner": true,
+    "n_quantiles": 100
+  },
+  "protocol_version": "1.8",
+  "raw_bias": {
+    "tmax": -5.2872,
+    "tmin": -3.1274
+  },
+  "report_type": "benchmark_temperature_calibration",
+  "station_id": "23215030",
+  "station_name": "AGUAS CLARAS"
+}

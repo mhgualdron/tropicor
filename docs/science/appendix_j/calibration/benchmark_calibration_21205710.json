@@ -1,0 +1,167 @@
+{
+  "calibration_block": [
+    1990,
+    2004
+  ],
+  "git_commit": "971917d02de700fbc667a552ea7d53da28712cb0",
+  "input_hashes": {
+    "era5_calibration_files": {
+      "era5_2m_temperature_1990.nc": "9935f09e118e5fa07ca8f709edde893cbe6a162d287b1f0749050682b64af3c4",
+      "era5_2m_temperature_1991.nc": "7e93f57332cc4791f79a1bf0cc6478641f50e3ddfebcff928756abaae6b66313",
+      "era5_2m_temperature_1992.nc": "f5a1a4d1a4c4acbee617c991e90471ddd6ec281e88103eb7fe9509c3cdf6d23f",
+      "era5_2m_temperature_1993.nc": "605af3efaebeea60cb4f40254674a0e17f10011b64c3be821c243530071860a2",
+      "era5_2m_temperature_1994.nc": "f75c93085bbf35cae927f26209ba8058aae11116bde5c5c324735ba644540f67",
+      "era5_2m_temperature_1995.nc": "415f6724aa858a41db8acdf96ee37aba75336d8198ce0ed6bcffd939571f3b78",
+      "era5_2m_temperature_1996.nc": "e50f4e23e710f5a20770b2da2451de98ac02717efea85a0438b3603cd63c0302",
+      "era5_2m_temperature_1997.nc": "10607d6a906585b3d22d463e8c2ff2e57b4fd4d3b8fb8e073b66c10cbe74c3ca",
+      "era5_2m_temperature_1998.nc": "c2eb748a00e243118f6f08eab371c5573ae1dbdcaeda5cab3a74a2c38cdcf3e4",
+      "era5_2m_temperature_1999.nc": "0d2c16f523a91e1ba42f382b7004df7242f43e88cba544c63308965f412d0fed",
+      "era5_2m_temperature_2000.nc": "0d221e4df800a967b077ba05c2d0c50dbcfc101191fd9e87394b113e9113de2d",
+      "era5_2m_temperature_2001.nc": "d358206c17261d7a4691bf6105f6afc76772069d916203b046af5d1d362a04a2",
+      "era5_2m_temperature_2002.nc": "1995f02162dc43ba27bfff0e57f449a352edf8ad50b6f2d1e8c47a2264cbbf43",
+      "era5_2m_temperature_2003.nc": "168016ded44ba7e65b62c48d237009c1e5f4a447432449666723baca89afa06f",
+      "era5_2m_temperature_2004.nc": "6d90d2e1ea78b109f5af115ebcd8994b6cece8ff3d6838a07c1178fb739d5d78",
+      "era5_2m_temperature_2005.nc": "71ba285209907be50bca726941cef0c76244a7ee66b0dcd7432914af4e0409d8"
+    },
+    "obs_tmax_csv": "d5c5a1e78205299f1022071974653e47d5846b12f5e4de5bec13de0f1439936c",
+    "obs_tmin_csv": "41e6a8df65e5282c33d60c4a3a0907d0b0a034d98982fe4faef99ed3f9b550f1"
+  },
+  "level1": {
+    "calibration_loss": 1.1128,
+    "crossings_after": 0,
+    "crossings_before": 0
+  },
+  "level2": {
+    "calibration_loss": 0.8151,
+    "crossings_after": 0,
+    "crossings_before": 0
+  },
+  "level3": {
+    "calibration_loss": 0.1598,
+    "crossings_after": 0,
+    "crossings_before": 1,
+    "cv_configurations": [
+      {
+        "config_id": 0,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1999,
+        "extrapolation": "constant",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 4.1468,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 556,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 1,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1925,
+        "extrapolation": "linear",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 9.4106,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 556,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 2,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1895,
+        "extrapolation": "constant",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 4.2142,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 334,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 3,
+        "crossings_after": 0,
+        "crossings_before": 1,
+        "cv_loss": 0.1834,
+        "extrapolation": "linear",
+        "grouping": "monthly",
+        "max_abs_extrap_corr": 27.956,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 334,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 4,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1962,
+        "extrapolation": "constant",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 3.9696,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 545,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 5,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1911,
+        "extrapolation": "linear",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 10.2445,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 545,
+        "n_quantiles": 50
+      },
+      {
+        "config_id": 6,
+        "crossings_after": 0,
+        "crossings_before": 0,
+        "cv_loss": 0.1779,
+        "extrapolation": "constant",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 4.4096,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 328,
+        "n_quantiles": 100
+      },
+      {
+        "config_id": 7,
+        "crossings_after": 0,
+        "crossings_before": 2,
+        "cv_loss": 0.1734,
+        "extrapolation": "linear",
+        "grouping": "moving_window",
+        "max_abs_extrap_corr": 16.1147,
+        "min_n_per_group": 189,
+        "n_extrapolated_days": 328,
+        "n_quantiles": 100
+      }
+    ],
+    "cv_loss": 0.1734,
+    "max_abs_extrapolation_correction": 16.1147,
+    "min_n_per_group": 189,
+    "n_extrapolated_days": 328,
+    "winner_config_id": 7,
+    "winner_extrapolation": "linear",
+    "winner_grouping": "moving_window",
+    "winner_n_quantiles": 100
+  },
+  "level3_constant": {
+    "calibration_loss": 0.1637,
+    "crossings_after": 0,
+    "crossings_before": 0,
+    "extrapolation": "constant",
+    "grouping": "moving_window",
+    "identical_to_winner": false,
+    "n_quantiles": 100
+  },
+  "protocol_version": "1.8",
+  "raw_bias": {
+    "tmax": -1.7125,
+    "tmin": 0.6281
+  },
+  "report_type": "benchmark_temperature_calibration",
+  "station_id": "21205710",
+  "station_name": "JARDIN BOTANICO - AUT"
+}
