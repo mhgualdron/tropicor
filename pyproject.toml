@@ -62,7 +62,7 @@ Repository = "https://github.com/mhgualdron/tropicor"
 [tool.ruff]
 line-length = 88
 target-version = "py310"
-extend-exclude = ["scratch", "local"]
+extend-exclude = ["scratch", "local", "scripts/diagnose_level3_extrapolation.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I"]
