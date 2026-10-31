@@ -1,0 +1,224 @@
+{
+  "activated_lags": [],
+  "commit_hash": "7b1493c084bf33bba221bdc5c258d12d51388de8",
+  "config": {
+    "audit_lags": [
+      -2,
+      -1,
+      0,
+      1,
+      2
+    ],
+    "block_size_days": 30,
+    "bootstrap_replicas": 1000,
+    "bootstrap_seed": 42,
+    "bootstrap_unit": "calendar_30d_moving_block",
+    "candidate_lags": [
+      -1,
+      1
+    ],
+    "era5_dir": "local/era5_ts/23215030",
+    "min_hours": 24,
+    "mode": "validation",
+    "numpy_version": "2.5.3",
+    "pandas_version": "3.0.6",
+    "protocol_section": "Appendix J.5 / Section 8",
+    "python_version": "3.12.7",
+    "required_era5_years": [
+      2000,
+      2001,
+      2002,
+      2003,
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012
+    ],
+    "window_start_utc": 5
+  },
+  "consistency_check_r0": {
+    "tmax": {
+      "audit_r0": 0.7123057980013743,
+      "difference": 0.0,
+      "direct_r0": 0.7123057980013743,
+      "passed": true
+    },
+    "tmin": {
+      "audit_r0": 0.4183101307427443,
+      "difference": 0.0,
+      "direct_r0": 0.4183101307427443,
+      "passed": true
+    }
+  },
+  "era5_source_equivalence": {
+    "calibration_years": [
+      1990,
+      2000
+    ],
+    "equivalent": true,
+    "era5_hourly_hashes": {
+      "23215030/era5_2m_temperature_1990.nc": "feee1a5d98b5a4126e4c7820c8b8a23fbddcd946a26861b38d21e13527011d3a",
+      "23215030/era5_2m_temperature_1991.nc": "b9da86fdfc1693a4e4814b9f5bbc40936748a9c8dbb25588ed3d031c541f2478",
+      "23215030/era5_2m_temperature_1992.nc": "230675d173c2425c4acfda0067bbc872ede7cf185d958aa3ed612ae0b686295c",
+      "23215030/era5_2m_temperature_1993.nc": "c94c52a3cdff6abcb401f3ff0bf4f92c07eaa58c97e53ca56fd34a618fad70e5",
+      "23215030/era5_2m_temperature_1994.nc": "b47a809cf3616ce7a4ce3dd407351c57eafa9800e7dcec18198e013d6333afeb",
+      "23215030/era5_2m_temperature_1995.nc": "6b182cdd034376984a6ca16ad5a304cdc032cd4c805abf86949ab14cea1ac593",
+      "23215030/era5_2m_temperature_1996.nc": "72017f17dab3f67284be9e1114a81bb54558921e891ce2d3729855920a48c90c",
+      "23215030/era5_2m_temperature_1997.nc": "927b34f1cc629bcd406116f6123d3cb52bf90f78ad276e8b03364bd6592313ea",
+      "23215030/era5_2m_temperature_1998.nc": "3cfb87301bfcc426468ad52812d0c9077b6601c136ea823150482e7703651f07",
+      "23215030/era5_2m_temperature_1999.nc": "3c9e7477e8947d89a8c31a88127cb80f93f52d51adc5abb26e4d079dfd271567",
+      "23215030/era5_2m_temperature_2000.nc": "cd84aa49a1c480a74a030c0791a7dc5873e88d34d51124a7c6509decdbe01fe0"
+    },
+    "era5_ts_hashes": {
+      "23215030/era5_2m_temperature_1990.nc": "99d828aefc1ffd3beeb142b7001985f80868ad633b169dced1ffcf53428a2f69",
+      "23215030/era5_2m_temperature_1991.nc": "6726124789ea7ecd250a0b4168cfcbc941e543ad488678b05dcc47cd90907cfa",
+      "23215030/era5_2m_temperature_1992.nc": "704548f7345041c74935f42c3f2e5684a6f55e3bf9c758e6ea6779e079ebb1f5",
+      "23215030/era5_2m_temperature_1993.nc": "54355d1ba30ba741838c6635d05c64caff20f0f4c8119600f4cafc8d0bff0286",
+      "23215030/era5_2m_temperature_1994.nc": "45de2d13c38797ddc84d6f2eefcdf5e22c4d4872ea62e24998fa16ad7144d599",
+      "23215030/era5_2m_temperature_1995.nc": "9cad476157236aab7c3f713188e765cf130fbec9833da51f8b81256b88208486",
+      "23215030/era5_2m_temperature_1996.nc": "5db59a8aa067a0503c981a716d2fc8be9958e881f4b90f524a4392c2809882d5",
+      "23215030/era5_2m_temperature_1997.nc": "16c15f75565b94ace895aff4b35dfe2ed4739fe59af3a2f45efc5c6f2be2c417",
+      "23215030/era5_2m_temperature_1998.nc": "cdaa120593c457dc69b1bd8e452e995bd46d07d58322c016004ea350157b9e1f",
+      "23215030/era5_2m_temperature_1999.nc": "9b7604a8d996da73b76f03f8a14b307bc068ef80ca6659b476f74e7787dbebcb",
+      "23215030/era5_2m_temperature_2000.nc": "8b78a4051f71e25469365a8975f1b6b3bf1e8c7d9af198b187243158dc989ce8"
+    },
+    "max_abs_diff_k": 0.00018310546875,
+    "n_hours": 96432,
+    "station_id": "23215030"
+  },
+  "input_hashes": {
+    "23215030/TempMaxima_AguasClaras.csv": "46a44e5b2f45068a5fafcd37688f21c2279aa70392ee79f682258953686c7056",
+    "23215030/TempMinima_AguasClaras.csv": "5e0c3d22d63868e63e6e581557dfc03376c7da26ece5e8baa13631e1544d9ea3",
+    "23215030/era5_2m_temperature_2000.nc": "8b78a4051f71e25469365a8975f1b6b3bf1e8c7d9af198b187243158dc989ce8",
+    "23215030/era5_2m_temperature_2001.nc": "299385204ecdf9ab9dd1cb8f3c7140a0b632c240a80f29d2bcd0c6b645f0fa06",
+    "23215030/era5_2m_temperature_2002.nc": "9e9af23f7547810fafd3fb815647373ab5f96e6c2102177388c5ba2fa38b4ed8",
+    "23215030/era5_2m_temperature_2003.nc": "751b68807129be318ae28adc9fbf03d3a14f15ef952cea6b383f5c59103768f2",
+    "23215030/era5_2m_temperature_2004.nc": "a1e7a08184011a19d84a5364ae0f867dea4cd5f1b9d894dd6c149a323155ea46",
+    "23215030/era5_2m_temperature_2005.nc": "8e328a832bb03e27791ff7cd0d34d45be0974303e25aadc4f521c3793e6914e0",
+    "23215030/era5_2m_temperature_2006.nc": "66ec224a3d05cb00c92a90fe0698ef9c3d0c617d5ee27e91c80463f666df2d49",
+    "23215030/era5_2m_temperature_2007.nc": "b99d5b21df7b4c0820941496c34e137763c6c3b42bd6014668866310162560b2",
+    "23215030/era5_2m_temperature_2008.nc": "d1bc7f77dc88937c56e2819a380fec1a5fd16b15d1c34018f55de29bd7d0cdfc",
+    "23215030/era5_2m_temperature_2009.nc": "c32b0bd439378d6f01f6b40bd639722bb195e48130168865710929bf02f3c24d",
+    "23215030/era5_2m_temperature_2010.nc": "fb709aa076279290b0953c96482f0c1c0382d5130309345d54d0b162d15f7e11",
+    "23215030/era5_2m_temperature_2011.nc": "1caab4327e31baf5fc6bfa37ddaec6129ff712ad5e822bb9033d9a835edc3573",
+    "23215030/era5_2m_temperature_2012.nc": "abc623c40f733226f71b66f15fa995ae45e20f492a0764ae719fcc8f1dc493ec",
+    "23215030/era5_static.nc": "4b2ffbdf5c8dd674c00f405fed62288e2d4ffd34b8e228d5eda17f10aa69c7f9"
+  },
+  "is_dirty": false,
+  "lag_sensitivity_activated": false,
+  "partition_years": [
+    2001,
+    2011
+  ],
+  "static_verification": {
+    "cell_latitude": 8.25,
+    "cell_longitude": -73.5,
+    "delta_z_m": -628.6344931914823,
+    "elevation_m": 133.8,
+    "expected_cell_lat": 8.25,
+    "expected_cell_lon": -73.5,
+    "expected_delta_z_m": -628.6,
+    "expected_z_era5_m": 762.4,
+    "static_file": "local/era5_hourly/23215030/era5_static.nc",
+    "static_sha256": "4b2ffbdf5c8dd674c00f405fed62288e2d4ffd34b8e228d5eda17f10aa69c7f9",
+    "station_id": "23215030",
+    "station_name": "Aguas Claras",
+    "z_era5_m": 762.4344931914824
+  },
+  "station_id": "23215030",
+  "station_name": "Aguas Claras",
+  "tmax": {
+    "candidate_lags": {
+      "-1": {
+        "ci_95_lower": -0.183444,
+        "ci_95_upper": -0.124671,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3890,
+        "point_delta_r": -0.149767,
+        "r_0_paired": 0.712546,
+        "r_k_paired": 0.562779
+      },
+      "1": {
+        "ci_95_lower": -0.163911,
+        "ci_95_upper": -0.110592,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3891,
+        "point_delta_r": -0.132351,
+        "r_0_paired": 0.712306,
+        "r_k_paired": 0.579955
+      }
+    },
+    "extrema_timing": {
+      "max_r": 0.712306,
+      "optimal_lag": 0
+    },
+    "lag_correlations": {
+      "-1": 0.562779,
+      "-2": 0.498992,
+      "0": 0.712306,
+      "1": 0.579955,
+      "2": 0.510555
+    },
+    "triggered_lags": []
+  },
+  "tmin": {
+    "candidate_lags": {
+      "-1": {
+        "ci_95_lower": -0.054962,
+        "ci_95_upper": -0.012141,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3035,
+        "point_delta_r": -0.033338,
+        "r_0_paired": 0.418442,
+        "r_k_paired": 0.385104
+      },
+      "1": {
+        "ci_95_lower": -0.09322,
+        "ci_95_upper": -0.042437,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3036,
+        "point_delta_r": -0.06774,
+        "r_0_paired": 0.41831,
+        "r_k_paired": 0.35057
+      }
+    },
+    "extrema_timing": {
+      "max_r": 0.41831,
+      "optimal_lag": 0
+    },
+    "lag_correlations": {
+      "-1": 0.385104,
+      "-2": 0.322619,
+      "0": 0.41831,
+      "1": 0.35057,
+      "2": 0.32757
+    },
+    "triggered_lags": []
+  },
+  "validation_opening_record": {
+    "commit_hash": "7b1493c084bf33bba221bdc5c258d12d51388de8",
+    "config": {
+      "block_size_days": 30,
+      "bootstrap_replicas": 1000,
+      "bootstrap_seed": 42,
+      "min_hours": 24,
+      "mode": "validation",
+      "protocol_section": "Appendix J.5 / Section 8",
+      "window_start_utc": 5
+    },
+    "purpose": "lag_audit",
+    "seed": 42,
+    "station_id": "23215030",
+    "timestamp": "2026-10-31T14:02:09.168785+00:00",
+    "variable": "temperature"
+  }
+}

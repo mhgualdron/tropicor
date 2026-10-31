@@ -1,0 +1,242 @@
+{
+  "activated_lags": [],
+  "commit_hash": "7b1493c084bf33bba221bdc5c258d12d51388de8",
+  "config": {
+    "audit_lags": [
+      -2,
+      -1,
+      0,
+      1,
+      2
+    ],
+    "block_size_days": 30,
+    "bootstrap_replicas": 1000,
+    "bootstrap_seed": 42,
+    "bootstrap_unit": "calendar_30d_moving_block",
+    "candidate_lags": [
+      -1,
+      1
+    ],
+    "era5_dir": "local/era5_ts/21205710",
+    "min_hours": 24,
+    "mode": "validation",
+    "numpy_version": "2.5.3",
+    "pandas_version": "3.0.6",
+    "protocol_section": "Appendix J.5 / Section 8",
+    "python_version": "3.12.7",
+    "required_era5_years": [
+      2004,
+      2005,
+      2006,
+      2007,
+      2008,
+      2009,
+      2010,
+      2011,
+      2012,
+      2013,
+      2014,
+      2015,
+      2016,
+      2017,
+      2018,
+      2019,
+      2020,
+      2021
+    ],
+    "window_start_utc": 5
+  },
+  "consistency_check_r0": {
+    "tmax": {
+      "audit_r0": 0.5585322917991392,
+      "difference": 0.0,
+      "direct_r0": 0.5585322917991392,
+      "passed": true
+    },
+    "tmin": {
+      "audit_r0": 0.4906788469634452,
+      "difference": 0.0,
+      "direct_r0": 0.4906788469634452,
+      "passed": true
+    }
+  },
+  "era5_source_equivalence": {
+    "calibration_years": [
+      1990,
+      2004
+    ],
+    "equivalent": true,
+    "era5_hourly_hashes": {
+      "21205710/era5_2m_temperature_1990.nc": "9935f09e118e5fa07ca8f709edde893cbe6a162d287b1f0749050682b64af3c4",
+      "21205710/era5_2m_temperature_1991.nc": "7e93f57332cc4791f79a1bf0cc6478641f50e3ddfebcff928756abaae6b66313",
+      "21205710/era5_2m_temperature_1992.nc": "f5a1a4d1a4c4acbee617c991e90471ddd6ec281e88103eb7fe9509c3cdf6d23f",
+      "21205710/era5_2m_temperature_1993.nc": "605af3efaebeea60cb4f40254674a0e17f10011b64c3be821c243530071860a2",
+      "21205710/era5_2m_temperature_1994.nc": "f75c93085bbf35cae927f26209ba8058aae11116bde5c5c324735ba644540f67",
+      "21205710/era5_2m_temperature_1995.nc": "415f6724aa858a41db8acdf96ee37aba75336d8198ce0ed6bcffd939571f3b78",
+      "21205710/era5_2m_temperature_1996.nc": "e50f4e23e710f5a20770b2da2451de98ac02717efea85a0438b3603cd63c0302",
+      "21205710/era5_2m_temperature_1997.nc": "10607d6a906585b3d22d463e8c2ff2e57b4fd4d3b8fb8e073b66c10cbe74c3ca",
+      "21205710/era5_2m_temperature_1998.nc": "c2eb748a00e243118f6f08eab371c5573ae1dbdcaeda5cab3a74a2c38cdcf3e4",
+      "21205710/era5_2m_temperature_1999.nc": "0d2c16f523a91e1ba42f382b7004df7242f43e88cba544c63308965f412d0fed",
+      "21205710/era5_2m_temperature_2000.nc": "0d221e4df800a967b077ba05c2d0c50dbcfc101191fd9e87394b113e9113de2d",
+      "21205710/era5_2m_temperature_2001.nc": "d358206c17261d7a4691bf6105f6afc76772069d916203b046af5d1d362a04a2",
+      "21205710/era5_2m_temperature_2002.nc": "1995f02162dc43ba27bfff0e57f449a352edf8ad50b6f2d1e8c47a2264cbbf43",
+      "21205710/era5_2m_temperature_2003.nc": "168016ded44ba7e65b62c48d237009c1e5f4a447432449666723baca89afa06f",
+      "21205710/era5_2m_temperature_2004.nc": "6d90d2e1ea78b109f5af115ebcd8994b6cece8ff3d6838a07c1178fb739d5d78"
+    },
+    "era5_ts_hashes": {
+      "21205710/era5_2m_temperature_1990.nc": "e8cc8b407fd4958b1437f3510ffe10e1046b4c9e29bb0c70654ffad55aa8bb5d",
+      "21205710/era5_2m_temperature_1991.nc": "dd754918702f14d424a48b69afcf365b368010244a13eb77449de5948e35c06b",
+      "21205710/era5_2m_temperature_1992.nc": "f16c128dc20a1f24a3bc94b66ddd0fbd99f217dea638f269de117074850f78a6",
+      "21205710/era5_2m_temperature_1993.nc": "7cc9221a5edc35504d123cb08a8b3d309c0e620d4ca9ed181e4ec34033c780e6",
+      "21205710/era5_2m_temperature_1994.nc": "862e2c774cdd8e05e4628675b1e573bf676bbade2fe744fe823752578c51631c",
+      "21205710/era5_2m_temperature_1995.nc": "6ca08e0f27826c598b7ccfc59ee6678615ab53f18a41ff1096c38325d2d11b1e",
+      "21205710/era5_2m_temperature_1996.nc": "ee00d4ff788149d5b44ca30288ec5c145b870159b8e796b6d3ba0c59734ffe37",
+      "21205710/era5_2m_temperature_1997.nc": "d172d27c97e5a1de336082bd7e17bcb97d150aa07e9b93aa7a6f5924f67c76e9",
+      "21205710/era5_2m_temperature_1998.nc": "f7e2fceda7b28c8116e81fc1becabc5f6ee59c5a2ea381c7da1adcf75f087d02",
+      "21205710/era5_2m_temperature_1999.nc": "9907e138d4fbd91242fbfbb29b4b8ebacba18e9115eebd4407697318c9409b15",
+      "21205710/era5_2m_temperature_2000.nc": "8e359142381ce6c082b57572903f1a5f2413809e31fd78fd65a648f4f8705f68",
+      "21205710/era5_2m_temperature_2001.nc": "8604aa5369eefc124856eaef963c3f05468b31634abb2125aa73d488998200a5",
+      "21205710/era5_2m_temperature_2002.nc": "7d0c2548cdf4a57ef7b43d8c9eb61086198ff0407092aed26a41bec57606699e",
+      "21205710/era5_2m_temperature_2003.nc": "b3b9f08623ed56dac9a86e888ea7fc3e486766ad53902d521c64a475000e2fb2",
+      "21205710/era5_2m_temperature_2004.nc": "b0a62069d2a1b36917c9c5ce3ab0ddbb1a4f1b966dac07173e2e2af290f362bb"
+    },
+    "max_abs_diff_k": 0.000244140625,
+    "n_hours": 131496,
+    "station_id": "21205710"
+  },
+  "input_hashes": {
+    "21205710/TempMaxima_JardinBotanico.csv": "d5c5a1e78205299f1022071974653e47d5846b12f5e4de5bec13de0f1439936c",
+    "21205710/TempMinima_JardinBotanico.csv": "41e6a8df65e5282c33d60c4a3a0907d0b0a034d98982fe4faef99ed3f9b550f1",
+    "21205710/era5_2m_temperature_2004.nc": "b0a62069d2a1b36917c9c5ce3ab0ddbb1a4f1b966dac07173e2e2af290f362bb",
+    "21205710/era5_2m_temperature_2005.nc": "1945f77a803651fea87f66b461bf05060cb1ad8fb2a69582950203e03c0145a2",
+    "21205710/era5_2m_temperature_2006.nc": "1d16cc3ec4094085e8c44abe9d87f0b19f4f83db153c722f7b860c1a36765d1c",
+    "21205710/era5_2m_temperature_2007.nc": "421257f17326e87e4b32466df345543cf0a7579515b1430ea013ce0ddb4d3ea0",
+    "21205710/era5_2m_temperature_2008.nc": "6bb8ea6273f3cd6040eb312f1609340319cf5ecc7d9ea604505a54179effbc46",
+    "21205710/era5_2m_temperature_2009.nc": "da5cd1474db26e065e0f66141f4c28eda6eac71bae4d9bcdb216f2f0111b7388",
+    "21205710/era5_2m_temperature_2010.nc": "e9bbb23362b1ef6fad3d323cfddf6a4b5ee47ef7cd8e88a66a1d9ebc7f4d23e3",
+    "21205710/era5_2m_temperature_2011.nc": "d7e33f28c91e73cb90890212570fa1c6f45ec93f6faf4d9c692cc87e4ec47e2b",
+    "21205710/era5_2m_temperature_2012.nc": "03019926bb58a04817d15d7915087508ce7a9fc33453a1cf697bb9403d7cd40d",
+    "21205710/era5_2m_temperature_2013.nc": "3ea066d2e951752c48e5501be904417be82eea3038a65aa6752ffcbd30538cd2",
+    "21205710/era5_2m_temperature_2014.nc": "77428424088a3f7cf377c3bfae0669a4e0bb6233564df98b36dfd6ad1f16199a",
+    "21205710/era5_2m_temperature_2015.nc": "46adeed91e424b9be3bf84554d2345ae14f439784eaec64a3e6f8294bcfad411",
+    "21205710/era5_2m_temperature_2016.nc": "d5d743e9249d1accfc9ece10c0182978d5646fedc6767445828b25653977543b",
+    "21205710/era5_2m_temperature_2017.nc": "d57ed4783c3efb78b59c1f911d9c22d026c0e1e96d7e266e9053d2d149d0b70d",
+    "21205710/era5_2m_temperature_2018.nc": "87c42bb35bc232b688c79863b821d8debe8ac32c7f4b71c63b7dae13cfec7c5d",
+    "21205710/era5_2m_temperature_2019.nc": "8d1804d66cb26664ff2c3c066b80a2db2de5318b86e1111c39f5b06a04262168",
+    "21205710/era5_2m_temperature_2020.nc": "273c75ff390ef6e0867b8bbcacefff42da3c32fc1616c10ca9face90a395c91a",
+    "21205710/era5_2m_temperature_2021.nc": "4a93679d5dd9f136676dbfdd29f7c0f1c10e5b79c80fbd8655deecbf52c1a0b4",
+    "21205710/era5_static.nc": "f22a17f169c1897430faf5819f42f1958df24fd535ba731d90810f75b50d70a1"
+  },
+  "is_dirty": false,
+  "lag_sensitivity_activated": false,
+  "partition_years": [
+    2005,
+    2020
+  ],
+  "static_verification": {
+    "cell_latitude": 4.75,
+    "cell_longitude": -74.0,
+    "delta_z_m": -201.40087306827536,
+    "elevation_m": 2552.0,
+    "expected_cell_lat": 4.75,
+    "expected_cell_lon": -74.0,
+    "expected_delta_z_m": -201.4,
+    "expected_z_era5_m": 2753.4,
+    "static_file": "local/era5_hourly/21205710/era5_static.nc",
+    "static_sha256": "f22a17f169c1897430faf5819f42f1958df24fd535ba731d90810f75b50d70a1",
+    "station_id": "21205710",
+    "station_name": "Jard\u00edn Bot\u00e1nico",
+    "z_era5_m": 2753.4008730682754
+  },
+  "station_id": "21205710",
+  "station_name": "Jard\u00edn Bot\u00e1nico",
+  "tmax": {
+    "candidate_lags": {
+      "-1": {
+        "ci_95_lower": -0.201468,
+        "ci_95_upper": -0.139378,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3972,
+        "point_delta_r": -0.166532,
+        "r_0_paired": 0.558532,
+        "r_k_paired": 0.392
+      },
+      "1": {
+        "ci_95_lower": -0.19862,
+        "ci_95_upper": -0.135031,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3972,
+        "point_delta_r": -0.164639,
+        "r_0_paired": 0.558532,
+        "r_k_paired": 0.393893
+      }
+    },
+    "extrema_timing": {
+      "max_r": 0.558532,
+      "optimal_lag": 0
+    },
+    "lag_correlations": {
+      "-1": 0.392141,
+      "-2": 0.311673,
+      "0": 0.558532,
+      "1": 0.393893,
+      "2": 0.339979
+    },
+    "triggered_lags": []
+  },
+  "tmin": {
+    "candidate_lags": {
+      "-1": {
+        "ci_95_lower": -0.220825,
+        "ci_95_upper": -0.166212,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3997,
+        "point_delta_r": -0.192992,
+        "r_0_paired": 0.490679,
+        "r_k_paired": 0.297687
+      },
+      "1": {
+        "ci_95_lower": -0.153006,
+        "ci_95_upper": -0.0889,
+        "excludes_zero_in_favor_of_k": false,
+        "n_discarded_replicas": 0,
+        "n_paired_days": 3997,
+        "point_delta_r": -0.121259,
+        "r_0_paired": 0.490679,
+        "r_k_paired": 0.36942
+      }
+    },
+    "extrema_timing": {
+      "max_r": 0.490679,
+      "optimal_lag": 0
+    },
+    "lag_correlations": {
+      "-1": 0.298517,
+      "-2": 0.217557,
+      "0": 0.490679,
+      "1": 0.36942,
+      "2": 0.308892
+    },
+    "triggered_lags": []
+  },
+  "validation_opening_record": {
+    "commit_hash": "7b1493c084bf33bba221bdc5c258d12d51388de8",
+    "config": {
+      "block_size_days": 30,
+      "bootstrap_replicas": 1000,
+      "bootstrap_seed": 42,
+      "min_hours": 24,
+      "mode": "validation",
+      "protocol_section": "Appendix J.5 / Section 8",
+      "window_start_utc": 5
+    },
+    "purpose": "lag_audit",
+    "seed": 42,
+    "station_id": "21205710",
+    "timestamp": "2026-10-31T14:02:00.554715+00:00",
+    "variable": "temperature"
+  }
+}
