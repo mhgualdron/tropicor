@@ -1,0 +1,1740 @@
+{
+  "git_head": "28538a3b6f03834704c49476f9ad7fab29abab9f",
+  "script_path": "local/analysis_k/diagnostic/andean_residual_diagnostic.py",
+  "timestamp_utc": "2026-10-31T17:23:38.719362+00:00",
+  "parameters": {
+    "bootstrap_seed": 42,
+    "bootstrap_replicas": 1000,
+    "noise_floor_draws": 999,
+    "min_days_per_month": 10,
+    "min_months_per_year": 9,
+    "window_start_utc": 5,
+    "min_hours": 24,
+    "lag_days": 0
+  },
+  "self_check_0_inputs": {
+    "status": "PASS"
+  },
+  "self_check_1_reproduction": {
+    "37015020": {
+      "station_id": "37015020",
+      "station_name": "BERLIN [37015020]",
+      "max_abs_diff_tmax": 0.0,
+      "max_abs_diff_tmin": 0.0,
+      "pass_tmax": true,
+      "pass_tmin": true,
+      "pass": true
+    },
+    "24025040": {
+      "station_id": "24025040",
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "max_abs_diff_tmax": 0.0,
+      "max_abs_diff_tmin": 0.0,
+      "pass_tmax": true,
+      "pass_tmin": true,
+      "pass": true
+    },
+    "26135040": {
+      "station_id": "26135040",
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "max_abs_diff_tmax": 0.0,
+      "max_abs_diff_tmin": 0.0,
+      "pass_tmax": true,
+      "pass_tmin": true,
+      "pass": true
+    },
+    "27015070": {
+      "station_id": "27015070",
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "max_abs_diff_tmax": 0.0,
+      "max_abs_diff_tmin": 0.0,
+      "pass_tmax": true,
+      "pass_tmin": true,
+      "pass": true
+    },
+    "52045010": {
+      "station_id": "52045010",
+      "station_name": "OBONUCO [52045010]",
+      "max_abs_diff_tmax": 0.0,
+      "max_abs_diff_tmin": 0.0,
+      "pass_tmax": true,
+      "pass_tmin": true,
+      "pass": true
+    }
+  },
+  "extra_self_check_days": {
+    "status": "PASS"
+  },
+  "stations": {
+    "37015020": {
+      "station_id": "37015020",
+      "station_name": "BERLIN [37015020]",
+      "cal_years": [
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        2005,
+        2007,
+        2008,
+        2009
+      ],
+      "val_years": [
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2018,
+        2019,
+        2020
+      ],
+      "variables": {
+        "Tmax": {
+          "n_included_years": 21,
+          "trend_decade_k": 0.007965548804487412,
+          "trend_95ci_k": [
+            -0.15439419303030694,
+            0.19650055797955462
+          ],
+          "level_change_k": 0.16257382219652294,
+          "level_change_95ci_k": [
+            -0.1623981493116557,
+            0.47095735327380606
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.7643636509523546,
+            "median_k": 0.5085035108053937,
+            "p5_k": 0.29726222015683595,
+            "p95_k": 0.8773830070246271,
+            "percentile_rank": 89.68968968968969,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.16443066712128918,
+            "real_abs_offset_k": 0.16443066712128918,
+            "real_seasonal_amplitude_k": 0.5999329838310654,
+            "noise_abs_offset_median_k": 0.1048930824699917,
+            "noise_abs_offset_p95_k": 0.31186098084529784,
+            "noise_seasonal_amplitude_median_k": 0.4324978770614112,
+            "noise_seasonal_amplitude_p95_k": 0.6917660554500112
+          }
+        },
+        "Tmin": {
+          "n_included_years": 21,
+          "trend_decade_k": -0.033980910835967396,
+          "trend_95ci_k": [
+            -0.17566305078208166,
+            0.13370366958202878
+          ],
+          "level_change_k": -0.030756776797118413,
+          "level_change_95ci_k": [
+            -0.28866376480058703,
+            0.22683649117693708
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.5387587865193684,
+            "median_k": 0.7012770426900765,
+            "p5_k": 0.35296276765721496,
+            "p95_k": 1.2109731139953122,
+            "percentile_rank": 25.425425425425423,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": -0.028667317961334,
+            "real_abs_offset_k": 0.028667317961334,
+            "real_seasonal_amplitude_k": 0.5100914685580343,
+            "noise_abs_offset_median_k": 0.09702511859481615,
+            "noise_abs_offset_p95_k": 0.2650720407399669,
+            "noise_seasonal_amplitude_median_k": 0.6231762423027898,
+            "noise_seasonal_amplitude_p95_k": 1.0691361105327413
+          }
+        }
+      }
+    },
+    "24025040": {
+      "station_id": "24025040",
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "cal_years": [
+        1990,
+        1991,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000
+      ],
+      "val_years": [
+        2001,
+        2002,
+        2003,
+        2004,
+        2005,
+        2006,
+        2007,
+        2010,
+        2019,
+        2020
+      ],
+      "variables": {
+        "Tmax": {
+          "n_included_years": 20,
+          "trend_decade_k": -0.16115302871711426,
+          "trend_95ci_k": [
+            -0.3960749633209732,
+            0.203876339088109
+          ],
+          "level_change_k": -0.1450525785428307,
+          "level_change_95ci_k": [
+            -0.44532119521398505,
+            0.14275233347164248
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.4348899866824958,
+            "median_k": 0.4541227643158017,
+            "p5_k": 0.27462114394200227,
+            "p95_k": 0.6783563263719572,
+            "percentile_rank": 44.24424424424424,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": -0.1466934578619421,
+            "real_abs_offset_k": 0.1466934578619421,
+            "real_seasonal_amplitude_k": 0.328219621866622,
+            "noise_abs_offset_median_k": 0.126249719083102,
+            "noise_abs_offset_p95_k": 0.28413998145462865,
+            "noise_seasonal_amplitude_median_k": 0.35394919786760326,
+            "noise_seasonal_amplitude_p95_k": 0.5293181422825072
+          }
+        },
+        "Tmin": {
+          "n_included_years": 20,
+          "trend_decade_k": -0.21009433651923004,
+          "trend_95ci_k": [
+            -0.44653895083496054,
+            -0.010191775177649982
+          ],
+          "level_change_k": -0.23536807602957666,
+          "level_change_95ci_k": [
+            -0.5790906132629473,
+            0.14579979967027748
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.783086941605907,
+            "median_k": 0.6056128668015983,
+            "p5_k": 0.35439623619560834,
+            "p95_k": 0.9418299523138821,
+            "percentile_rank": 81.58158158158159,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": -0.23407626469167017,
+            "real_abs_offset_k": 0.23407626469167017,
+            "real_seasonal_amplitude_k": 0.6077084644051948,
+            "noise_abs_offset_median_k": 0.135507302165342,
+            "noise_abs_offset_p95_k": 0.38952534412204176,
+            "noise_seasonal_amplitude_median_k": 0.5115219413355118,
+            "noise_seasonal_amplitude_p95_k": 0.7748868053250032
+          }
+        }
+      }
+    },
+    "26135040": {
+      "station_id": "26135040",
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "cal_years": [
+        1990,
+        1991,
+        1992,
+        1994,
+        1997,
+        1998,
+        1999,
+        2000,
+        2002,
+        2003,
+        2004,
+        2005
+      ],
+      "val_years": [
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017
+      ],
+      "variables": {
+        "Tmax": {
+          "n_included_years": 24,
+          "trend_decade_k": 0.17596342615588165,
+          "trend_95ci_k": [
+            -0.00280531796516632,
+            0.3710747142405908
+          ],
+          "level_change_k": 0.2531600108438017,
+          "level_change_95ci_k": [
+            -0.00604091515402605,
+            0.5045972607912751
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.4251049103441247,
+            "median_k": 0.3964669609604101,
+            "p5_k": 0.2227849870857103,
+            "p95_k": 0.7120414077627849,
+            "percentile_rank": 57.05705705705706,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.2534549243008308,
+            "real_abs_offset_k": 0.2534549243008308,
+            "real_seasonal_amplitude_k": 0.32983758629561927,
+            "noise_abs_offset_median_k": 0.10235250191314993,
+            "noise_abs_offset_p95_k": 0.28630330062242226,
+            "noise_seasonal_amplitude_median_k": 0.3113323169645451,
+            "noise_seasonal_amplitude_p95_k": 0.5440047471849543
+          }
+        },
+        "Tmin": {
+          "n_included_years": 24,
+          "trend_decade_k": -0.0032432173557109863,
+          "trend_95ci_k": [
+            -0.12574885522363982,
+            0.17337194510782597
+          ],
+          "level_change_k": 0.13310637019779792,
+          "level_change_95ci_k": [
+            -0.0633344201303758,
+            0.33656042037757766
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.3410707781391764,
+            "median_k": 0.29670263721096646,
+            "p5_k": 0.18080227245814023,
+            "p95_k": 0.4680733985144051,
+            "percentile_rank": 67.16716716716716,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.12893529123906747,
+            "real_abs_offset_k": 0.12893529123906747,
+            "real_seasonal_amplitude_k": 0.21213548690010894,
+            "noise_abs_offset_median_k": 0.07005577776516247,
+            "noise_abs_offset_p95_k": 0.20917656644866583,
+            "noise_seasonal_amplitude_median_k": 0.2419860810155218,
+            "noise_seasonal_amplitude_p95_k": 0.38485538837377875
+          }
+        }
+      }
+    },
+    "27015070": {
+      "station_id": "27015070",
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "cal_years": [
+        1990,
+        1991,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999,
+        2000,
+        2001,
+        2002,
+        2003,
+        2004
+      ],
+      "val_years": [
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2013,
+        2014,
+        2015,
+        2016,
+        2017,
+        2018,
+        2019
+      ],
+      "variables": {
+        "Tmax": {
+          "n_included_years": 28,
+          "trend_decade_k": 0.4333038687044424,
+          "trend_95ci_k": [
+            0.33120396735665597,
+            0.5263892324410252
+          ],
+          "level_change_k": 0.5121197468466088,
+          "level_change_95ci_k": [
+            0.2336602413152943,
+            0.7963418685928464
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.7774198332287021,
+            "median_k": 0.36155121212913954,
+            "p5_k": 0.21810375519033834,
+            "p95_k": 0.6382137994458993,
+            "percentile_rank": 99.2992992992993,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.5108183326326188,
+            "real_abs_offset_k": 0.5108183326326188,
+            "real_seasonal_amplitude_k": 0.32651391906421345,
+            "noise_abs_offset_median_k": 0.11898868477703672,
+            "noise_abs_offset_p95_k": 0.35327482984264097,
+            "noise_seasonal_amplitude_median_k": 0.2770522151726296,
+            "noise_seasonal_amplitude_p95_k": 0.41369540984163333
+          }
+        },
+        "Tmin": {
+          "n_included_years": 28,
+          "trend_decade_k": 0.2653159160189823,
+          "trend_95ci_k": [
+            0.14966399794350144,
+            0.4018452232648744
+          ],
+          "level_change_k": 0.5449881050664906,
+          "level_change_95ci_k": [
+            0.36565592111239514,
+            0.7210256199082558
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.7824054718017557,
+            "median_k": 0.3047922951834572,
+            "p5_k": 0.18328254498552213,
+            "p95_k": 0.49318470950163656,
+            "percentile_rank": 100.0,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.5459554695808816,
+            "real_abs_offset_k": 0.5459554695808816,
+            "real_seasonal_amplitude_k": 0.31407454045141814,
+            "noise_abs_offset_median_k": 0.09341102808218338,
+            "noise_abs_offset_p95_k": 0.25613023958805825,
+            "noise_seasonal_amplitude_median_k": 0.2320327586003481,
+            "noise_seasonal_amplitude_p95_k": 0.3521791794118128
+          }
+        }
+      }
+    },
+    "52045010": {
+      "station_id": "52045010",
+      "station_name": "OBONUCO [52045010]",
+      "cal_years": [
+        1990,
+        1991,
+        1992,
+        1993,
+        1994,
+        1995,
+        1996,
+        1997,
+        1998,
+        1999
+      ],
+      "val_years": [
+        2000,
+        2001,
+        2002,
+        2003,
+        2004,
+        2008,
+        2009,
+        2011,
+        2014,
+        2020
+      ],
+      "variables": {
+        "Tmax": {
+          "n_included_years": 20,
+          "trend_decade_k": 0.23066598204555971,
+          "trend_95ci_k": [
+            -0.08771380388600432,
+            0.4494743189252248
+          ],
+          "level_change_k": 0.17056947238650944,
+          "level_change_95ci_k": [
+            -0.22471254353102682,
+            0.5164592513672565
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.43501701607609533,
+            "median_k": 0.4762498474121095,
+            "p5_k": 0.28594560640005934,
+            "p95_k": 0.8187839577472125,
+            "percentile_rank": 39.83983983983984,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.1534624154797267,
+            "real_abs_offset_k": 0.1534624154797267,
+            "real_seasonal_amplitude_k": 0.29920951294769826,
+            "noise_abs_offset_median_k": 0.12463912478440757,
+            "noise_abs_offset_p95_k": 0.3678415054187809,
+            "noise_seasonal_amplitude_median_k": 0.37374954137132155,
+            "noise_seasonal_amplitude_p95_k": 0.5576117814917473
+          }
+        },
+        "Tmin": {
+          "n_included_years": 20,
+          "trend_decade_k": 0.5659003933335145,
+          "trend_95ci_k": [
+            0.3987286804382937,
+            0.6824601665776378
+          ],
+          "level_change_k": 0.6906856913797086,
+          "level_change_95ci_k": [
+            0.3980693669378579,
+            0.9902188174275998
+          ],
+          "noise_floor": {
+            "real_max_monthly_bias_k": 0.9116611606610494,
+            "median_k": 0.39705011786484157,
+            "p5_k": 0.2134495299377969,
+            "p95_k": 0.7003508435265497,
+            "percentile_rank": 100.0,
+            "skipped_months_count": 0
+          },
+          "decomposition": {
+            "real_offset_k": 0.6954721364841673,
+            "real_abs_offset_k": 0.6954721364841673,
+            "real_seasonal_amplitude_k": 0.21618902417688213,
+            "noise_abs_offset_median_k": 0.16045305666889753,
+            "noise_abs_offset_p95_k": 0.423458771998554,
+            "noise_seasonal_amplitude_median_k": 0.25437123123265754,
+            "noise_seasonal_amplitude_p95_k": 0.3908685495817313
+          }
+        }
+      }
+    }
+  },
+  "script_sha256": "4f70fb38d5285c48b0387f4fe506888ff701089923257203b4ec4d3dbabed5c7",
+  "input_files": {
+    "tropicor/data/andean_station_registry.json": {
+      "description": "Andean Station Registry",
+      "size": 4216,
+      "sha256": "3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b",
+      "expected_sha256": "3cfe15705adfa054ce1745e7a475b9325945d6df06753a85adb9a54a9a64be2b",
+      "match": true
+    },
+    "docs/science/appendix_g/lag_audit_andean_calibration.json": {
+      "description": "Lag Audit Calibration",
+      "size": 23054,
+      "sha256": "5134901fc850b4ad60079d9dd9faaab7b49370e3e868b2c6a0e54777a34a662b",
+      "expected_sha256": "5134901fc850b4ad60079d9dd9faaab7b49370e3e868b2c6a0e54777a34a662b",
+      "match": true
+    },
+    "docs/science/appendix_g/calibration/andes_calibration_37015020.json": {
+      "description": "Calibration Report (37015020)",
+      "size": 3723,
+      "sha256": "60c44d429adfda297e712d741fd3e8973455b1aa1c2e403b3bd9d5197750e296",
+      "expected_sha256": "60c44d429adfda297e712d741fd3e8973455b1aa1c2e403b3bd9d5197750e296",
+      "match": true
+    },
+    "local/era5_ts/37015020/TempMaxima_Berlin.csv": {
+      "description": "Tmax Obs CSV (37015020)",
+      "size": 1118799,
+      "sha256": "7f97e54aa45f334c02c7c1a4f5255bc5f5b3bf44efd58324f085097a0eb2f76d",
+      "expected_sha256": "7f97e54aa45f334c02c7c1a4f5255bc5f5b3bf44efd58324f085097a0eb2f76d",
+      "match": true
+    },
+    "local/era5_ts/37015020/TempMinima_Berlin.csv": {
+      "description": "Tmin Obs CSV (37015020)",
+      "size": 1095520,
+      "sha256": "1628255701b81417ba5eaeb287b06c5cf7befb7312215c83d3064897d2cf7d01",
+      "expected_sha256": "1628255701b81417ba5eaeb287b06c5cf7befb7312215c83d3064897d2cf7d01",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1991.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1991.nc)",
+      "size": 113328,
+      "sha256": "bd2e5b406d324327e2bed5c952d4cf07d3e6b3e4e60d11a3a7b2a66601005cb1",
+      "expected_sha256": "bd2e5b406d324327e2bed5c952d4cf07d3e6b3e4e60d11a3a7b2a66601005cb1",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1992.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1992.nc)",
+      "size": 113616,
+      "sha256": "5e8c10ad8533cb2ac7a481d30d68dfe255ae450b51e7287cb0292d10fa95290c",
+      "expected_sha256": "5e8c10ad8533cb2ac7a481d30d68dfe255ae450b51e7287cb0292d10fa95290c",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1993.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1993.nc)",
+      "size": 113328,
+      "sha256": "4eca01024a23d9041bbfc109378d58e31a801c3e15b6edf3b96ff26ffab19d62",
+      "expected_sha256": "4eca01024a23d9041bbfc109378d58e31a801c3e15b6edf3b96ff26ffab19d62",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1994.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1994.nc)",
+      "size": 113328,
+      "sha256": "31fa78912e79e8e1811b7dce546df70303681f38b7fbef510de91ba82bf14e81",
+      "expected_sha256": "31fa78912e79e8e1811b7dce546df70303681f38b7fbef510de91ba82bf14e81",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1995.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1995.nc)",
+      "size": 113328,
+      "sha256": "227d49ba5d0bdf63d078124501c39ca7a38dee48bd51a70665596322e9a2ee84",
+      "expected_sha256": "227d49ba5d0bdf63d078124501c39ca7a38dee48bd51a70665596322e9a2ee84",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1996.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1996.nc)",
+      "size": 113616,
+      "sha256": "1c96f0a1b429d3326b9a05e165ebb0511d3e254b8220d1b31ff6ead6ca30b1a8",
+      "expected_sha256": "1c96f0a1b429d3326b9a05e165ebb0511d3e254b8220d1b31ff6ead6ca30b1a8",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1997.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1997.nc)",
+      "size": 113328,
+      "sha256": "1044b7724b28ec3a064d5f536ab739cc86eca4ddee43b39d9965c064bbc3b63d",
+      "expected_sha256": "1044b7724b28ec3a064d5f536ab739cc86eca4ddee43b39d9965c064bbc3b63d",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1998.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1998.nc)",
+      "size": 113328,
+      "sha256": "605b612601a9f2afe9fa65ecb1e32bf4607311771501430f39236d45a97055dc",
+      "expected_sha256": "605b612601a9f2afe9fa65ecb1e32bf4607311771501430f39236d45a97055dc",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_1999.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_1999.nc)",
+      "size": 113328,
+      "sha256": "2995de237b462c74b60177c3560af232542acf031a9983341107174374f5a530",
+      "expected_sha256": "2995de237b462c74b60177c3560af232542acf031a9983341107174374f5a530",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2000.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2000.nc)",
+      "size": 113616,
+      "sha256": "3e013f3ef5b2749cb1c093a3cd8baa2ef43f622a8d2de62963f311c87e81ba35",
+      "expected_sha256": "3e013f3ef5b2749cb1c093a3cd8baa2ef43f622a8d2de62963f311c87e81ba35",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2001.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2001.nc)",
+      "size": 113328,
+      "sha256": "ebdd3dadb9653364399742d8413b60181331a8beb77a5236c2df7c95436efc1c",
+      "expected_sha256": "ebdd3dadb9653364399742d8413b60181331a8beb77a5236c2df7c95436efc1c",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2002.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2002.nc)",
+      "size": 113328,
+      "sha256": "70154bff3994bd1737ad60734dad1b9508b480f0c360c4be41b12a1a57d48ff0",
+      "expected_sha256": "70154bff3994bd1737ad60734dad1b9508b480f0c360c4be41b12a1a57d48ff0",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2003.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2003.nc)",
+      "size": 113328,
+      "sha256": "3f2a89efda7d2af76f992c2520496aeed964d3953a2332856772fe11c8f5a1ed",
+      "expected_sha256": "3f2a89efda7d2af76f992c2520496aeed964d3953a2332856772fe11c8f5a1ed",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2004.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2004.nc)",
+      "size": 113616,
+      "sha256": "a8c1de7de9cdb69aedbed7c3c334d49abdf737a3d2b36089c46176eb439a0bf1",
+      "expected_sha256": "a8c1de7de9cdb69aedbed7c3c334d49abdf737a3d2b36089c46176eb439a0bf1",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2005.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2005.nc)",
+      "size": 113328,
+      "sha256": "b62f4d7f1d8714824013278042e3b58217e0b47973bb8ce5757c0ed03e968124",
+      "expected_sha256": "b62f4d7f1d8714824013278042e3b58217e0b47973bb8ce5757c0ed03e968124",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2006.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2006.nc)",
+      "size": 113328,
+      "sha256": "9d94001071ae9918d1ea3f0b5dca3d446bdab8eca109e3a0421707130f78532c",
+      "expected_sha256": "9d94001071ae9918d1ea3f0b5dca3d446bdab8eca109e3a0421707130f78532c",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2007.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2007.nc)",
+      "size": 113328,
+      "sha256": "8f5a7bdae5c855847db33fa349c0fb201e210f8f9bac2b417a93f02fc1afccc4",
+      "expected_sha256": "8f5a7bdae5c855847db33fa349c0fb201e210f8f9bac2b417a93f02fc1afccc4",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2008.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2008.nc)",
+      "size": 113616,
+      "sha256": "3d30bc7078c6491c4888d8bb9ae1bb14c8d209ac28bc3f597b0b27351ee1ab6c",
+      "expected_sha256": "3d30bc7078c6491c4888d8bb9ae1bb14c8d209ac28bc3f597b0b27351ee1ab6c",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2009.nc": {
+      "description": "ERA5 Cal (37015020/era5_2m_temperature_2009.nc)",
+      "size": 113328,
+      "sha256": "9a82c01c6113f7caa209ebde01a7ae1ee656164548e5afee7de66f22973e7fed",
+      "expected_sha256": "9a82c01c6113f7caa209ebde01a7ae1ee656164548e5afee7de66f22973e7fed",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2010.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2010.nc)",
+      "size": 113328,
+      "sha256": "2c4377a8f1ce9040ff6924a739cdf812d852cc105a62450c4b620b6f9267163e",
+      "expected_sha256": "2c4377a8f1ce9040ff6924a739cdf812d852cc105a62450c4b620b6f9267163e",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2011.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2011.nc)",
+      "size": 113328,
+      "sha256": "ee8d24ce6c695dcb861b32c678933b0b6365c52b60a3b8356ad2d02af49decda",
+      "expected_sha256": "ee8d24ce6c695dcb861b32c678933b0b6365c52b60a3b8356ad2d02af49decda",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2012.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2012.nc)",
+      "size": 113616,
+      "sha256": "646c2021dbe63ed14573f750c156ea96fa4eab2b63daaa3235e28e17d5a4d845",
+      "expected_sha256": "646c2021dbe63ed14573f750c156ea96fa4eab2b63daaa3235e28e17d5a4d845",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2013.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2013.nc)",
+      "size": 113328,
+      "sha256": "fa0eb6e90d41e72ec6e0621fbd36b1a866e61d7fb1569545925be42a7c3c919d",
+      "expected_sha256": "fa0eb6e90d41e72ec6e0621fbd36b1a866e61d7fb1569545925be42a7c3c919d",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2014.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2014.nc)",
+      "size": 113328,
+      "sha256": "9864cd0137de0713326c0f2ccd4d3a0369c82693729ebb3f20acc73375ef39b0",
+      "expected_sha256": "9864cd0137de0713326c0f2ccd4d3a0369c82693729ebb3f20acc73375ef39b0",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2015.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2015.nc)",
+      "size": 113328,
+      "sha256": "d86db00064cf90c35109de4b2d3804a262021f4fb80ce44383f80dfb4e7be7ca",
+      "expected_sha256": "d86db00064cf90c35109de4b2d3804a262021f4fb80ce44383f80dfb4e7be7ca",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2016.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2016.nc)",
+      "size": 113616,
+      "sha256": "9ce46a5763ec5535217029771580489732a79114a4a8af24efa272e8602d2fd1",
+      "expected_sha256": "9ce46a5763ec5535217029771580489732a79114a4a8af24efa272e8602d2fd1",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2017.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2017.nc)",
+      "size": 113328,
+      "sha256": "72fb5dc24012fc291300a53461e7c73ecff60dff1bd1276ae742f4c71e4830cf",
+      "expected_sha256": "72fb5dc24012fc291300a53461e7c73ecff60dff1bd1276ae742f4c71e4830cf",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2018.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2018.nc)",
+      "size": 113328,
+      "sha256": "4c22b2b31f9a24a09465a94757a91e8d14e64cd826a29544c4325405fb931110",
+      "expected_sha256": "4c22b2b31f9a24a09465a94757a91e8d14e64cd826a29544c4325405fb931110",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2019.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2019.nc)",
+      "size": 113328,
+      "sha256": "02f99722daafc8fab634aabf6074290b9af90959365ea873addf13c65edd752b",
+      "expected_sha256": "02f99722daafc8fab634aabf6074290b9af90959365ea873addf13c65edd752b",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2020.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2020.nc)",
+      "size": 113616,
+      "sha256": "fff89eee3afd653a9ce597f3bb46649b2b2a9a808b2b500c70f833631aa9e1b7",
+      "expected_sha256": "fff89eee3afd653a9ce597f3bb46649b2b2a9a808b2b500c70f833631aa9e1b7",
+      "match": true
+    },
+    "local/era5_ts/37015020/era5_2m_temperature_2021.nc": {
+      "description": "ERA5 Val (37015020/era5_2m_temperature_2021.nc)",
+      "size": 8496,
+      "sha256": "b7c26af08e10b55fa4a43a5ace1d5b1b84e097e0236acd0f832d6015f0041f27",
+      "expected_sha256": "b7c26af08e10b55fa4a43a5ace1d5b1b84e097e0236acd0f832d6015f0041f27",
+      "match": true
+    },
+    "docs/science/appendix_g/calibration/andes_calibration_24025040.json": {
+      "description": "Calibration Report (24025040)",
+      "size": 3742,
+      "sha256": "2e645c5bb8ef688b276078dd3f9778061acd5403b8e4100a579963e5967c0432",
+      "expected_sha256": "2e645c5bb8ef688b276078dd3f9778061acd5403b8e4100a579963e5967c0432",
+      "match": true
+    },
+    "local/era5_ts/24025040/TempMaxima_EscAgricolaMogotes.csv": {
+      "description": "Tmax Obs CSV (24025040)",
+      "size": 1281233,
+      "sha256": "3a3846817c262d53e52d02122ea1026b6c506330ba2e1cee81fbc5ca1beb8c34",
+      "expected_sha256": "3a3846817c262d53e52d02122ea1026b6c506330ba2e1cee81fbc5ca1beb8c34",
+      "match": true
+    },
+    "local/era5_ts/24025040/TempMinima_EscAgricolaMogotes.csv": {
+      "description": "Tmin Obs CSV (24025040)",
+      "size": 1109303,
+      "sha256": "bca87d9efd96d600f79222e3c2163bd24b2aeeb34512b1c15ea74385ddb99707",
+      "expected_sha256": "bca87d9efd96d600f79222e3c2163bd24b2aeeb34512b1c15ea74385ddb99707",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1990.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1990.nc)",
+      "size": 113328,
+      "sha256": "dd26e67b9dbd85340c173b9f753c2c792a24c516d67db892dbb33ef9ec7a3e67",
+      "expected_sha256": "dd26e67b9dbd85340c173b9f753c2c792a24c516d67db892dbb33ef9ec7a3e67",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1991.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1991.nc)",
+      "size": 113328,
+      "sha256": "a53bf47c76121455436bdc54c117ffb964aa15ef6ef2604a99be68965d47b760",
+      "expected_sha256": "a53bf47c76121455436bdc54c117ffb964aa15ef6ef2604a99be68965d47b760",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1992.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1992.nc)",
+      "size": 113616,
+      "sha256": "e908ea0bf45a80abf4244d222394a497b1977faaec00f14a455b8d330fbf34fb",
+      "expected_sha256": "e908ea0bf45a80abf4244d222394a497b1977faaec00f14a455b8d330fbf34fb",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1993.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1993.nc)",
+      "size": 113328,
+      "sha256": "a34e8b42b03620d2a03c0301e2d303ad312326d490fd4cf9443ec647a57864aa",
+      "expected_sha256": "a34e8b42b03620d2a03c0301e2d303ad312326d490fd4cf9443ec647a57864aa",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1994.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1994.nc)",
+      "size": 113328,
+      "sha256": "50bf519fb69afaf644f290d8da5e3b2f87d03cd5704ff70d8f14dfa0781e1eff",
+      "expected_sha256": "50bf519fb69afaf644f290d8da5e3b2f87d03cd5704ff70d8f14dfa0781e1eff",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1995.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1995.nc)",
+      "size": 113328,
+      "sha256": "e587b9911167580db6c208c8f4520b29cc47aee93334f6158132d988bf51fb63",
+      "expected_sha256": "e587b9911167580db6c208c8f4520b29cc47aee93334f6158132d988bf51fb63",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1996.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1996.nc)",
+      "size": 113616,
+      "sha256": "02feb4d3694bb634303165a116e15879c05db137cca96cffb5adf68778c1a6cb",
+      "expected_sha256": "02feb4d3694bb634303165a116e15879c05db137cca96cffb5adf68778c1a6cb",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1997.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1997.nc)",
+      "size": 113328,
+      "sha256": "29781f001b0197532bdb8a67fa9151e631c41c088da20e879d440b1e1785ac22",
+      "expected_sha256": "29781f001b0197532bdb8a67fa9151e631c41c088da20e879d440b1e1785ac22",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1998.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1998.nc)",
+      "size": 113328,
+      "sha256": "d5e6336e419de20063c7df906071787bce90f65a1dc64c2f68a7a930cf40a58d",
+      "expected_sha256": "d5e6336e419de20063c7df906071787bce90f65a1dc64c2f68a7a930cf40a58d",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_1999.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_1999.nc)",
+      "size": 113328,
+      "sha256": "6b5739b0e8cdaf18e95e8c8b198b9f5ace5a3fa478e19b0ee793fcc4e5298b0c",
+      "expected_sha256": "6b5739b0e8cdaf18e95e8c8b198b9f5ace5a3fa478e19b0ee793fcc4e5298b0c",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2000.nc": {
+      "description": "ERA5 Cal (24025040/era5_2m_temperature_2000.nc)",
+      "size": 113616,
+      "sha256": "d8fabb72312df206030912a2036be3ab23f159fc37caa758362d631d8f9d4447",
+      "expected_sha256": "d8fabb72312df206030912a2036be3ab23f159fc37caa758362d631d8f9d4447",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2001.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2001.nc)",
+      "size": 113328,
+      "sha256": "105ca0eac22da52bc10829c62f583cc45fd416d8ed2175c49295590f93f48e16",
+      "expected_sha256": "105ca0eac22da52bc10829c62f583cc45fd416d8ed2175c49295590f93f48e16",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2002.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2002.nc)",
+      "size": 113328,
+      "sha256": "5bdec93cdba1009ee24b24ec78b9f1622c8e640261b60baa9d6408b97c128e40",
+      "expected_sha256": "5bdec93cdba1009ee24b24ec78b9f1622c8e640261b60baa9d6408b97c128e40",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2003.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2003.nc)",
+      "size": 113328,
+      "sha256": "4e2cbe5f80edba206c81267b5e34aad7589a553dc415c60400e7cd63514504ad",
+      "expected_sha256": "4e2cbe5f80edba206c81267b5e34aad7589a553dc415c60400e7cd63514504ad",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2004.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2004.nc)",
+      "size": 113616,
+      "sha256": "2964950a0965af1a87fb45e9164b3079505a228e80ddda3b88ac6592af8861a5",
+      "expected_sha256": "2964950a0965af1a87fb45e9164b3079505a228e80ddda3b88ac6592af8861a5",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2005.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2005.nc)",
+      "size": 113328,
+      "sha256": "5787a4b838ad053c6a0df6bd048534076ab5aaaea39269b70619a99050f0ad5d",
+      "expected_sha256": "5787a4b838ad053c6a0df6bd048534076ab5aaaea39269b70619a99050f0ad5d",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2006.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2006.nc)",
+      "size": 113328,
+      "sha256": "730c475d7d820d7b46b92f4cd5200f037fee1e0016c6ea000989c809f0160852",
+      "expected_sha256": "730c475d7d820d7b46b92f4cd5200f037fee1e0016c6ea000989c809f0160852",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2007.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2007.nc)",
+      "size": 113328,
+      "sha256": "966ded2813cf899a580d03b28a3eaa21317504031850edfe460d2e4dc0234925",
+      "expected_sha256": "966ded2813cf899a580d03b28a3eaa21317504031850edfe460d2e4dc0234925",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2008.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2008.nc)",
+      "size": 113616,
+      "sha256": "6de0dd8c724b0dc8a7798106a69db562213f0eb52cbaada26321e50635249bd6",
+      "expected_sha256": "6de0dd8c724b0dc8a7798106a69db562213f0eb52cbaada26321e50635249bd6",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2009.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2009.nc)",
+      "size": 113328,
+      "sha256": "c61917a6df1e22f44782227075c8c9c2663bf43c55a37352b8f47fdafc45512f",
+      "expected_sha256": "c61917a6df1e22f44782227075c8c9c2663bf43c55a37352b8f47fdafc45512f",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2010.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2010.nc)",
+      "size": 113328,
+      "sha256": "09418ae827d6962ffa4b40e3c52d08468ca28079dddeace7585ef23937764190",
+      "expected_sha256": "09418ae827d6962ffa4b40e3c52d08468ca28079dddeace7585ef23937764190",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2011.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2011.nc)",
+      "size": 113328,
+      "sha256": "bdc42a96d63b0cf2a46a332f21a84b7cb9f21c4efa9109ddf689c71a2c9c638e",
+      "expected_sha256": "bdc42a96d63b0cf2a46a332f21a84b7cb9f21c4efa9109ddf689c71a2c9c638e",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2012.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2012.nc)",
+      "size": 113616,
+      "sha256": "e18bd958beed8ea64a46fb1b7878779972038aedd7ddde324719cf211c827543",
+      "expected_sha256": "e18bd958beed8ea64a46fb1b7878779972038aedd7ddde324719cf211c827543",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2013.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2013.nc)",
+      "size": 113328,
+      "sha256": "50b98f267756f2c19bf3f49cb553ed2caa35dfdaf7fbb0f1b15faa77f463e25f",
+      "expected_sha256": "50b98f267756f2c19bf3f49cb553ed2caa35dfdaf7fbb0f1b15faa77f463e25f",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2014.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2014.nc)",
+      "size": 113328,
+      "sha256": "66d1ffd04667e28b544a40d8de89cb55f6876308da00f5936c8075d209729107",
+      "expected_sha256": "66d1ffd04667e28b544a40d8de89cb55f6876308da00f5936c8075d209729107",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2015.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2015.nc)",
+      "size": 113328,
+      "sha256": "1047808bfa75fae84389bab633149c100403c68d3e8e5754de5b81880825493a",
+      "expected_sha256": "1047808bfa75fae84389bab633149c100403c68d3e8e5754de5b81880825493a",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2016.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2016.nc)",
+      "size": 113616,
+      "sha256": "6a7c8edb38fc1d6410179387f823836f7f262535e84b59ca3f539f2e004138c4",
+      "expected_sha256": "6a7c8edb38fc1d6410179387f823836f7f262535e84b59ca3f539f2e004138c4",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2017.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2017.nc)",
+      "size": 113328,
+      "sha256": "ec60ae70377f4ba619b893b2720da46c37a97ebacd9d0abb0c3ed90a75208dba",
+      "expected_sha256": "ec60ae70377f4ba619b893b2720da46c37a97ebacd9d0abb0c3ed90a75208dba",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2018.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2018.nc)",
+      "size": 113328,
+      "sha256": "3a089ea84e8a2d9d76d62259c8fcf01231f7aac9f2f3936bf85cc2f310b355fb",
+      "expected_sha256": "3a089ea84e8a2d9d76d62259c8fcf01231f7aac9f2f3936bf85cc2f310b355fb",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2019.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2019.nc)",
+      "size": 113328,
+      "sha256": "9988db587d51e4528d485253d48318e599f8ec9deb1d7c91d17bfda9d9361140",
+      "expected_sha256": "9988db587d51e4528d485253d48318e599f8ec9deb1d7c91d17bfda9d9361140",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2020.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2020.nc)",
+      "size": 113616,
+      "sha256": "072f406172e895dceec2b264aa3bcf7a3cab46456ff543bbfad3030db83eee6e",
+      "expected_sha256": "072f406172e895dceec2b264aa3bcf7a3cab46456ff543bbfad3030db83eee6e",
+      "match": true
+    },
+    "local/era5_ts/24025040/era5_2m_temperature_2021.nc": {
+      "description": "ERA5 Val (24025040/era5_2m_temperature_2021.nc)",
+      "size": 8496,
+      "sha256": "9eb06db0368705643341118dd477128072211d80f96fcbabff308c2ef1554d53",
+      "expected_sha256": "9eb06db0368705643341118dd477128072211d80f96fcbabff308c2ef1554d53",
+      "match": true
+    },
+    "docs/science/appendix_g/calibration/andes_calibration_26135040.json": {
+      "description": "Calibration Report (26135040)",
+      "size": 3733,
+      "sha256": "fb88608602b7e483ff47cb8916a1918696e3ebb583e1d071e8683781651464bc",
+      "expected_sha256": "fb88608602b7e483ff47cb8916a1918696e3ebb583e1d071e8683781651464bc",
+      "match": true
+    },
+    "local/era5_ts/26135040/TempMaxima_AeroMateca\u00f1a.csv": {
+      "description": "Tmax Obs CSV (26135040)",
+      "size": 1195107,
+      "sha256": "35262f32965e37bf7fb32f4b977e9505f819f4ce409869f166d68e736586cedf",
+      "expected_sha256": "35262f32965e37bf7fb32f4b977e9505f819f4ce409869f166d68e736586cedf",
+      "match": true
+    },
+    "local/era5_ts/26135040/TempMinima_AeroMateca\u00f1a.csv": {
+      "description": "Tmin Obs CSV (26135040)",
+      "size": 1201515,
+      "sha256": "0cd88ec6ea23c33dea6341d92953ddd1f5b0f5bd1cbd668e6059da7c1af84ef4",
+      "expected_sha256": "0cd88ec6ea23c33dea6341d92953ddd1f5b0f5bd1cbd668e6059da7c1af84ef4",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1990.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1990.nc)",
+      "size": 113328,
+      "sha256": "142805f5a8d9e4d07443319d2bb7db0a8cea9a9b3e03bc23b177a23fe9b6e53a",
+      "expected_sha256": "142805f5a8d9e4d07443319d2bb7db0a8cea9a9b3e03bc23b177a23fe9b6e53a",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1991.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1991.nc)",
+      "size": 113328,
+      "sha256": "b38af293e615ebaa87d76060e2a6bd9daa882fb4398a4c0b0e4d0c1b5835ad53",
+      "expected_sha256": "b38af293e615ebaa87d76060e2a6bd9daa882fb4398a4c0b0e4d0c1b5835ad53",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1992.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1992.nc)",
+      "size": 113616,
+      "sha256": "665e919a36c13a7e6cacf418ca1db1fbc2334fd764d1c9e6c3efecaa257ad209",
+      "expected_sha256": "665e919a36c13a7e6cacf418ca1db1fbc2334fd764d1c9e6c3efecaa257ad209",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1993.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1993.nc)",
+      "size": 113328,
+      "sha256": "6ba719ef0b65967d418459be84214b38ad2011d5a740e4d51d253b3dada0e944",
+      "expected_sha256": "6ba719ef0b65967d418459be84214b38ad2011d5a740e4d51d253b3dada0e944",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1994.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1994.nc)",
+      "size": 113328,
+      "sha256": "73ee06683390a821f0078f134f1f207c1fec9ebc9a1e4bd0d3f0ff69289006a3",
+      "expected_sha256": "73ee06683390a821f0078f134f1f207c1fec9ebc9a1e4bd0d3f0ff69289006a3",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1995.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1995.nc)",
+      "size": 113328,
+      "sha256": "1362b5bfb81283b9382e3c75494073cd2e23e0b657f6823ce63e805672b0d036",
+      "expected_sha256": "1362b5bfb81283b9382e3c75494073cd2e23e0b657f6823ce63e805672b0d036",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1996.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1996.nc)",
+      "size": 113616,
+      "sha256": "b66f09d528142b922063212c37c83c3001f0c4df304aba00a98ffb2eb83203a1",
+      "expected_sha256": "b66f09d528142b922063212c37c83c3001f0c4df304aba00a98ffb2eb83203a1",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1997.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1997.nc)",
+      "size": 113328,
+      "sha256": "0c02cad4bd213a74cb65852f20adaaeb040e15f54aafb48007935df5ec3b23ff",
+      "expected_sha256": "0c02cad4bd213a74cb65852f20adaaeb040e15f54aafb48007935df5ec3b23ff",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1998.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1998.nc)",
+      "size": 113328,
+      "sha256": "af5a837b85274103e27e118cae9afe8357c6242aa061da9dfbb9229744e0a7af",
+      "expected_sha256": "af5a837b85274103e27e118cae9afe8357c6242aa061da9dfbb9229744e0a7af",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_1999.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_1999.nc)",
+      "size": 113328,
+      "sha256": "71cb0123bcf8963a94cba5b2e250c4d845f1286a95bc16b65728c9365e113974",
+      "expected_sha256": "71cb0123bcf8963a94cba5b2e250c4d845f1286a95bc16b65728c9365e113974",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2000.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2000.nc)",
+      "size": 113616,
+      "sha256": "8c6a354c7626dcbbdff725b58c462d63f792acaf37c70fdd4c02078c306954ce",
+      "expected_sha256": "8c6a354c7626dcbbdff725b58c462d63f792acaf37c70fdd4c02078c306954ce",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2001.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2001.nc)",
+      "size": 113328,
+      "sha256": "e40c1b6d46d7cd5213b6eab4ba9fdb1abcca3239379d68e355e84fde6ed0932b",
+      "expected_sha256": "e40c1b6d46d7cd5213b6eab4ba9fdb1abcca3239379d68e355e84fde6ed0932b",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2002.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2002.nc)",
+      "size": 113328,
+      "sha256": "c6f4f087a7cb88a716ee41030be7239ce7bf580ba1d6f7432a4e80190a1cb4a8",
+      "expected_sha256": "c6f4f087a7cb88a716ee41030be7239ce7bf580ba1d6f7432a4e80190a1cb4a8",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2003.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2003.nc)",
+      "size": 113328,
+      "sha256": "ec6c83cac1f12fccf0eebdf524591f6e51420481b5c4f98f7ae7b8434c836e49",
+      "expected_sha256": "ec6c83cac1f12fccf0eebdf524591f6e51420481b5c4f98f7ae7b8434c836e49",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2004.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2004.nc)",
+      "size": 113616,
+      "sha256": "b8e7a701db9245cd79c95cded7471de7a1cc93985cf193111e56b3ac77b2f0aa",
+      "expected_sha256": "b8e7a701db9245cd79c95cded7471de7a1cc93985cf193111e56b3ac77b2f0aa",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2005.nc": {
+      "description": "ERA5 Cal (26135040/era5_2m_temperature_2005.nc)",
+      "size": 113328,
+      "sha256": "aaf754b7a21af975c738a4cb5a1c2112b64437caa656482ea3ab570bfdbc79b5",
+      "expected_sha256": "aaf754b7a21af975c738a4cb5a1c2112b64437caa656482ea3ab570bfdbc79b5",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2006.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2006.nc)",
+      "size": 113328,
+      "sha256": "46cfdf19598c3ca109878aa973fb069d2461e9370d7c4a9540c99b382fbc887f",
+      "expected_sha256": "46cfdf19598c3ca109878aa973fb069d2461e9370d7c4a9540c99b382fbc887f",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2007.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2007.nc)",
+      "size": 113328,
+      "sha256": "13a793aae8943a0de2e63bd741d2efa7433b44b0115c98b7511acdca519cfbbf",
+      "expected_sha256": "13a793aae8943a0de2e63bd741d2efa7433b44b0115c98b7511acdca519cfbbf",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2008.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2008.nc)",
+      "size": 113616,
+      "sha256": "1531ca1b6b231611158a4d30646b0a099d4b81c0118501fa915039b584c2180a",
+      "expected_sha256": "1531ca1b6b231611158a4d30646b0a099d4b81c0118501fa915039b584c2180a",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2009.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2009.nc)",
+      "size": 113328,
+      "sha256": "65534801930e87c4854ca35d21965aae308c806b3ffdd49c4479535c3dde6d6b",
+      "expected_sha256": "65534801930e87c4854ca35d21965aae308c806b3ffdd49c4479535c3dde6d6b",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2010.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2010.nc)",
+      "size": 113328,
+      "sha256": "a563089a6ac0e4945c3d524304b1450ddd8e39d98cf30364b36228b8eafd8877",
+      "expected_sha256": "a563089a6ac0e4945c3d524304b1450ddd8e39d98cf30364b36228b8eafd8877",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2011.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2011.nc)",
+      "size": 113328,
+      "sha256": "84e5675940112ebd37abdaf8ded3d524b319ec3c5a86aeedab13969d13a4bc2c",
+      "expected_sha256": "84e5675940112ebd37abdaf8ded3d524b319ec3c5a86aeedab13969d13a4bc2c",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2012.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2012.nc)",
+      "size": 113616,
+      "sha256": "69383c502c9e3dfb12334015c6e6c5d3d9d11baf833fc8ffbe02d46f895df0ef",
+      "expected_sha256": "69383c502c9e3dfb12334015c6e6c5d3d9d11baf833fc8ffbe02d46f895df0ef",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2013.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2013.nc)",
+      "size": 113328,
+      "sha256": "4783067ebca8af0d741fd8f36042b73cb5df754014f0924606eeb29c815b70ff",
+      "expected_sha256": "4783067ebca8af0d741fd8f36042b73cb5df754014f0924606eeb29c815b70ff",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2014.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2014.nc)",
+      "size": 113328,
+      "sha256": "dd43f728002bd72a8c73531b121dda61cba2ec6479934c4bc395ea57459a0fb2",
+      "expected_sha256": "dd43f728002bd72a8c73531b121dda61cba2ec6479934c4bc395ea57459a0fb2",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2015.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2015.nc)",
+      "size": 113328,
+      "sha256": "04c95aba86223e55f1ef99f76475c12623d3c3ad1f17c729c41834b2228246fb",
+      "expected_sha256": "04c95aba86223e55f1ef99f76475c12623d3c3ad1f17c729c41834b2228246fb",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2016.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2016.nc)",
+      "size": 113616,
+      "sha256": "2752332631f269443e2a421264a0975aef9b1547f619fecc6650d02550cf2de0",
+      "expected_sha256": "2752332631f269443e2a421264a0975aef9b1547f619fecc6650d02550cf2de0",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2017.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2017.nc)",
+      "size": 113328,
+      "sha256": "19c1e0bdadb629d1e7527a8bd5d83fbd25d2ad15a2750c34dffe1f0ad1cb4ae7",
+      "expected_sha256": "19c1e0bdadb629d1e7527a8bd5d83fbd25d2ad15a2750c34dffe1f0ad1cb4ae7",
+      "match": true
+    },
+    "local/era5_ts/26135040/era5_2m_temperature_2018.nc": {
+      "description": "ERA5 Val (26135040/era5_2m_temperature_2018.nc)",
+      "size": 113328,
+      "sha256": "59dfbe22776c552221ea67dc482bde0cdadd9a568dd2f059905f44836668db38",
+      "expected_sha256": "59dfbe22776c552221ea67dc482bde0cdadd9a568dd2f059905f44836668db38",
+      "match": true
+    },
+    "docs/science/appendix_g/calibration/andes_calibration_27015070.json": {
+      "description": "Calibration Report (27015070)",
+      "size": 3737,
+      "sha256": "6488c9baec9e14ea8c8cc23a986520b95afff26ddc8082ede1444838c6e006b7",
+      "expected_sha256": "6488c9baec9e14ea8c8cc23a986520b95afff26ddc8082ede1444838c6e006b7",
+      "match": true
+    },
+    "local/era5_ts/27015070/TempMaxima_AeroOlayaHerrera.csv": {
+      "description": "Tmax Obs CSV (27015070)",
+      "size": 1313837,
+      "sha256": "cf46fb60faa663a634ed44afb32573075b45fe9c033bf7bc40a27cf8da05dc2c",
+      "expected_sha256": "cf46fb60faa663a634ed44afb32573075b45fe9c033bf7bc40a27cf8da05dc2c",
+      "match": true
+    },
+    "local/era5_ts/27015070/TempMinima_AeroOlayaHerrera.csv": {
+      "description": "Tmin Obs CSV (27015070)",
+      "size": 1317057,
+      "sha256": "3f0a70d9db425dfb4586267ac3604d4157642d59856dc01b78c9e948743c1d01",
+      "expected_sha256": "3f0a70d9db425dfb4586267ac3604d4157642d59856dc01b78c9e948743c1d01",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1990.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1990.nc)",
+      "size": 113328,
+      "sha256": "a052bfd50a86ff9d112c2430db24d886cc2a60ae58e928a5b6d48fc26c6071af",
+      "expected_sha256": "a052bfd50a86ff9d112c2430db24d886cc2a60ae58e928a5b6d48fc26c6071af",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1991.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1991.nc)",
+      "size": 113328,
+      "sha256": "8d118b30f126d6e656706c7d3a16cad5547d2a9b90c92cb2ef321b46264193f0",
+      "expected_sha256": "8d118b30f126d6e656706c7d3a16cad5547d2a9b90c92cb2ef321b46264193f0",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1992.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1992.nc)",
+      "size": 113616,
+      "sha256": "3523e167aefaa7e8b78cb86f0d39497bf613db5dc86b00ee7dfdc68496839846",
+      "expected_sha256": "3523e167aefaa7e8b78cb86f0d39497bf613db5dc86b00ee7dfdc68496839846",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1993.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1993.nc)",
+      "size": 113328,
+      "sha256": "5bb58a756304d7c726804d65bc7ccd9ff1136de46b0953248b86ee63f5015b03",
+      "expected_sha256": "5bb58a756304d7c726804d65bc7ccd9ff1136de46b0953248b86ee63f5015b03",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1994.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1994.nc)",
+      "size": 113328,
+      "sha256": "a5a2cad202b3d23b7f28e89beb81e2a1e0758f78b0e340b842624d1d16247b02",
+      "expected_sha256": "a5a2cad202b3d23b7f28e89beb81e2a1e0758f78b0e340b842624d1d16247b02",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1995.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1995.nc)",
+      "size": 113328,
+      "sha256": "14c0c3b6a6a2ae437a01dfd2216989ac23dbea805cc153a9bc4113434c0f88bf",
+      "expected_sha256": "14c0c3b6a6a2ae437a01dfd2216989ac23dbea805cc153a9bc4113434c0f88bf",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1996.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1996.nc)",
+      "size": 113616,
+      "sha256": "e8352bdb8a71001a250542af7adcb98fc936711c8cacc807ea1471ce59ce529b",
+      "expected_sha256": "e8352bdb8a71001a250542af7adcb98fc936711c8cacc807ea1471ce59ce529b",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1997.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1997.nc)",
+      "size": 113328,
+      "sha256": "4c7444b1deeae1032cf8d86bf5c9608edecfe00fbe6175f662ae87790ed6af24",
+      "expected_sha256": "4c7444b1deeae1032cf8d86bf5c9608edecfe00fbe6175f662ae87790ed6af24",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1998.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1998.nc)",
+      "size": 113328,
+      "sha256": "dea6820aeb590c4184adf1ad554812866077ea2360255f1c69d159783abdd8b6",
+      "expected_sha256": "dea6820aeb590c4184adf1ad554812866077ea2360255f1c69d159783abdd8b6",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_1999.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_1999.nc)",
+      "size": 113328,
+      "sha256": "54750df982353f78a1d660894dd6f58973b92e336b8210a67955f0a2f2c38603",
+      "expected_sha256": "54750df982353f78a1d660894dd6f58973b92e336b8210a67955f0a2f2c38603",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2000.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_2000.nc)",
+      "size": 113616,
+      "sha256": "2fefff68e2223acc1cd0fc65e954fad674544d9f31bf57aa7d1211aaf1322801",
+      "expected_sha256": "2fefff68e2223acc1cd0fc65e954fad674544d9f31bf57aa7d1211aaf1322801",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2001.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_2001.nc)",
+      "size": 113328,
+      "sha256": "891b9c9a9252f80e045f64e4ae8db81eab901bcca1cfe4ced43692f98f353f1b",
+      "expected_sha256": "891b9c9a9252f80e045f64e4ae8db81eab901bcca1cfe4ced43692f98f353f1b",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2002.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_2002.nc)",
+      "size": 113328,
+      "sha256": "c86f1452c97901497d24bd544bb494fbd5d9681249eef21fc7818ffa5a4b4e74",
+      "expected_sha256": "c86f1452c97901497d24bd544bb494fbd5d9681249eef21fc7818ffa5a4b4e74",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2003.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_2003.nc)",
+      "size": 113328,
+      "sha256": "91e293d528735d1894c7ae2246af8cd467a036739d614e3c97ce76e53b56d7ab",
+      "expected_sha256": "91e293d528735d1894c7ae2246af8cd467a036739d614e3c97ce76e53b56d7ab",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2004.nc": {
+      "description": "ERA5 Cal (27015070/era5_2m_temperature_2004.nc)",
+      "size": 113616,
+      "sha256": "786ef37d976054fed8bdc41f43bba9f182509f5f01fdd3aea83e9e653cc88aa7",
+      "expected_sha256": "786ef37d976054fed8bdc41f43bba9f182509f5f01fdd3aea83e9e653cc88aa7",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2005.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2005.nc)",
+      "size": 113328,
+      "sha256": "1df3aa41b9ba19e0dd155a1523c3bc38c5f3efcd56846e118546a9421f93e6c2",
+      "expected_sha256": "1df3aa41b9ba19e0dd155a1523c3bc38c5f3efcd56846e118546a9421f93e6c2",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2006.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2006.nc)",
+      "size": 113328,
+      "sha256": "6d2904d735831c57a36c63aca105e5f4a7a4cee65d1b70a8b013e937070763a6",
+      "expected_sha256": "6d2904d735831c57a36c63aca105e5f4a7a4cee65d1b70a8b013e937070763a6",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2007.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2007.nc)",
+      "size": 113328,
+      "sha256": "553cbbcb704d08bb1b81cb928ec331af749e1a6baea497460ac8637b3de68bd4",
+      "expected_sha256": "553cbbcb704d08bb1b81cb928ec331af749e1a6baea497460ac8637b3de68bd4",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2008.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2008.nc)",
+      "size": 113616,
+      "sha256": "86fedf5d42ae0214de303148281ef56f664a476a02b9281a91ef3668486b037f",
+      "expected_sha256": "86fedf5d42ae0214de303148281ef56f664a476a02b9281a91ef3668486b037f",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2009.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2009.nc)",
+      "size": 113328,
+      "sha256": "f795d74312e6002ca5bd3121aef4f8a3e0980b0d6a438da6c7faeecf313697f5",
+      "expected_sha256": "f795d74312e6002ca5bd3121aef4f8a3e0980b0d6a438da6c7faeecf313697f5",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2010.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2010.nc)",
+      "size": 113328,
+      "sha256": "93bec3dc8b8fddc29689f872dc07be815e9130700b25c65efb4b8eb2fac8ddc0",
+      "expected_sha256": "93bec3dc8b8fddc29689f872dc07be815e9130700b25c65efb4b8eb2fac8ddc0",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2011.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2011.nc)",
+      "size": 113328,
+      "sha256": "dcaaf3045684b856131a97c7c8fe2064e06bfa000ecc4b9cfb3fb837e65aa31f",
+      "expected_sha256": "dcaaf3045684b856131a97c7c8fe2064e06bfa000ecc4b9cfb3fb837e65aa31f",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2012.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2012.nc)",
+      "size": 113616,
+      "sha256": "59eb26b9642198c48b1e894448f3ac6e8b9c9ad68d08769d560a61cb98e6c165",
+      "expected_sha256": "59eb26b9642198c48b1e894448f3ac6e8b9c9ad68d08769d560a61cb98e6c165",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2013.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2013.nc)",
+      "size": 113328,
+      "sha256": "63dd2a626035b854cde16ded3891b7b5f1f4f0a1f55a1d8f9045180663306da3",
+      "expected_sha256": "63dd2a626035b854cde16ded3891b7b5f1f4f0a1f55a1d8f9045180663306da3",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2014.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2014.nc)",
+      "size": 113328,
+      "sha256": "b47500cbf16e7622bb4a99f14c51093b4a64f5c9fa5283c36ba547f5e2ab43de",
+      "expected_sha256": "b47500cbf16e7622bb4a99f14c51093b4a64f5c9fa5283c36ba547f5e2ab43de",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2015.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2015.nc)",
+      "size": 113328,
+      "sha256": "cd086ce7a030aa8b5ad9978053180e0df40114f56815967299c7bd34ca2fc880",
+      "expected_sha256": "cd086ce7a030aa8b5ad9978053180e0df40114f56815967299c7bd34ca2fc880",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2016.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2016.nc)",
+      "size": 113616,
+      "sha256": "70fb3c566053f9974237514f845b1fbf9fe15f4db4b1e79d9323143385e61d08",
+      "expected_sha256": "70fb3c566053f9974237514f845b1fbf9fe15f4db4b1e79d9323143385e61d08",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2017.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2017.nc)",
+      "size": 113328,
+      "sha256": "824554cb5803e2991f80d1e2460aa51912cb768efd5d45f0035b9da4e15dbb2e",
+      "expected_sha256": "824554cb5803e2991f80d1e2460aa51912cb768efd5d45f0035b9da4e15dbb2e",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2018.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2018.nc)",
+      "size": 113328,
+      "sha256": "a2225be399c2274f857f31b84a7b06e245d4280758cab1cc0c90a28414f3b287",
+      "expected_sha256": "a2225be399c2274f857f31b84a7b06e245d4280758cab1cc0c90a28414f3b287",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2019.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2019.nc)",
+      "size": 113328,
+      "sha256": "61e766f0e87aed1ce0e65eaeb72710f77b084e6a1cdb6bfbe9c69d3316467c2b",
+      "expected_sha256": "61e766f0e87aed1ce0e65eaeb72710f77b084e6a1cdb6bfbe9c69d3316467c2b",
+      "match": true
+    },
+    "local/era5_ts/27015070/era5_2m_temperature_2020.nc": {
+      "description": "ERA5 Val (27015070/era5_2m_temperature_2020.nc)",
+      "size": 113616,
+      "sha256": "2122598b6801d11fee065c894776012c28f12008a16e636e8594e300ee0b0a43",
+      "expected_sha256": "2122598b6801d11fee065c894776012c28f12008a16e636e8594e300ee0b0a43",
+      "match": true
+    },
+    "docs/science/appendix_g/calibration/andes_calibration_52045010.json": {
+      "description": "Calibration Report (52045010)",
+      "size": 3724,
+      "sha256": "f4950b595cf87ea2620709f45633552ea998055cb3d625f08a6875e6ea11a37b",
+      "expected_sha256": "f4950b595cf87ea2620709f45633552ea998055cb3d625f08a6875e6ea11a37b",
+      "match": true
+    },
+    "local/era5_ts/52045010/TempMaxima_Obonuco.csv": {
+      "description": "Tmax Obs CSV (52045010)",
+      "size": 1006141,
+      "sha256": "a3f969cc3213ea0337a58ec4e99f74436514a912882f7521fc5f8ba404847799",
+      "expected_sha256": "a3f969cc3213ea0337a58ec4e99f74436514a912882f7521fc5f8ba404847799",
+      "match": true
+    },
+    "local/era5_ts/52045010/TempMinima_Obonuco.csv": {
+      "description": "Tmin Obs CSV (52045010)",
+      "size": 1021989,
+      "sha256": "24eb0f43f6d888ddf4646c07bc716dd84b09626e3d291b07fe552a2ed49e6861",
+      "expected_sha256": "24eb0f43f6d888ddf4646c07bc716dd84b09626e3d291b07fe552a2ed49e6861",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1990.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1990.nc)",
+      "size": 113328,
+      "sha256": "f7472f48f6d15d19bab2fdaa41b6b47045376f6473e73f346acdd44f086a03f7",
+      "expected_sha256": "f7472f48f6d15d19bab2fdaa41b6b47045376f6473e73f346acdd44f086a03f7",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1991.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1991.nc)",
+      "size": 113328,
+      "sha256": "eb8b1b130f8b09ddd1c0ad1ceebcc2fc02fdf505590ae733eb5f652e9a9e0afe",
+      "expected_sha256": "eb8b1b130f8b09ddd1c0ad1ceebcc2fc02fdf505590ae733eb5f652e9a9e0afe",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1992.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1992.nc)",
+      "size": 113616,
+      "sha256": "a85c0aabca908d40faa46e3078d9c78d5ad1f9bbdc38695a7a45980f5f0b4373",
+      "expected_sha256": "a85c0aabca908d40faa46e3078d9c78d5ad1f9bbdc38695a7a45980f5f0b4373",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1993.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1993.nc)",
+      "size": 113328,
+      "sha256": "683449cfcf3d9e2e1c2b67e5189b410702a2cc518b9b0e5ac446ca22032d5b72",
+      "expected_sha256": "683449cfcf3d9e2e1c2b67e5189b410702a2cc518b9b0e5ac446ca22032d5b72",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1994.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1994.nc)",
+      "size": 113328,
+      "sha256": "26729abcb085e4377a70cbc3655321e664bde34122d7a78b87dfa23730699c13",
+      "expected_sha256": "26729abcb085e4377a70cbc3655321e664bde34122d7a78b87dfa23730699c13",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1995.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1995.nc)",
+      "size": 113328,
+      "sha256": "3591c6437529fba953503553c4b67b044bfe3cad443f53453c6ce847cd269826",
+      "expected_sha256": "3591c6437529fba953503553c4b67b044bfe3cad443f53453c6ce847cd269826",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1996.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1996.nc)",
+      "size": 113616,
+      "sha256": "5534b1be15d0d44e3a0c613992b8c55d8379f05b1c7a0ba2a30a2b161c6ac772",
+      "expected_sha256": "5534b1be15d0d44e3a0c613992b8c55d8379f05b1c7a0ba2a30a2b161c6ac772",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1997.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1997.nc)",
+      "size": 113328,
+      "sha256": "b2d3f28fbd6dfbf3dd364281b62678353a1d0bce4713edd0f7efef84539abbea",
+      "expected_sha256": "b2d3f28fbd6dfbf3dd364281b62678353a1d0bce4713edd0f7efef84539abbea",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1998.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1998.nc)",
+      "size": 113328,
+      "sha256": "1f5e9cec65906caeb46c2ae9a561a8e25641578a4e18f10af6e3272f3baffbf9",
+      "expected_sha256": "1f5e9cec65906caeb46c2ae9a561a8e25641578a4e18f10af6e3272f3baffbf9",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_1999.nc": {
+      "description": "ERA5 Cal (52045010/era5_2m_temperature_1999.nc)",
+      "size": 113328,
+      "sha256": "a238cf216acf76bb75f928d6f849f62eca17a30635d77789f2440d412e00653d",
+      "expected_sha256": "a238cf216acf76bb75f928d6f849f62eca17a30635d77789f2440d412e00653d",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2000.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2000.nc)",
+      "size": 113616,
+      "sha256": "25f88bf4d98e3b389a2557d5a863832ddeceed96e4b3acb26060ac0984f2be32",
+      "expected_sha256": "25f88bf4d98e3b389a2557d5a863832ddeceed96e4b3acb26060ac0984f2be32",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2001.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2001.nc)",
+      "size": 113328,
+      "sha256": "e18bb1000ca2ef27f9502d68b06ba1246d5091c8e45735bffbaeb4fd3a2568b2",
+      "expected_sha256": "e18bb1000ca2ef27f9502d68b06ba1246d5091c8e45735bffbaeb4fd3a2568b2",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2002.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2002.nc)",
+      "size": 113328,
+      "sha256": "83529b3f63267b066066e54d3eb6939e60a0c39d7b84c0d70f8ab5526c922716",
+      "expected_sha256": "83529b3f63267b066066e54d3eb6939e60a0c39d7b84c0d70f8ab5526c922716",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2003.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2003.nc)",
+      "size": 113328,
+      "sha256": "ad80ff4d21013ba67cce94de201d72e95dd00b7b7ec72963acfe411917606be0",
+      "expected_sha256": "ad80ff4d21013ba67cce94de201d72e95dd00b7b7ec72963acfe411917606be0",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2004.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2004.nc)",
+      "size": 113616,
+      "sha256": "973c6e08c2ee6397f58f49d13ed80c3599a86473a832bf4d898adf73b1e063b6",
+      "expected_sha256": "973c6e08c2ee6397f58f49d13ed80c3599a86473a832bf4d898adf73b1e063b6",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2005.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2005.nc)",
+      "size": 113328,
+      "sha256": "f7fe5b48aa62114677434c9c7d0858da070804abe318686c431cd96997fe7fa3",
+      "expected_sha256": "f7fe5b48aa62114677434c9c7d0858da070804abe318686c431cd96997fe7fa3",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2006.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2006.nc)",
+      "size": 113328,
+      "sha256": "647500856a705565ad0289b0ed20e4464a5b3c49a020f71e0ecafe029f87e843",
+      "expected_sha256": "647500856a705565ad0289b0ed20e4464a5b3c49a020f71e0ecafe029f87e843",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2007.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2007.nc)",
+      "size": 113328,
+      "sha256": "665f4a7d476fc1c46d9a721a92acd86040c330c1489a352f198d3a6da7c6e08c",
+      "expected_sha256": "665f4a7d476fc1c46d9a721a92acd86040c330c1489a352f198d3a6da7c6e08c",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2008.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2008.nc)",
+      "size": 113616,
+      "sha256": "cd71ff78603071eb9a081c71942610a6c4095014b0d9a347b841a5d2e3f5e740",
+      "expected_sha256": "cd71ff78603071eb9a081c71942610a6c4095014b0d9a347b841a5d2e3f5e740",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2009.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2009.nc)",
+      "size": 113328,
+      "sha256": "97299f7e993fcfe5e65223bae918851eb4e65cb0af65d4c56cff7246d931e47f",
+      "expected_sha256": "97299f7e993fcfe5e65223bae918851eb4e65cb0af65d4c56cff7246d931e47f",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2010.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2010.nc)",
+      "size": 113328,
+      "sha256": "bb7630e1c06dc92f11d097db9a6738cb847351f40540577c5ef707fa7c514753",
+      "expected_sha256": "bb7630e1c06dc92f11d097db9a6738cb847351f40540577c5ef707fa7c514753",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2011.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2011.nc)",
+      "size": 113328,
+      "sha256": "312b96bcb9260cdc7956491f197e448a3bcde9df1bfc477741ef3b8299ada743",
+      "expected_sha256": "312b96bcb9260cdc7956491f197e448a3bcde9df1bfc477741ef3b8299ada743",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2012.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2012.nc)",
+      "size": 113616,
+      "sha256": "7002ea062fd14731bc5408829d77641f342d9495ddec03bee4a4ceb9fcfe10de",
+      "expected_sha256": "7002ea062fd14731bc5408829d77641f342d9495ddec03bee4a4ceb9fcfe10de",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2013.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2013.nc)",
+      "size": 113328,
+      "sha256": "fc8fa87fd0ab7733f6915cd2464f9ffcb09112c0787a144ce8a1dc0a3a89438e",
+      "expected_sha256": "fc8fa87fd0ab7733f6915cd2464f9ffcb09112c0787a144ce8a1dc0a3a89438e",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2014.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2014.nc)",
+      "size": 113328,
+      "sha256": "d9a7e13c0ecf631e0d0f81151787de17a386dd07be13606fe1f034aaa4f3a0e0",
+      "expected_sha256": "d9a7e13c0ecf631e0d0f81151787de17a386dd07be13606fe1f034aaa4f3a0e0",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2015.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2015.nc)",
+      "size": 113328,
+      "sha256": "843b418cf7ec2ca4756632aa68f0384aa74a82f001aa63e41ce22ccac43a2cec",
+      "expected_sha256": "843b418cf7ec2ca4756632aa68f0384aa74a82f001aa63e41ce22ccac43a2cec",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2016.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2016.nc)",
+      "size": 113616,
+      "sha256": "e0065f7175c9de2dc1676744a8349fe998432618114571407adbd83abde36a5f",
+      "expected_sha256": "e0065f7175c9de2dc1676744a8349fe998432618114571407adbd83abde36a5f",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2017.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2017.nc)",
+      "size": 113328,
+      "sha256": "3a5af947bb66c3afd734a845fdfe036d4dbe653f31ada1bf9e21e3969c70f784",
+      "expected_sha256": "3a5af947bb66c3afd734a845fdfe036d4dbe653f31ada1bf9e21e3969c70f784",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2018.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2018.nc)",
+      "size": 113328,
+      "sha256": "3c3f3de4a00dbf42ea6c18014652f1f9c94f6a75513f134ff7d5ae92ce5cf1c9",
+      "expected_sha256": "3c3f3de4a00dbf42ea6c18014652f1f9c94f6a75513f134ff7d5ae92ce5cf1c9",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2019.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2019.nc)",
+      "size": 113328,
+      "sha256": "95717e5e7b52e3aaf6eead2e221796813bca09938975c885a3655f2a4ef18b7f",
+      "expected_sha256": "95717e5e7b52e3aaf6eead2e221796813bca09938975c885a3655f2a4ef18b7f",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2020.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2020.nc)",
+      "size": 113616,
+      "sha256": "4e5010ab8c4b796761f2438684d930e0d81573d41ad34175ac83f543df2d059d",
+      "expected_sha256": "4e5010ab8c4b796761f2438684d930e0d81573d41ad34175ac83f543df2d059d",
+      "match": true
+    },
+    "local/era5_ts/52045010/era5_2m_temperature_2021.nc": {
+      "description": "ERA5 Val (52045010/era5_2m_temperature_2021.nc)",
+      "size": 8496,
+      "sha256": "b32334ec200d550753cd61d1e10633033df0a5a89aacbb4f1f3f0ac0a849de91",
+      "expected_sha256": "b32334ec200d550753cd61d1e10633033df0a5a89aacbb4f1f3f0ac0a849de91",
+      "match": true
+    }
+  }
+}

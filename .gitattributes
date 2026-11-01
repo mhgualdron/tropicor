@@ -11,3 +11,7 @@ docs/science/orographic_ceiling_screening/scripts/*.py text eol=lf
 docs/science/orographic_ceiling_screening/results/*.json text eol=crlf
 docs/science/orographic_ceiling_screening/results/*.csv text eol=crlf
 docs/science/orographic_ceiling_screening/README.md text eol=lf
+docs/science/andean_residual_diagnostic/scripts/*.py text eol=lf
+docs/science/andean_residual_diagnostic/results/*.json text eol=crlf
+docs/science/andean_residual_diagnostic/results/*.csv text eol=crlf
+docs/science/andean_residual_diagnostic/README.md text eol=lf
