@@ -7,3 +7,7 @@ docs/science/appendix_g/statics_g7.json text eol=lf
 docs/science/appendix_g/phase3_andes/phase3_summary.json text eol=lf
 docs/science/appendix_g/phase3_andes/phase3_scorecard_*.json text eol=lf
 docs/science/appendix_j/lag_audit/*.json text eol=lf
+docs/science/orographic_ceiling_screening/scripts/*.py text eol=lf
+docs/science/orographic_ceiling_screening/results/*.json text eol=crlf
+docs/science/orographic_ceiling_screening/results/*.csv text eol=crlf
+docs/science/orographic_ceiling_screening/README.md text eol=lf
