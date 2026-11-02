@@ -15,3 +15,7 @@ docs/science/andean_residual_diagnostic/scripts/*.py text eol=lf
 docs/science/andean_residual_diagnostic/results/*.json text eol=crlf
 docs/science/andean_residual_diagnostic/results/*.csv text eol=crlf
 docs/science/andean_residual_diagnostic/README.md text eol=lf
+docs/science/residual_diagnostics_round2/scripts/*.py text eol=lf
+docs/science/residual_diagnostics_round2/results/*/*.json text eol=crlf
+docs/science/residual_diagnostics_round2/results/*/*.csv text eol=crlf
+docs/science/residual_diagnostics_round2/README.md text eol=lf

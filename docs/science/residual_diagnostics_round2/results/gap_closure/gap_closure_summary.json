@@ -1,0 +1,830 @@
+{
+  "timestamp_utc": "2026-11-02T17:08:19.825016+00:00",
+  "task": "Close diagnostic gaps",
+  "item1_benchmark_calibration": {
+    "21205710": {
+      "name": "JARDIN BOTANICO [21205710]",
+      "cal_start": 1990,
+      "cal_end": 2004,
+      "variables": {
+        "Tmax": {
+          "offset_k": -1.6998633683596671,
+          "seasonal_amplitude_k": 0.9355247848101145,
+          "monthly_biases_k": [
+            -0.9244651093499812,
+            -1.2152837807791599,
+            -1.6256895316074562,
+            -2.057982323856674,
+            -2.3991546166756734,
+            -2.6353881531697816,
+            -2.5699825700507084,
+            -1.8492334456670854,
+            -1.1439452019290641,
+            -1.3194366053531077,
+            -1.405244291087051,
+            -1.2525547907902634
+          ],
+          "ols_slope_k_per_decade": -0.17087020699625038,
+          "ols_slope_95ci_k_per_decade": [
+            -0.4015996167511805,
+            0.1820523635817783
+          ],
+          "annual_series": [
+            {
+              "year": 1990,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.6046237357335398,
+              "level1_residual_r_y": 0.09523963262612749,
+              "included_in_stats": true
+            },
+            {
+              "year": 1991,
+              "partition": "calibration",
+              "n_valid_days": 363,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.7620932530404605,
+              "level1_residual_r_y": -0.062229884680793233,
+              "included_in_stats": true
+            },
+            {
+              "year": 1992,
+              "partition": "calibration",
+              "n_valid_days": 323,
+              "n_valid_months": 11,
+              "raw_bias_d_y": -1.3657887322572557,
+              "level1_residual_r_y": 0.3408177121707942,
+              "included_in_stats": true
+            },
+            {
+              "year": 1993,
+              "partition": "calibration",
+              "n_valid_days": 363,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.8243766398412784,
+              "level1_residual_r_y": -0.12451327148161113,
+              "included_in_stats": true
+            },
+            {
+              "year": 1994,
+              "partition": "calibration",
+              "n_valid_days": 9,
+              "n_valid_months": 0,
+              "raw_bias_d_y": null,
+              "level1_residual_r_y": null,
+              "included_in_stats": false
+            },
+            {
+              "year": 1995,
+              "partition": "calibration",
+              "n_valid_days": 0,
+              "n_valid_months": 0,
+              "raw_bias_d_y": null,
+              "level1_residual_r_y": null,
+              "included_in_stats": false
+            },
+            {
+              "year": 1996,
+              "partition": "calibration",
+              "n_valid_days": 219,
+              "n_valid_months": 9,
+              "raw_bias_d_y": -1.8032291125720614,
+              "level1_residual_r_y": 0.04487333171453953,
+              "included_in_stats": true
+            },
+            {
+              "year": 1997,
+              "partition": "calibration",
+              "n_valid_days": 242,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -2.1280157541709914,
+              "level1_residual_r_y": -0.4281523858113241,
+              "included_in_stats": true
+            },
+            {
+              "year": 1998,
+              "partition": "calibration",
+              "n_valid_days": 254,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.6678092846220425,
+              "level1_residual_r_y": 0.032054083737624715,
+              "included_in_stats": true
+            },
+            {
+              "year": 1999,
+              "partition": "calibration",
+              "n_valid_days": 327,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.4359358432689378,
+              "level1_residual_r_y": 0.26392752509072953,
+              "included_in_stats": true
+            },
+            {
+              "year": 2000,
+              "partition": "calibration",
+              "n_valid_days": 238,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.5116387276894026,
+              "level1_residual_r_y": 0.18822464067026465,
+              "included_in_stats": true
+            },
+            {
+              "year": 2001,
+              "partition": "calibration",
+              "n_valid_days": 291,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.4576150065170046,
+              "level1_residual_r_y": 0.24224836184266252,
+              "included_in_stats": true
+            },
+            {
+              "year": 2002,
+              "partition": "calibration",
+              "n_valid_days": 339,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -1.868785365295451,
+              "level1_residual_r_y": -0.1689219969357838,
+              "included_in_stats": true
+            },
+            {
+              "year": 2003,
+              "partition": "calibration",
+              "n_valid_days": 285,
+              "n_valid_months": 11,
+              "raw_bias_d_y": -2.0958322402755276,
+              "level1_residual_r_y": -0.35530445577318726,
+              "included_in_stats": true
+            },
+            {
+              "year": 2004,
+              "partition": "calibration",
+              "n_valid_days": 164,
+              "n_valid_months": 9,
+              "raw_bias_d_y": -2.1619243513401374,
+              "level1_residual_r_y": -0.3138219070535363,
+              "included_in_stats": true
+            }
+          ]
+        },
+        "Tmin": {
+          "offset_k": 0.6938453610540506,
+          "seasonal_amplitude_k": 1.1636144944590883,
+          "monthly_biases_k": [
+            1.857459855513139,
+            1.7257737109535611,
+            0.9404374029784073,
+            0.35138979928535363,
+            -0.1557900617115191,
+            0.23310583979370492,
+            0.35206836321339274,
+            0.09607940507454948,
+            0.7910562563546097,
+            0.5983228055736678,
+            0.5501364281394281,
+            0.9861045274803111
+          ],
+          "ols_slope_k_per_decade": 0.01382929599205573,
+          "ols_slope_95ci_k_per_decade": [
+            -0.3865601577748067,
+            0.37311798062813295
+          ],
+          "annual_series": [
+            {
+              "year": 1990,
+              "partition": "calibration",
+              "n_valid_days": 365,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 0.5789496586326446,
+              "level1_residual_r_y": -0.1148957024214059,
+              "included_in_stats": true
+            },
+            {
+              "year": 1991,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 0.5625274426965267,
+              "level1_residual_r_y": -0.1313179183575238,
+              "included_in_stats": true
+            },
+            {
+              "year": 1992,
+              "partition": "calibration",
+              "n_valid_days": 334,
+              "n_valid_months": 11,
+              "raw_bias_d_y": 0.7456144878312743,
+              "level1_residual_r_y": 0.07418658513398362,
+              "included_in_stats": true
+            },
+            {
+              "year": 1993,
+              "partition": "calibration",
+              "n_valid_days": 361,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 0.5453026264000133,
+              "level1_residual_r_y": -0.14854273465403725,
+              "included_in_stats": true
+            },
+            {
+              "year": 1994,
+              "partition": "calibration",
+              "n_valid_days": 10,
+              "n_valid_months": 1,
+              "raw_bias_d_y": null,
+              "level1_residual_r_y": null,
+              "included_in_stats": false
+            },
+            {
+              "year": 1995,
+              "partition": "calibration",
+              "n_valid_days": 0,
+              "n_valid_months": 0,
+              "raw_bias_d_y": null,
+              "level1_residual_r_y": null,
+              "included_in_stats": false
+            },
+            {
+              "year": 1996,
+              "partition": "calibration",
+              "n_valid_days": 244,
+              "n_valid_months": 10,
+              "raw_bias_d_y": 0.006512042616592062,
+              "level1_residual_r_y": -0.4677790340015985,
+              "included_in_stats": true
+            },
+            {
+              "year": 1997,
+              "partition": "calibration",
+              "n_valid_days": 243,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 1.1374437604599994,
+              "level1_residual_r_y": 0.4435983994059489,
+              "included_in_stats": true
+            },
+            {
+              "year": 1998,
+              "partition": "calibration",
+              "n_valid_days": 255,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 1.178711558539898,
+              "level1_residual_r_y": 0.4848661974858473,
+              "included_in_stats": true
+            },
+            {
+              "year": 1999,
+              "partition": "calibration",
+              "n_valid_days": 211,
+              "n_valid_months": 9,
+              "raw_bias_d_y": 0.6920602188449972,
+              "level1_residual_r_y": 0.004106822016641785,
+              "included_in_stats": true
+            },
+            {
+              "year": 2000,
+              "partition": "calibration",
+              "n_valid_days": 1,
+              "n_valid_months": 0,
+              "raw_bias_d_y": null,
+              "level1_residual_r_y": null,
+              "included_in_stats": false
+            },
+            {
+              "year": 2001,
+              "partition": "calibration",
+              "n_valid_days": 230,
+              "n_valid_months": 9,
+              "raw_bias_d_y": 0.3311321136315364,
+              "level1_residual_r_y": -0.09136492672440788,
+              "included_in_stats": true
+            },
+            {
+              "year": 2002,
+              "partition": "calibration",
+              "n_valid_days": 335,
+              "n_valid_months": 12,
+              "raw_bias_d_y": 0.873402680011623,
+              "level1_residual_r_y": 0.17955731895757246,
+              "included_in_stats": true
+            },
+            {
+              "year": 2003,
+              "partition": "calibration",
+              "n_valid_days": 287,
+              "n_valid_months": 11,
+              "raw_bias_d_y": 0.8630505742962498,
+              "level1_residual_r_y": 0.19577422837185932,
+              "included_in_stats": true
+            },
+            {
+              "year": 2004,
+              "partition": "calibration",
+              "n_valid_days": 177,
+              "n_valid_months": 9,
+              "raw_bias_d_y": -0.17099761931510343,
+              "level1_residual_r_y": -0.5934946596710478,
+              "included_in_stats": true
+            }
+          ]
+        }
+      }
+    },
+    "23215030": {
+      "name": "AGUAS CLARAS [23215030]",
+      "cal_start": 1990,
+      "cal_end": 2000,
+      "variables": {
+        "Tmax": {
+          "offset_k": -5.2894185973028565,
+          "seasonal_amplitude_k": 0.6370320217898771,
+          "monthly_biases_k": [
+            -5.9264506190927335,
+            -5.758489734280495,
+            -5.786855864882831,
+            -5.680749429808067,
+            -4.861892003499108,
+            -4.84775745613495,
+            -5.018986698579511,
+            -5.301167860485258,
+            -5.234613511620498,
+            -4.964093880667448,
+            -4.831154820404517,
+            -5.260811288178857
+          ],
+          "ols_slope_k_per_decade": 0.5763007874645252,
+          "ols_slope_95ci_k_per_decade": [
+            0.23250864927305728,
+            1.1805642681603004
+          ],
+          "annual_series": [
+            {
+              "year": 1990,
+              "partition": "calibration",
+              "n_valid_days": 358,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.5892785038878925,
+              "level1_residual_r_y": -0.29985990658503664,
+              "included_in_stats": true
+            },
+            {
+              "year": 1991,
+              "partition": "calibration",
+              "n_valid_days": 360,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.410119923480598,
+              "level1_residual_r_y": -0.12070132617774061,
+              "included_in_stats": true
+            },
+            {
+              "year": 1992,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.658636920946534,
+              "level1_residual_r_y": -0.36921832364367785,
+              "included_in_stats": true
+            },
+            {
+              "year": 1993,
+              "partition": "calibration",
+              "n_valid_days": 361,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.395676070436475,
+              "level1_residual_r_y": -0.10625747313361877,
+              "included_in_stats": true
+            },
+            {
+              "year": 1994,
+              "partition": "calibration",
+              "n_valid_days": 363,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.7088208394135025,
+              "level1_residual_r_y": -0.4194022421106478,
+              "included_in_stats": true
+            },
+            {
+              "year": 1995,
+              "partition": "calibration",
+              "n_valid_days": 363,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.016848021070023,
+              "level1_residual_r_y": 0.27257057623283387,
+              "included_in_stats": true
+            },
+            {
+              "year": 1996,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.0766884081945065,
+              "level1_residual_r_y": 0.21273018910834965,
+              "included_in_stats": true
+            },
+            {
+              "year": 1997,
+              "partition": "calibration",
+              "n_valid_days": 360,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -4.682531245492438,
+              "level1_residual_r_y": 0.606887351810418,
+              "included_in_stats": true
+            },
+            {
+              "year": 1998,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.302520959683622,
+              "level1_residual_r_y": -0.013102362380765342,
+              "included_in_stats": true
+            },
+            {
+              "year": 1999,
+              "partition": "calibration",
+              "n_valid_days": 354,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -5.374231655085656,
+              "level1_residual_r_y": -0.08481305778280006,
+              "included_in_stats": true
+            },
+            {
+              "year": 2000,
+              "partition": "calibration",
+              "n_valid_days": 363,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -4.9754813791609065,
+              "level1_residual_r_y": 0.3139372181419488,
+              "included_in_stats": true
+            }
+          ]
+        },
+        "Tmin": {
+          "offset_k": -3.1281625786705605,
+          "seasonal_amplitude_k": 0.21854253709887805,
+          "monthly_biases_k": [
+            -3.090343315921608,
+            -3.156223236083985,
+            -3.3467051157694385,
+            -3.2906037961519665,
+            -3.1067047995951604,
+            -3.1681132441996063,
+            -2.960379763930593,
+            -3.055776778364603,
+            -3.1045472078002554,
+            -3.113756065031069,
+            -3.1105805291069863,
+            -3.0342170920914526
+          ],
+          "ols_slope_k_per_decade": -0.5011773401235943,
+          "ols_slope_95ci_k_per_decade": [
+            -0.8089233262458987,
+            -0.2295899833840773
+          ],
+          "annual_series": [
+            {
+              "year": 1990,
+              "partition": "calibration",
+              "n_valid_days": 365,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.001908278311453,
+              "level1_residual_r_y": 0.1262543003591071,
+              "included_in_stats": true
+            },
+            {
+              "year": 1991,
+              "partition": "calibration",
+              "n_valid_days": 365,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -2.8172310493789587,
+              "level1_residual_r_y": 0.310931529291602,
+              "included_in_stats": true
+            },
+            {
+              "year": 1992,
+              "partition": "calibration",
+              "n_valid_days": 360,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.1347357101729365,
+              "level1_residual_r_y": -0.006573131502376188,
+              "included_in_stats": true
+            },
+            {
+              "year": 1993,
+              "partition": "calibration",
+              "n_valid_days": 354,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -2.8651905958127757,
+              "level1_residual_r_y": 0.26297198285778417,
+              "included_in_stats": true
+            },
+            {
+              "year": 1994,
+              "partition": "calibration",
+              "n_valid_days": 364,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -2.879683717706815,
+              "level1_residual_r_y": 0.24847886096374575,
+              "included_in_stats": true
+            },
+            {
+              "year": 1995,
+              "partition": "calibration",
+              "n_valid_days": 365,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.3807751343546943,
+              "level1_residual_r_y": -0.2526125556841337,
+              "included_in_stats": true
+            },
+            {
+              "year": 1996,
+              "partition": "calibration",
+              "n_valid_days": 360,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.1699021543661345,
+              "level1_residual_r_y": -0.04173957569557422,
+              "included_in_stats": true
+            },
+            {
+              "year": 1997,
+              "partition": "calibration",
+              "n_valid_days": 355,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -2.998964114739922,
+              "level1_residual_r_y": 0.1291984639306379,
+              "included_in_stats": true
+            },
+            {
+              "year": 1998,
+              "partition": "calibration",
+              "n_valid_days": 360,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.444975731033592,
+              "level1_residual_r_y": -0.31681315236303104,
+              "included_in_stats": true
+            },
+            {
+              "year": 1999,
+              "partition": "calibration",
+              "n_valid_days": 349,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.2636995264939483,
+              "level1_residual_r_y": -0.13553694782338818,
+              "included_in_stats": true
+            },
+            {
+              "year": 2000,
+              "partition": "calibration",
+              "n_valid_days": 357,
+              "n_valid_months": 12,
+              "raw_bias_d_y": -3.449626537472455,
+              "level1_residual_r_y": -0.3214639588018944,
+              "included_in_stats": true
+            }
+          ]
+        }
+      }
+    }
+  },
+  "item4_bootstrap_comparison": [
+    {
+      "station_id": "37015020",
+      "station_name": "BERLIN [37015020]",
+      "variable": "Tmax",
+      "point_delta_level_k": 0.16257382219652294,
+      "n_cal_years": 11,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        -0.1623981493116557,
+        0.47095735327380606
+      ],
+      "ci_diagnostic2_1k": [
+        -0.15692251089798637,
+        0.46131452517501664
+      ],
+      "ci_archived_10k": [
+        -0.15458937033687295,
+        0.4699485363999027
+      ],
+      "ci_diagnostic2_10k": [
+        -0.15328336413324617,
+        0.464426309472358
+      ]
+    },
+    {
+      "station_id": "37015020",
+      "station_name": "BERLIN [37015020]",
+      "variable": "Tmin",
+      "point_delta_level_k": -0.030756776797118413,
+      "n_cal_years": 11,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        -0.28866376480058703,
+        0.22683649117693708
+      ],
+      "ci_diagnostic2_1k": [
+        -0.2864088125109841,
+        0.20572735502742873
+      ],
+      "ci_archived_10k": [
+        -0.28649218470492127,
+        0.23598001474144079
+      ],
+      "ci_diagnostic2_10k": [
+        -0.287401551369414,
+        0.22996973225754605
+      ]
+    },
+    {
+      "station_id": "24025040",
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "variable": "Tmax",
+      "point_delta_level_k": -0.14505257854283116,
+      "n_cal_years": 10,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        -0.4453211952139846,
+        0.14275233347164293
+      ],
+      "ci_diagnostic2_1k": [
+        -0.4940936693931998,
+        0.1483426803855087
+      ],
+      "ci_archived_10k": [
+        -0.45950035185406923,
+        0.13665314153300215
+      ],
+      "ci_diagnostic2_10k": [
+        -0.4722758963940529,
+        0.13541346496151127
+      ]
+    },
+    {
+      "station_id": "24025040",
+      "station_name": "ESCUELA AGRICOLA MOGOTES [24025040]",
+      "variable": "Tmin",
+      "point_delta_level_k": -0.23536807602957666,
+      "n_cal_years": 10,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        -0.5790906132629473,
+        0.14579979967027748
+      ],
+      "ci_diagnostic2_1k": [
+        -0.5922200153055721,
+        0.13301584613812917
+      ],
+      "ci_archived_10k": [
+        -0.5946195224655374,
+        0.1488172146184629
+      ],
+      "ci_diagnostic2_10k": [
+        -0.5978329682069301,
+        0.1332708830666682
+      ]
+    },
+    {
+      "station_id": "26135040",
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "variable": "Tmax",
+      "point_delta_level_k": 0.2531600108438017,
+      "n_cal_years": 12,
+      "n_val_years": 12,
+      "ci_archived_1k": [
+        -0.00604091515402605,
+        0.5045972607912751
+      ],
+      "ci_diagnostic2_1k": [
+        0.01301406406221666,
+        0.4995055789929725
+      ],
+      "ci_archived_10k": [
+        -0.011590438759360666,
+        0.5063043161111921
+      ],
+      "ci_diagnostic2_10k": [
+        -0.004261295072834211,
+        0.5072778279397624
+      ]
+    },
+    {
+      "station_id": "26135040",
+      "station_name": "AEROPUERTO MATECA\u00d1A [26135040]",
+      "variable": "Tmin",
+      "point_delta_level_k": 0.13310637019779792,
+      "n_cal_years": 12,
+      "n_val_years": 12,
+      "ci_archived_1k": [
+        -0.0633344201303758,
+        0.33656042037757766
+      ],
+      "ci_diagnostic2_1k": [
+        -0.05386401866943553,
+        0.3162871450460969
+      ],
+      "ci_archived_10k": [
+        -0.06539993124540451,
+        0.33656163963061275
+      ],
+      "ci_diagnostic2_10k": [
+        -0.07096616675895286,
+        0.3293073738495148
+      ]
+    },
+    {
+      "station_id": "27015070",
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "variable": "Tmax",
+      "point_delta_level_k": 0.5121197468466088,
+      "n_cal_years": 14,
+      "n_val_years": 14,
+      "ci_archived_1k": [
+        0.2336602413152943,
+        0.7963418685928464
+      ],
+      "ci_diagnostic2_1k": [
+        0.2129952133195338,
+        0.7805548704679964
+      ],
+      "ci_archived_10k": [
+        0.2214783395124434,
+        0.7904996284176918
+      ],
+      "ci_diagnostic2_10k": [
+        0.21748022214330537,
+        0.796621105031713
+      ]
+    },
+    {
+      "station_id": "27015070",
+      "station_name": "AEROPUERTO OLAYA HERRERA [27015070]",
+      "variable": "Tmin",
+      "point_delta_level_k": 0.5449881050664906,
+      "n_cal_years": 14,
+      "n_val_years": 14,
+      "ci_archived_1k": [
+        0.36565592111239514,
+        0.7210256199082558
+      ],
+      "ci_diagnostic2_1k": [
+        0.38238804950497923,
+        0.7057154843147342
+      ],
+      "ci_archived_10k": [
+        0.381719754174331,
+        0.7098652322139163
+      ],
+      "ci_diagnostic2_10k": [
+        0.37896083045125484,
+        0.7064337356888842
+      ]
+    },
+    {
+      "station_id": "52045010",
+      "station_name": "OBONUCO [52045010]",
+      "variable": "Tmax",
+      "point_delta_level_k": 0.17056947238650944,
+      "n_cal_years": 10,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        -0.22471254353102682,
+        0.5164592513672565
+      ],
+      "ci_diagnostic2_1k": [
+        -0.21354597383196133,
+        0.5320065296717637
+      ],
+      "ci_archived_10k": [
+        -0.1979809627528841,
+        0.5434504533901573
+      ],
+      "ci_diagnostic2_10k": [
+        -0.20694769157306794,
+        0.5538612186092883
+      ]
+    },
+    {
+      "station_id": "52045010",
+      "station_name": "OBONUCO [52045010]",
+      "variable": "Tmin",
+      "point_delta_level_k": 0.6906856913797086,
+      "n_cal_years": 10,
+      "n_val_years": 10,
+      "ci_archived_1k": [
+        0.39806936693785794,
+        0.9902188174275998
+      ],
+      "ci_diagnostic2_1k": [
+        0.40788241423919,
+        1.0415607135466913
+      ],
+      "ci_archived_10k": [
+        0.41158447996202646,
+        1.0000619932767998
+      ],
+      "ci_diagnostic2_10k": [
+        0.4097402976960549,
+        1.0017317198855102
+      ]
+    }
+  ]
+}
