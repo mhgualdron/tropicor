@@ -61,6 +61,8 @@ Elevation constants and partition definitions used by the screening script:
 
 Calibration and validation year lists are those of the registry (Andean stations) or Table J.2 (JB, AC) and are not always contiguous; each range shows the first and last year and the number in parentheses is the number of years used.
 
+Sign convention of the Delta z column. The rows of JB (21205710) and AC (23215030) follow Table J.2 of the evaluation protocol: Delta z = z_station - z_ERA5. The rows of the five Andean stations are printed as stored in docs/science/appendix_g/statics_g7.json: Delta z = z_ERA5 - z_station. The two conventions have opposite sign. The screening scripts use only the absolute value |Delta z| in all ceiling and daily-scale calculations (ceiling_orographic.py lines 299-301; ceiling_orographic_v2.py lines 374-376, 450), so the difference in sign convention does not affect any reported ceiling value.
+
 ## 7. Archived File Manifest
 
 | File Path | Size (bytes) | SHA-256 Hash |
