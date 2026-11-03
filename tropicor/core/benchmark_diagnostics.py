@@ -1,9 +1,10 @@
-"""Benchmark diagnostic helpers under Protocol Appendix K.5.2 (D1, D2, D3).
+"""Benchmark diagnostic helpers under Protocol Appendix K.5.2 (D1, D2, D3, D4).
 
 Provides pure diagnostic functions for Level 1 residual analysis:
 - D1: Annual bias and Level 1 residual series
 - D2: Level change between calibration and validation partitions
 - D3: OLS trend of Level 1 residuals over included years
+- D4: Best single step with permutation reference
 """
 
 from typing import Any, Dict, List, Optional, Sequence
@@ -349,5 +350,295 @@ def trend_d3(
         "ci_high": ci_high,
         "n_years": n_years,
         "n_degenerate_replicas": n_degenerate,
+        "status": DIAG_STATUS_OK,
+    }
+
+
+def annual_dtr_bias_series(
+    obs_tmax: pd.Series,
+    obs_tmin: pd.Series,
+    mod_tmax: pd.Series,
+    mod_tmin: pd.Series,
+    cal_years: Sequence[int],
+    val_years: Sequence[int],
+) -> pd.DataFrame:
+    """Compute annual diurnal temperature range (DTR) bias series.
+
+    Under Protocol Section K.4.4 and Appendix K.5.2:
+    - This is NOT a reuse of annual_series_d1: it operates strictly on days
+      where ALL FOUR values (obs_tmax, obs_tmin, mod_tmax, mod_tmin) are valid.
+    - Sign convention: ERA5 minus observation
+      ((mod_tmax - mod_tmin) - (obs_tmax - obs_tmin)).
+    - Inclusion rule: A month is valid if it contains >= 10 four-valid days. A year
+      is included if it contains >= 9 valid months.
+    - Annual value: Mean over valid months of the monthly mean DTR bias.
+      Raw bias only; no calibration monthly bias is subtracted.
+
+    Parameters
+    ----------
+    obs_tmax : pd.Series
+        Observed daily maximum temperature series.
+    obs_tmin : pd.Series
+        Observed daily minimum temperature series.
+    mod_tmax : pd.Series
+        Model/reanalysis daily maximum temperature series.
+    mod_tmin : pd.Series
+        Model/reanalysis daily minimum temperature series.
+    cal_years : Sequence[int]
+        Calendar years belonging to the calibration partition.
+    val_years : Sequence[int]
+        Calendar years belonging to the validation partition.
+
+    Returns
+    -------
+    pd.DataFrame
+        DataFrame sorted by year with columns:
+        - year (int)
+        - partition (str: "calibration" or "validation")
+        - n_days_all_four (int)
+        - valid_months (int)
+        - included (bool)
+        - exclusion_reason (str or None)
+        - dtr_bias_y (float or NaN)
+
+    Raises
+    ------
+    ValueError
+        If series indexes are unaligned, partitions overlap, or data contains
+        years outside both partitions.
+    """
+    idx = _require_aligned_index(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        mod_tmax=mod_tmax,
+        mod_tmin=mod_tmin,
+    )
+
+    cal_set = set(cal_years)
+    val_set = set(val_years)
+    overlap = cal_set & val_set
+    if overlap:
+        raise ValueError(
+            f"Calibration and validation partitions overlap: {sorted(overlap)}"
+        )
+
+    partition_years = cal_set | val_set
+    data_years = set(idx.year)
+    outside_years = data_years - partition_years
+    if outside_years:
+        raise ValueError(
+            f"Years present in data outside both partitions: {sorted(outside_years)}"
+        )
+
+    all_years = sorted(partition_years)
+    rows: List[Dict[str, Any]] = []
+
+    all_four_valid = (
+        obs_tmax.notna() & obs_tmin.notna() & mod_tmax.notna() & mod_tmin.notna()
+    )
+
+    dtr_mod = mod_tmax - mod_tmin
+    dtr_obs = obs_tmax - obs_tmin
+    dtr_diff = dtr_mod - dtr_obs
+
+    for y in all_years:
+        part = "calibration" if y in cal_set else "validation"
+        year_mask = idx.year == y
+
+        n_days_all_four = int(all_four_valid[year_mask].sum())
+
+        valid_months = 0
+        valid_dtr: List[float] = []
+
+        for m in range(1, 13):
+            m_mask = year_mask & (idx.month == m) & all_four_valid
+            n_m_days = int(m_mask.sum())
+            if n_m_days >= DIAG_MIN_PAIRED_DAYS_PER_MONTH:
+                valid_months += 1
+                diff_m = float(dtr_diff[m_mask].mean())
+                valid_dtr.append(diff_m)
+
+        included = valid_months >= DIAG_MIN_VALID_MONTHS_PER_YEAR
+        exclusion_reason: Optional[str]
+        if included:
+            exclusion_reason = None
+            dtr_bias_y = float(np.mean(valid_dtr))
+        else:
+            exclusion_reason = (
+                f"fewer than {DIAG_MIN_VALID_MONTHS_PER_YEAR} valid months "
+                f"({valid_months})"
+            )
+            dtr_bias_y = float("nan")
+
+        rows.append(
+            {
+                "year": y,
+                "partition": part,
+                "n_days_all_four": n_days_all_four,
+                "valid_months": valid_months,
+                "included": included,
+                "exclusion_reason": exclusion_reason,
+                "dtr_bias_y": dtr_bias_y,
+            }
+        )
+
+    return pd.DataFrame(rows)
+
+
+def step_description_d4(
+    years: Sequence[int | float] | np.ndarray,
+    values: Sequence[float] | np.ndarray,
+    n_permutations: int = 999,
+    seed: int = DIAG_SEED,
+    min_segment: int = 3,
+) -> Dict[str, Any]:
+    """Fit best single step model with permutation reference under Appendix K.5.2 D4.
+
+    Finds candidate break minimizing total sum-of-squared errors (SSE) of
+    two segment means, leaving at least min_segment years on each side.
+    A permutation reference of n_permutations random orderings of values
+    is computed using a single generator.
+
+    Descriptive only: no test decision, no comparison with the D3 linear fit,
+    no ranking of the two descriptions.
+
+    Parameters
+    ----------
+    years : Sequence[int or float] or np.ndarray
+        Strictly increasing calendar years for included years.
+    values : Sequence[float] or np.ndarray
+        Series values (e.g. r_y or dtr_bias_y) for included years.
+    n_permutations : int, default=999
+        Number of permutation iterations for reference rank.
+    seed : int, default=42
+        Random seed for the generator.
+    min_segment : int, default=3
+        Minimum number of included years required on each side of the break.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary with keys:
+        - n_years: number of included years
+        - break_year: first year of the second segment
+        - segment1: tuple of (first_year, last_year) of first segment
+        - segment2: tuple of (first_year, last_year) of second segment
+        - mean1: mean of first segment
+        - mean2: mean of second segment
+        - step: mean2 - mean1
+        - sse_constant: SSE of constant mean model
+        - sse_step: SSE of two-segment step model
+        - sse_reduction: sse_constant - sse_step
+        - sse_reduction_pct: 100 * sse_reduction / sse_constant
+        - rank_pct: percentage of permutation reductions <= real reduction
+        - n_permutations: number of permutations evaluated
+        - status: DIAG_STATUS_OK or DIAG_STATUS_INSUFFICIENT
+
+    Raises
+    ------
+    ValueError
+        If years and values have mismatched lengths, contain NaN values,
+        or years are not strictly increasing without duplicates.
+    """
+    y_arr = np.asarray(years)
+    v_arr = np.asarray(values, dtype=float)
+
+    if len(y_arr) != len(v_arr):
+        raise ValueError(
+            f"Mismatched lengths: {len(y_arr)} years vs {len(v_arr)} values."
+        )
+
+    if np.isnan(v_arr).any() or pd.isna(y_arr).any():
+        raise ValueError("years and values must not contain NaN values.")
+
+    if len(y_arr) > 1:
+        diffs = np.diff(y_arr)
+        if np.any(diffs <= 0):
+            raise ValueError("years must be strictly increasing without duplicates.")
+
+    n_years = len(y_arr)
+
+    if n_years < 2 * min_segment:
+        # OPEN ITEM v1.10: K.5.2 does not specify the output of D4 with fewer than 6 included years; NaN returned with status  # noqa: E501
+        return {
+            "n_years": n_years,
+            "break_year": float("nan"),
+            "segment1": (float("nan"), float("nan")),
+            "segment2": (float("nan"), float("nan")),
+            "mean1": float("nan"),
+            "mean2": float("nan"),
+            "step": float("nan"),
+            "sse_constant": float("nan"),
+            "sse_step": float("nan"),
+            "sse_reduction": float("nan"),
+            "sse_reduction_pct": float("nan"),
+            "rank_pct": float("nan"),
+            "n_permutations": n_permutations,
+            "status": DIAG_STATUS_INSUFFICIENT,
+        }
+
+    mu_0 = float(np.mean(v_arr))
+    sse_0 = float(np.sum((v_arr - mu_0) ** 2))
+
+    best_idx = min_segment
+    best_sse = float("inf")
+    best_m1 = float("nan")
+    best_m2 = float("nan")
+
+    for k in range(min_segment, n_years - min_segment + 1):
+        g1, g2 = v_arr[:k], v_arr[k:]
+        m1, m2 = float(np.mean(g1)), float(np.mean(g2))
+        sse = float(np.sum((g1 - m1) ** 2) + np.sum((g2 - m2) ** 2))
+        if sse < best_sse:
+            best_sse = sse
+            best_idx = k
+            best_m1 = m1
+            best_m2 = m2
+
+    step_size = float(best_m2 - best_m1)
+    red_step = float(sse_0 - best_sse)
+    if sse_0 == 0.0:
+        sse_red_pct = float("nan")
+    else:
+        sse_red_pct = float(100.0 * red_step / sse_0)
+
+    break_year = y_arr[best_idx]
+    segment1 = (y_arr[0], y_arr[best_idx - 1])
+    segment2 = (y_arr[best_idx], y_arr[-1])
+
+    # Permutation test
+    rng_p = np.random.default_rng(seed)
+    p_reds: List[float] = []
+    for _ in range(n_permutations):
+        p_vals = rng_p.permutation(v_arr)
+        p_best = float("inf")
+        for k in range(min_segment, n_years - min_segment + 1):
+            g1, g2 = p_vals[:k], p_vals[k:]
+            sse_p = float(
+                np.sum((g1 - np.mean(g1)) ** 2) + np.sum((g2 - np.mean(g2)) ** 2)
+            )
+            if sse_p < p_best:
+                p_best = sse_p
+        p_reds.append(float(sse_0 - p_best))
+
+    if n_permutations > 0:
+        rank_pct = float(np.mean(np.array(p_reds) <= red_step) * 100.0)
+    else:
+        rank_pct = float("nan")
+
+    return {
+        "n_years": n_years,
+        "break_year": break_year,
+        "segment1": segment1,
+        "segment2": segment2,
+        "mean1": best_m1,
+        "mean2": best_m2,
+        "step": step_size,
+        "sse_constant": sse_0,
+        "sse_step": best_sse,
+        "sse_reduction": red_step,
+        "sse_reduction_pct": sse_red_pct,
+        "rank_pct": rank_pct,
+        "n_permutations": n_permutations,
         "status": DIAG_STATUS_OK,
     }
