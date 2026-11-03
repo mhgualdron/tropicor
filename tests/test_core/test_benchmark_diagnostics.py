@@ -4,6 +4,7 @@ All tests use synthetic in-memory data only.
 """
 
 import inspect
+import itertools
 from typing import Any
 
 import numpy as np
@@ -12,11 +13,19 @@ import pytest
 
 import tropicor.core.benchmark_diagnostics as bdiag
 from tropicor.core.benchmark_diagnostics import (
+    DIAG_NOISE_FLOOR_DRAWS,
+    DIAG_SEED,
     DIAG_STATUS_INSUFFICIENT,
+    DIAG_STATUS_MONTH_WITHOUT_DAYS,
     DIAG_STATUS_OK,
+    _decompose,
+    _level1_bias_from_years,
+    _monthly_diff_sums_counts,
+    _validation_monthly_bias,
     annual_dtr_bias_series,
     annual_series_d1,
     level_change_d2,
+    noise_floor_d5_d6,
     step_description_d4,
     trend_d3,
 )
@@ -651,6 +660,359 @@ def test_d4_contract_errors() -> None:
 
 def test_source_guard_benchmark_diagnostics_extended() -> None:
     """Test 3j: Source guard extended against read_csv and ledger imports."""
+    src = inspect.getsource(bdiag)
+    assert "read_csv" not in src
+    assert "validate_validation_access" not in src
+    assert "record_validation_opening" not in src
+
+
+def test_d5_pooled_helper_equals_direct_daily() -> None:
+    """Test 3a: Pooled helper equals direct daily pooled mean with NaN holes."""
+    idx = _make_daily_index(2000, 2005)
+    rng = np.random.default_rng(123)
+    obs = pd.Series(rng.normal(20.0, 5.0, len(idx)), index=idx)
+    mod = pd.Series(rng.normal(22.0, 5.0, len(idx)), index=idx)
+    # Inject NaN holes
+    obs.iloc[rng.choice(len(idx), size=300, replace=False)] = np.nan
+    mod.iloc[rng.choice(len(idx), size=300, replace=False)] = np.nan
+
+    years = [2001, 2002, 2004]
+    sums, counts = _monthly_diff_sums_counts(obs, mod, years)
+    diff = mod - obs
+
+    # Verify per-year, per-month sums and counts against direct boolean masking
+    for i, y in enumerate(years):
+        for m in range(1, 13):
+            m_mask = (idx.year == y) & (idx.month == m) & diff.notna()
+            direct_cnt = int(m_mask.sum())
+            assert counts[i, m - 1] == direct_cnt
+            if direct_cnt > 0:
+                assert abs(sums[i, m - 1] - float(diff[m_mask].sum())) < 1e-10
+
+    # Verify pooled mean over subset of years (e.g. 2001 and 2004)
+    b_pooled = _level1_bias_from_years(sums, counts, [0, 2])
+    for m in range(1, 13):
+        m_mask = (
+            ((idx.year == 2001) | (idx.year == 2004)) & (idx.month == m) & diff.notna()
+        )
+        if m_mask.sum() > 0:
+            expected = float(diff[m_mask].mean())
+            assert abs(b_pooled[m - 1] - expected) < 1e-10
+
+
+def test_d5_d6_level1_sign_and_decomposition() -> None:
+    """Test 3b: Level 1 sign and decomposition under exact synthetic shifts."""
+    idx = _make_daily_index(2000, 2005)
+    obs = pd.Series(20.0, index=idx)
+    cal_years = [2000, 2001, 2002]
+    val_years = [2003, 2004, 2005]
+
+    # Case 1: mod = obs + 2.0 in all years -> validation bias all 0
+    mod1 = obs + 2.0
+    res1 = noise_floor_d5_d6(obs, mod1, cal_years, val_years)
+    assert np.allclose(res1["real_monthly_bias"], 0.0, atol=1e-12)
+    assert abs(res1["real_max_abs_bias"]) < 1e-12
+    assert abs(res1["real_offset"]) < 1e-12
+    assert abs(res1["real_amplitude"]) < 1e-12
+
+    # Case 2: mod = obs + 2.0 in cal, obs + 3.0 in val -> validation bias all 1.0
+    mod2 = obs.copy()
+    mod2[idx.year <= 2002] += 2.0
+    mod2[idx.year >= 2003] += 3.0
+    res2 = noise_floor_d5_d6(obs, mod2, cal_years, val_years)
+    assert np.allclose(res2["real_monthly_bias"], 1.0, atol=1e-12)
+    assert abs(res2["real_max_abs_bias"] - 1.0) < 1e-12
+    assert abs(res2["real_offset"] - 1.0) < 1e-12
+    assert abs(res2["real_amplitude"] - 0.0) < 1e-12
+
+    # Case 3: mod = obs + 2.0 everywhere except +1.0 extra in January of val
+    mod3 = obs + 2.0
+    val_jan_mask = (idx.year >= 2003) & (idx.month == 1)
+    mod3[val_jan_mask] += 1.0
+    res3 = noise_floor_d5_d6(obs, mod3, cal_years, val_years)
+    assert abs(res3["real_monthly_bias"][0] - 1.0) < 1e-12
+    for m in range(1, 12):
+        assert abs(res3["real_monthly_bias"][m] - 0.0) < 1e-12
+    assert abs(res3["real_offset"] - 1.0 / 12.0) < 1e-12
+    assert abs(res3["real_amplitude"] - 11.0 / 12.0) < 1e-12
+    assert abs(res3["real_max_abs_bias"] - 1.0) < 1e-12
+
+
+def test_d5_enumeration_branch() -> None:
+    """Test 3c: Enumeration branch (default n_draws): 11 years, k_val = 5."""
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    rng_11 = np.random.default_rng(999)
+    obs_11 = pd.Series(rng_11.normal(15.0, 3.0, len(idx_11)), index=idx_11)
+    mod_11 = obs_11 + rng_11.normal(1.5, 0.5, len(idx_11))
+    cal_11 = inc_11[:6]
+    val_11 = inc_11[6:]
+
+    res = noise_floor_d5_d6(obs_11, mod_11, cal_11, val_11)
+    assert res["mode"] == "enumeration"
+    assert res["n_draws_used"] == 462
+    assert res["n_skipped_draws"] == 0
+
+    # Recompute every split with a plain loop
+    ref_max_b = []
+    sums_11, counts_11 = _monthly_diff_sums_counts(obs_11, mod_11, inc_11)
+    year_to_idx = {y: i for i, y in enumerate(inc_11)}
+    for p_val_comb in itertools.combinations(inc_11, 5):
+        p_val_set = set(p_val_comb)
+        p_cal_comb = [y for y in inc_11 if y not in p_val_set]
+        p_cal_i = [year_to_idx[y] for y in p_cal_comb]
+        p_val_i = [year_to_idx[y] for y in p_val_comb]
+        b_c = _level1_bias_from_years(sums_11, counts_11, p_cal_i)
+        v_v = _validation_monthly_bias(sums_11, counts_11, p_val_i, b_c)
+        ref_max_b.append(_decompose(v_v)["max_abs_bias"])
+
+    ref_arr = np.array(ref_max_b)
+    assert abs(res["floor_max_abs_bias"]["median"] - float(np.median(ref_arr))) < 1e-10
+    assert (
+        abs(res["floor_max_abs_bias"]["p5"] - float(np.percentile(ref_arr, 5))) < 1e-10
+    )
+    assert (
+        abs(res["floor_max_abs_bias"]["p95"] - float(np.percentile(ref_arr, 95)))
+        < 1e-10
+    )
+    real_max = res["real_max_abs_bias"]
+    expected_rank = float(100.0 * np.mean(ref_arr <= real_max))
+    assert abs(res["floor_max_abs_bias"]["rank_pct"] - expected_rank) < 1e-10
+
+
+def test_d5_random_branch_and_parameter_override() -> None:
+    """Test 3d: Random branch (default n_draws) and explicit parameter override."""
+    inc_13 = list(range(2000, 2013))
+    idx_13 = _make_daily_index(2000, 2012)
+    rng_13 = np.random.default_rng(888)
+    obs_13 = pd.Series(rng_13.normal(15.0, 3.0, len(idx_13)), index=idx_13)
+    mod_13 = obs_13 + rng_13.normal(2.0, 0.4, len(idx_13))
+    cal_13 = inc_13[:7]
+    val_13 = inc_13[7:]
+
+    res = noise_floor_d5_d6(obs_13, mod_13, cal_13, val_13)
+    assert res["mode"] == "random"
+    assert res["n_draws_used"] == DIAG_NOISE_FLOOR_DRAWS
+    assert res["n_skipped_draws"] == 0
+
+    # Determinism: two calls identical
+    res_det = noise_floor_d5_d6(obs_13, mod_13, cal_13, val_13)
+    assert res == res_det
+
+    # Reference loop with default_rng(42).permutation(inc_years)
+    rng_ref = np.random.default_rng(DIAG_SEED)
+    sums_13, counts_13 = _monthly_diff_sums_counts(obs_13, mod_13, inc_13)
+    y_to_i = {y: i for i, y in enumerate(inc_13)}
+    ref_random_b = []
+    for _ in range(DIAG_NOISE_FLOOR_DRAWS):
+        perm = rng_ref.permutation(inc_13)
+        p_cal = perm[:7]
+        p_val = perm[7:13]
+        p_cal_i = [y_to_i[y] for y in p_cal]
+        p_val_i = [y_to_i[y] for y in p_val]
+        b_c = _level1_bias_from_years(sums_13, counts_13, p_cal_i)
+        v_v = _validation_monthly_bias(sums_13, counts_13, p_val_i, b_c)
+        ref_random_b.append(_decompose(v_v)["max_abs_bias"])
+
+    assert (
+        abs(res["floor_max_abs_bias"]["median"] - float(np.median(ref_random_b)))
+        < 1e-10
+    )
+
+    # Override: 11-year case with explicit n_draws=100 (comb 462 > 100 -> mode "random")
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    obs_11 = obs_13.loc[idx_11]
+    mod_11 = mod_13.loc[idx_11]
+    res_override = noise_floor_d5_d6(
+        obs_11, mod_11, inc_11[:6], inc_11[6:], n_draws=100
+    )
+    assert res_override["mode"] == "random"
+    assert res_override["n_draws_used"] == 100
+
+
+def test_d5_rank_operator_less_equal() -> None:
+    """Test 3e: Rank operator <= convention and 100% rank boundary."""
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    rng = np.random.default_rng(777)
+    obs = pd.Series(rng.normal(15.0, 3.0, len(idx_11)), index=idx_11)
+    mod = obs + rng.normal(1.5, 0.5, len(idx_11))
+    cal = inc_11[:6]
+    val = inc_11[6:]
+
+    # Case A: Real validation has huge bias -> larger than every draw -> rank 100
+    mod_huge = mod.copy()
+    val_mask = idx_11.year.isin(val)
+    mod_huge[val_mask] += 100.0
+    res_huge = noise_floor_d5_d6(obs, mod_huge, cal, val)
+    assert res_huge["floor_max_abs_bias"]["rank_pct"] == 100.0
+
+    # Case B: In enumeration, real split equals one of the draws -> rank includes draw
+    res_normal = noise_floor_d5_d6(obs, mod, cal, val)
+    rank = res_normal["floor_max_abs_bias"]["rank_pct"]
+    assert rank >= (1.0 / 462.0 * 100.0)
+
+
+def test_d5_skipped_draws_and_month_without_days() -> None:
+    """Test 3f: Skipped draws and month without days handling."""
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    rng = np.random.default_rng(555)
+    obs = pd.Series(rng.normal(15.0, 3.0, len(idx_11)), index=idx_11)
+    mod = obs + rng.normal(1.5, 0.5, len(idx_11))
+    cal = inc_11[:6]
+    val = inc_11[6:]
+
+    # December has paired days in only 2 of 11 included years (1 in cal, 1 in val)
+    obs_part = obs.copy()
+    for y in inc_11:
+        if y not in (cal[0], val[0]):
+            dec_mask = (idx_11.year == y) & (idx_11.month == 12)
+            obs_part.loc[dec_mask] = np.nan
+
+    res_part = noise_floor_d5_d6(obs_part, mod, cal, val)
+    assert res_part["n_skipped_draws"] > 0
+    assert res_part["status"] == DIAG_STATUS_OK
+    assert np.isfinite(res_part["floor_max_abs_bias"]["median"])
+    assert np.isfinite(res_part["real_max_abs_bias"])
+
+    # Case where real calibration set has no December -> DIAG_STATUS_MONTH_WITHOUT_DAYS
+    obs_no_cal_dec = obs.copy()
+    for y in cal:
+        dec_mask = (idx_11.year == y) & (idx_11.month == 12)
+        obs_no_cal_dec.loc[dec_mask] = np.nan
+
+    res_no_dec = noise_floor_d5_d6(obs_no_cal_dec, mod, cal, val)
+    assert res_no_dec["status"] == DIAG_STATUS_MONTH_WITHOUT_DAYS
+    assert np.isnan(res_no_dec["real_max_abs_bias"])
+    assert np.isnan(res_no_dec["real_offset"])
+    assert np.isnan(res_no_dec["real_abs_offset"])
+    assert np.isnan(res_no_dec["real_amplitude"])
+    assert all(np.isnan(x) for x in res_no_dec["real_monthly_bias"])
+
+
+@pytest.mark.filterwarnings("error")
+def test_d5_all_draws_skipped_no_warning() -> None:
+    """Test 3g: All draws skipped -> floor fields NaN without RuntimeWarning."""
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    rng = np.random.default_rng(444)
+    obs = pd.Series(rng.normal(15.0, 3.0, len(idx_11)), index=idx_11)
+    mod = obs + rng.normal(1.5, 0.5, len(idx_11))
+    cal = inc_11[:6]
+    val = inc_11[6:]
+
+    # December has no paired days in ANY year -> every split misses December
+    dec_all = idx_11.month == 12
+    obs.loc[dec_all] = np.nan
+
+    res = noise_floor_d5_d6(obs, mod, cal, val)
+    assert res["n_skipped_draws"] == res["n_draws_used"]
+    assert np.isnan(res["floor_max_abs_bias"]["median"])
+    assert np.isnan(res["floor_max_abs_bias"]["p5"])
+    assert np.isnan(res["floor_max_abs_bias"]["p95"])
+    assert np.isnan(res["floor_max_abs_bias"]["rank_pct"])
+    assert np.isnan(res["floor_abs_offset"]["median"])
+    assert np.isnan(res["floor_amplitude"]["median"])
+
+
+def test_d5_insufficient_data() -> None:
+    """Test 3h: Empty included_cal_years or included_val_years returns NaN."""
+    idx = _make_daily_index(2000, 2005)
+    obs = pd.Series(20.0, index=idx)
+    mod = obs + 1.0
+
+    res_empty_cal = noise_floor_d5_d6(obs, mod, [], [2003, 2004])
+    assert res_empty_cal["status"] == DIAG_STATUS_INSUFFICIENT
+    assert np.isnan(res_empty_cal["real_max_abs_bias"])
+    assert res_empty_cal["mode"] is None
+    assert res_empty_cal["n_draws_used"] == 0
+    assert np.isnan(res_empty_cal["floor_max_abs_bias"]["median"])
+
+    res_empty_val = noise_floor_d5_d6(obs, mod, [2000, 2001], [])
+    assert res_empty_val["status"] == DIAG_STATUS_INSUFFICIENT
+    assert np.isnan(res_empty_val["real_max_abs_bias"])
+
+
+def test_d5_contract_errors() -> None:
+    """Test 3i: Contract violations raise ValueError."""
+    idx = _make_daily_index(2000, 2005)
+    obs = pd.Series(20.0, index=idx)
+    mod = obs + 1.0
+
+    # Overlapping years
+    with pytest.raises(ValueError, match="overlap"):
+        noise_floor_d5_d6(obs, mod, [2000, 2001], [2001, 2002])
+
+    # Year absent from data index
+    with pytest.raises(ValueError, match="no rows in data index"):
+        noise_floor_d5_d6(obs, mod, [1990], [2000])
+
+    with pytest.raises(ValueError, match="no rows in data index"):
+        noise_floor_d5_d6(obs, mod, [2000], [1990])
+
+    # Shifted index between obs and mod
+    shifted_mod = mod.copy()
+    shifted_mod.index = shifted_mod.index + pd.Timedelta(days=1)
+    with pytest.raises(ValueError):
+        noise_floor_d5_d6(obs, shifted_mod, [2000, 2001], [2002, 2003])
+
+
+def test_d5_excluded_years_ignored() -> None:
+    """Test 3j: Excluded years present in series are ignored without error."""
+    inc_11 = list(range(2000, 2011))
+    idx_11 = _make_daily_index(2000, 2010)
+    rng = np.random.default_rng(333)
+    obs_11 = pd.Series(rng.normal(15.0, 3.0, len(idx_11)), index=idx_11)
+    mod_11 = obs_11 + rng.normal(1.5, 0.5, len(idx_11))
+    cal = inc_11[:6]
+    val = inc_11[6:]
+
+    # Full series with extra excluded years (1995-1999 and 2011-2015)
+    idx_full = _make_daily_index(1995, 2015)
+    obs_full = pd.Series(np.nan, index=idx_full)
+    mod_full = pd.Series(np.nan, index=idx_full)
+    obs_full.loc[idx_11] = obs_11
+    mod_full.loc[idx_11] = mod_11
+
+    # Populate excluded years with arbitrary nonsense
+    ex_idx = idx_full[~idx_full.isin(idx_11)]
+    obs_full.loc[ex_idx] = 999.0
+    mod_full.loc[ex_idx] = -999.0
+
+    res_trimmed = noise_floor_d5_d6(obs_11, mod_11, cal, val)
+    res_full = noise_floor_d5_d6(obs_full, mod_full, cal, val)
+
+    assert set(res_trimmed.keys()) == set(res_full.keys())
+    for k in res_trimmed:
+        v1, v2 = res_trimmed[k], res_full[k]
+        if isinstance(v1, dict):
+            assert set(v1.keys()) == set(v2.keys())
+            for dk in v1:
+                val1, val2 = v1[dk], v2[dk]
+                if np.isnan(val1):
+                    assert np.isnan(val2)
+                else:
+                    assert abs(val1 - val2) < 1e-12
+        elif isinstance(v1, list):
+            assert len(v1) == len(v2)
+            for val1, val2 in zip(v1, v2):
+                if np.isnan(val1):
+                    assert np.isnan(val2)
+                else:
+                    assert abs(val1 - val2) < 1e-12
+        elif isinstance(v1, float):
+            if np.isnan(v1):
+                assert np.isnan(v2)
+            else:
+                assert abs(v1 - v2) < 1e-12
+        else:
+            assert v1 == v2
+
+
+def test_source_guard_benchmark_diagnostics_extended_d5() -> None:
+    """Test 3k: Source guard extended against read_csv and ledger imports."""
     src = inspect.getsource(bdiag)
     assert "read_csv" not in src
     assert "validate_validation_access" not in src

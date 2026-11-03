@@ -1,13 +1,17 @@
-"""Benchmark diagnostic helpers under Protocol Appendix K.5.2 (D1, D2, D3, D4).
+"""Benchmark diagnostic helpers under Protocol Appendix K.5.2 (D1, D2, D3, D4, D5, D6).
 
 Provides pure diagnostic functions for Level 1 residual analysis:
 - D1: Annual bias and Level 1 residual series
 - D2: Level change between calibration and validation partitions
 - D3: OLS trend of Level 1 residuals over included years
 - D4: Best single step with permutation reference
+- D5: Noise floor via random reassignment or full enumeration
+- D6: Decomposition into offset and seasonal amplitude
 """
 
-from typing import Any, Dict, List, Optional, Sequence
+import itertools
+import math
+from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -17,10 +21,12 @@ from tropicor.core.benchmark_evaluator import _require_aligned_index
 DIAG_MIN_PAIRED_DAYS_PER_MONTH: int = 10
 DIAG_MIN_VALID_MONTHS_PER_YEAR: int = 9
 DIAG_BOOTSTRAP_REPLICAS: int = 10000
+DIAG_NOISE_FLOOR_DRAWS: int = 999
 DIAG_SEED: int = 42
 
 DIAG_STATUS_OK: str = "ok"
 DIAG_STATUS_INSUFFICIENT: str = "insufficient_included_years"
+DIAG_STATUS_MONTH_WITHOUT_DAYS: str = "month_without_paired_days"
 
 
 def annual_series_d1(
@@ -641,4 +647,388 @@ def step_description_d4(
         "rank_pct": rank_pct,
         "n_permutations": n_permutations,
         "status": DIAG_STATUS_OK,
+    }
+
+
+def _monthly_diff_sums_counts(
+    obs: pd.Series,
+    mod: pd.Series,
+    years: Sequence[int] | np.ndarray,
+) -> Tuple[np.ndarray, np.ndarray]:
+    """Compute per-year, per-month sum of (mod - obs) and paired day counts.
+
+    Parameters
+    ----------
+    obs : pd.Series
+        Observed daily temperature series for a single variable.
+    mod : pd.Series
+        Model/reanalysis daily temperature series for a single variable.
+    years : Sequence[int] or np.ndarray
+        Years to evaluate. Other years present in the series are ignored.
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        Two arrays of shape (n_years, 12):
+        - sums: sum of (mod - obs) for valid paired days per year and month.
+        - counts: count of valid paired days per year and month.
+    """
+    n_years = len(years)
+    sums = np.zeros((n_years, 12), dtype=float)
+    counts = np.zeros((n_years, 12), dtype=int)
+    if n_years == 0:
+        return sums, counts
+
+    idx = obs.index
+    assert isinstance(idx, pd.DatetimeIndex)
+    valid = obs.notna() & mod.notna()
+    diff = (mod - obs).where(valid, 0.0)
+
+    for i, y in enumerate(years):
+        y_mask = (idx.year == y) & valid
+        if not y_mask.any():
+            continue
+        sub_diff = diff[y_mask]
+        sub_months = idx.month[y_mask]
+        for m in range(1, 13):
+            m_mask = sub_months == m
+            n_days = int(m_mask.sum())
+            counts[i, m - 1] = n_days
+            if n_days > 0:
+                sums[i, m - 1] = float(sub_diff[m_mask].sum())
+
+    return sums, counts
+
+
+def _level1_bias_from_years(
+    sums: np.ndarray,
+    counts: np.ndarray,
+    row_idx: Sequence[int] | np.ndarray,
+) -> np.ndarray:
+    """Compute Level 1 additive monthly bias pooled over selected years.
+
+    Parameters
+    ----------
+    sums : np.ndarray
+        Array of shape (n_years, 12) with sums of differences.
+    counts : np.ndarray
+        Array of shape (n_years, 12) with valid day counts.
+    row_idx : Sequence[int] or np.ndarray
+        Row indices corresponding to the selected calibration years.
+
+    Returns
+    -------
+    np.ndarray
+        Array of 12 monthly bias values b_m = pooled mean(mod - obs).
+        NaN for any calendar month with zero paired days.
+    """
+    if len(row_idx) == 0:
+        return np.full(12, np.nan, dtype=float)
+    sub_sums = sums[row_idx].sum(axis=0)
+    sub_counts = counts[row_idx].sum(axis=0)
+    b_m = np.full(12, np.nan, dtype=float)
+    nonzero = sub_counts > 0
+    b_m[nonzero] = sub_sums[nonzero] / sub_counts[nonzero]
+    return b_m
+
+
+def _validation_monthly_bias(
+    sums: np.ndarray,
+    counts: np.ndarray,
+    row_idx: Sequence[int] | np.ndarray,
+    b_cal: Sequence[float] | np.ndarray,
+) -> np.ndarray:
+    """Compute monthly validation bias after subtracting calibration monthly bias.
+
+    Parameters
+    ----------
+    sums : np.ndarray
+        Array of shape (n_years, 12) with sums of differences.
+    counts : np.ndarray
+        Array of shape (n_years, 12) with valid day counts.
+    row_idx : Sequence[int] or np.ndarray
+        Row indices corresponding to the selected validation years.
+    b_cal : Sequence[float] or np.ndarray
+        12 calibration monthly bias values.
+
+    Returns
+    -------
+    np.ndarray
+        Array of 12 monthly validation bias values: pooled mean(mod - obs)
+        minus b_cal[m]. NaN for any calendar month with zero paired days
+        or where b_cal[m] is NaN.
+    """
+    if len(row_idx) == 0:
+        return np.full(12, np.nan, dtype=float)
+    sub_sums = sums[row_idx].sum(axis=0)
+    sub_counts = counts[row_idx].sum(axis=0)
+    v_m = np.full(12, np.nan, dtype=float)
+    b_arr = np.asarray(b_cal, dtype=float)
+    for m in range(12):
+        if sub_counts[m] == 0 or np.isnan(b_arr[m]):
+            v_m[m] = np.nan
+        else:
+            val_mean = sub_sums[m] / sub_counts[m]
+            v_m[m] = float(val_mean - b_arr[m])
+    return v_m
+
+
+def _decompose(bias_m: Sequence[float] | np.ndarray) -> Dict[str, float]:
+    """Decompose 12 monthly validation biases into offset and seasonal amplitude.
+
+    Parameters
+    ----------
+    bias_m : Sequence[float] or np.ndarray
+        12 monthly validation bias values.
+
+    Returns
+    -------
+    Dict[str, float]
+        Dictionary with keys:
+        - max_abs_bias: max over months of |bias_m|
+        - offset: mean of the 12 monthly biases
+        - abs_offset: |offset|
+        - amplitude: max over months of |bias_m - offset|
+        All values are NaN if any monthly bias is NaN.
+    """
+    arr = np.asarray(bias_m, dtype=float)
+    if len(arr) != 12 or np.isnan(arr).any():
+        return {
+            "max_abs_bias": float("nan"),
+            "offset": float("nan"),
+            "abs_offset": float("nan"),
+            "amplitude": float("nan"),
+        }
+    max_abs_bias = float(np.max(np.abs(arr)))
+    offset = float(np.mean(arr))
+    abs_offset = float(abs(offset))
+    amplitude = float(np.max(np.abs(arr - offset)))
+    return {
+        "max_abs_bias": max_abs_bias,
+        "offset": offset,
+        "abs_offset": abs_offset,
+        "amplitude": amplitude,
+    }
+
+
+def noise_floor_d5_d6(
+    obs: pd.Series,
+    mod: pd.Series,
+    included_cal_years: Sequence[int],
+    included_val_years: Sequence[int],
+    n_draws: int = DIAG_NOISE_FLOOR_DRAWS,
+    seed: int = DIAG_SEED,
+) -> Dict[str, Any]:
+    """Compute noise floor D5 and decomposition D6 for a single variable.
+
+    Under Protocol Appendix K.5.1 and K.5.2:
+    - Sign convention: ERA5 minus observation (mod - obs).
+    - Excluded years present in the series are ignored; only the included years
+      from the calibration and validation partitions are used.
+    - The official decisive value computed under J.7.1 is NOT part of this
+      function (the report assembler places it next to the recomputed real
+      value with the number of years used in each, K.5.2 D5).
+    - Diagnostics are descriptive: nothing here returns an outcome or can
+      feed a GlobalOutcome, and it makes no comparison with the decisive
+      threshold of Section 3.4.
+
+    Parameters
+    ----------
+    obs : pd.Series
+        Observed daily temperature series for a single variable.
+    mod : pd.Series
+        Model/reanalysis daily temperature series for a single variable.
+    included_cal_years : Sequence[int]
+        Included years from the calibration partition.
+    included_val_years : Sequence[int]
+        Included years from the validation partition.
+    n_draws : int, default=DIAG_NOISE_FLOOR_DRAWS (999)
+        Number of random reassignment draws when full enumeration is not used.
+    seed : int, default=DIAG_SEED (42)
+        Seed for the random number generator.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary with keys:
+        - mode: "enumeration" or "random" (None if insufficient)
+        - n_draws_used: number of draws evaluated
+        - n_skipped_draws: number of draws skipped due to months without days
+        - floor_max_abs_bias: dict with median, p5, p95, rank_pct
+        - floor_abs_offset: dict with median, p5, p95, rank_pct
+        - floor_amplitude: dict with median, p5, p95, rank_pct
+        - real_monthly_bias: 12 monthly biases on validation set
+        - real_max_abs_bias: max absolute validation monthly bias
+        - real_offset: mean of the 12 monthly validation biases
+        - real_abs_offset: absolute value of real_offset
+        - real_amplitude: max |bias_m - offset| across months
+        - n_cal_years: number of included calibration years
+        - n_val_years: number of included validation years
+        - status: DIAG_STATUS_OK, DIAG_STATUS_INSUFFICIENT, or
+          DIAG_STATUS_MONTH_WITHOUT_DAYS
+
+    Raises
+    ------
+    ValueError
+        If obs and mod indices are not aligned, monotonic, and unique;
+        if included_cal_years and included_val_years overlap;
+        or if any included year is absent from the data index.
+    """
+    idx = _require_aligned_index(obs=obs, mod=mod)
+    assert isinstance(idx, pd.DatetimeIndex)
+
+    cal_set = set(included_cal_years)
+    val_set = set(included_val_years)
+    if bool(cal_set & val_set):
+        raise ValueError("included_cal_years and included_val_years must not overlap")
+
+    data_years = set(idx.year)
+    for y in included_cal_years:
+        if y not in data_years:
+            raise ValueError(f"included calibration year {y} has no rows in data index")
+    for y in included_val_years:
+        if y not in data_years:
+            raise ValueError(f"included validation year {y} has no rows in data index")
+
+    k_cal = len(included_cal_years)
+    k_val = len(included_val_years)
+
+    def _nan_metric() -> Dict[str, float]:
+        return {
+            "median": float("nan"),
+            "p5": float("nan"),
+            "p95": float("nan"),
+            "rank_pct": float("nan"),
+        }
+
+    if k_cal == 0 or k_val == 0:
+        # OPEN ITEM v1.10: K.5.2 does not specify the minimum number of included years for D2/D3; NaN returned with status  # noqa: E501
+        return {
+            "mode": None,
+            "n_draws_used": 0,
+            "n_skipped_draws": 0,
+            "floor_max_abs_bias": _nan_metric(),
+            "floor_abs_offset": _nan_metric(),
+            "floor_amplitude": _nan_metric(),
+            "real_monthly_bias": [float("nan")] * 12,
+            "real_max_abs_bias": float("nan"),
+            "real_offset": float("nan"),
+            "real_abs_offset": float("nan"),
+            "real_amplitude": float("nan"),
+            "n_cal_years": k_cal,
+            "n_val_years": k_val,
+            "status": DIAG_STATUS_INSUFFICIENT,
+        }
+
+    inc_years = np.array(sorted(cal_set | val_set))
+    n = len(inc_years)
+
+    sums, counts = _monthly_diff_sums_counts(obs, mod, inc_years)
+    year_to_idx = {y: i for i, y in enumerate(inc_years)}
+    cal_row_idx = np.array([year_to_idx[y] for y in included_cal_years], dtype=int)
+    val_row_idx = np.array([year_to_idx[y] for y in included_val_years], dtype=int)
+
+    # Real Level 1 and D6 decomposition
+    b_cal = _level1_bias_from_years(sums, counts, cal_row_idx)
+    v_val = _validation_monthly_bias(sums, counts, val_row_idx, b_cal)
+
+    real_status = DIAG_STATUS_OK
+    if np.isnan(v_val).any():
+        # OPEN ITEM v1.10: K.5.2 D5/D6 do not specify the handling of a calendar month without paired days; NaN returned with status  # noqa: E501
+        real_status = DIAG_STATUS_MONTH_WITHOUT_DAYS
+        real_monthly_bias = [float("nan")] * 12
+        real_max_abs_bias = float("nan")
+        real_offset = float("nan")
+        real_abs_offset = float("nan")
+        real_amplitude = float("nan")
+    else:
+        decomp = _decompose(v_val)
+        real_monthly_bias = [float(x) for x in v_val]
+        real_max_abs_bias = decomp["max_abs_bias"]
+        real_offset = decomp["offset"]
+        real_abs_offset = decomp["abs_offset"]
+        real_amplitude = decomp["amplitude"]
+
+    # NOISE FLOOR simulation
+    comb_count = math.comb(n, k_val)
+    assignments: List[Tuple[np.ndarray, np.ndarray]] = []
+    if comb_count <= n_draws:
+        mode: Optional[str] = "enumeration"
+        n_draws_used = comb_count
+        for p_val in itertools.combinations(inc_years, k_val):
+            p_val_set = set(p_val)
+            p_cal = [y for y in inc_years if y not in p_val_set]
+            p_cal_i = np.array([year_to_idx[y] for y in p_cal], dtype=int)
+            p_val_i = np.array([year_to_idx[y] for y in p_val], dtype=int)
+            assignments.append((p_cal_i, p_val_i))
+    else:
+        mode = "random"
+        n_draws_used = n_draws
+        rng = np.random.default_rng(seed)
+        for _ in range(n_draws):
+            perm = rng.permutation(inc_years)
+            p_cal_rand = perm[:k_cal]
+            p_val_rand = perm[k_cal : k_cal + k_val]
+            p_cal_i = np.array([year_to_idx[y] for y in p_cal_rand], dtype=int)
+            p_val_i = np.array([year_to_idx[y] for y in p_val_rand], dtype=int)
+            assignments.append((p_cal_i, p_val_i))
+
+    draw_max_b: List[float] = []
+    draw_abs_off: List[float] = []
+    draw_seas_amp: List[float] = []
+    n_skipped_draws = 0
+
+    for p_cal_i, p_val_i in assignments:
+        b_pcal = _level1_bias_from_years(sums, counts, p_cal_i)
+        v_pval = _validation_monthly_bias(sums, counts, p_val_i, b_pcal)
+        if np.isnan(v_pval).any():
+            # OPEN ITEM v1.10: K.5.2 D5/D6 do not specify the handling of a calendar month without paired days; NaN returned with status  # noqa: E501
+            n_skipped_draws += 1
+            continue
+        dec = _decompose(v_pval)
+        draw_max_b.append(dec["max_abs_bias"])
+        draw_abs_off.append(dec["abs_offset"])
+        draw_seas_amp.append(dec["amplitude"])
+
+    def _calc_metric(
+        draw_values: List[float],
+        real_val: float,
+    ) -> Dict[str, float]:
+        if len(draw_values) == 0:
+            return _nan_metric()
+        arr = np.asarray(draw_values, dtype=float)
+        med = float(np.median(arr))
+        p5 = float(np.percentile(arr, 5))
+        p95 = float(np.percentile(arr, 95))
+        if np.isnan(real_val):
+            rank = float("nan")
+        else:
+            # OPEN ITEM v1.10: K.5.2 D5 does not specify the percentile-rank operator; <= as in K.4.4 and D4  # noqa: E501
+            rank = float(100.0 * np.mean(arr <= real_val))
+        return {
+            "median": med,
+            "p5": p5,
+            "p95": p95,
+            "rank_pct": rank,
+        }
+
+    floor_max_abs_bias = _calc_metric(draw_max_b, real_max_abs_bias)
+    floor_abs_offset = _calc_metric(draw_abs_off, real_abs_offset)
+    floor_amplitude = _calc_metric(draw_seas_amp, real_amplitude)
+
+    return {
+        "mode": mode,
+        "n_draws_used": n_draws_used,
+        "n_skipped_draws": n_skipped_draws,
+        "floor_max_abs_bias": floor_max_abs_bias,
+        "floor_abs_offset": floor_abs_offset,
+        "floor_amplitude": floor_amplitude,
+        "real_monthly_bias": real_monthly_bias,
+        "real_max_abs_bias": real_max_abs_bias,
+        "real_offset": real_offset,
+        "real_abs_offset": real_abs_offset,
+        "real_amplitude": real_amplitude,
+        "n_cal_years": k_cal,
+        "n_val_years": k_val,
+        "status": real_status,
     }
