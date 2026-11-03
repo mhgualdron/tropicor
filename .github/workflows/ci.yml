@@ -1,0 +1,60 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: CI
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: uv sync --locked --extra dev
+
+      - name: Lint with ruff
+        run: uv run ruff check .
+
+      # Four pre-existing files fail ruff format --check and must be reformatted in a separate commit:
+      # scripts/audit_andean_calibration_lag.py, tests/test_core/test_phase3_evaluator.py,
+      # tests/test_io/test_audit_andean_calibration_lag.py, tropicor/core/phase3_evaluator.py.
+      - name: Check formatting with ruff
+        run: >-
+          uv run ruff format --check .
+          --extend-exclude scripts/audit_andean_calibration_lag.py
+          --extend-exclude tests/test_core/test_phase3_evaluator.py
+          --extend-exclude tests/test_io/test_audit_andean_calibration_lag.py
+          --extend-exclude tropicor/core/phase3_evaluator.py
+
+      - name: Type-check with mypy
+        run: uv run mypy tropicor
+
+      - name: Run test suite
+        run: uv run pytest -q
+
+      - name: PII and absolute path scan
+        run: |
+          if git grep -nIE -e '[A-Za-z]:\\Users\\' -e '/home/[a-z]' -e '/Users/[a-z]' -- ':!.github/workflows/ci.yml'; then
+            echo "PII or absolute user path detected in tracked files" >&2
+            exit 1
+          fi
