@@ -1,8 +1,8 @@
 # Pre-Specified Evaluation Protocol for Statistical Downscaling & Orographic Bias Correction
 
 **Protocol Version**: 1.0  
-**Latest Amendment**: Protocol v1.8 (Appendix J: Phase 3 Evaluator Specification for the Primary Benchmark Temperature Opening). Earlier: v1.7 (Appendix I), v1.6 (Appendix H), v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
-**Freeze Date (v1.8)**: 2026-10-28  
+**Latest Amendment**: Protocol v1.9 (Appendix K: Pre-Opening Disclosures, Descriptive Diagnostics and Deferral of the AC Provision). Earlier: v1.8 (Appendix J), v1.7 (Appendix I), v1.6 (Appendix H), v1.5 (Appendix G), v1.4 (Appendix F), v1.3 (Appendix E), v1.2 (Appendix D), v1.1 (Appendix C)  
+**Freeze Date (v1.9)**: 2026-11-03. Freeze Date (v1.8): 2026-10-28  
 **Registration Date**: 2026-10-15  
 **Framework**: `tropicor` (Tropical Correction and Orographic Resolution)  
 **Baseline Commit**: `4cffe12`  
@@ -1123,3 +1123,227 @@ Hourly ERA5 files are hashed at pre-opening (Section I.3.5).
 2. `StationCatalog` (`tropicor/io/stations.py`) stores the DHIME export coordinates and elevations (`21205710`: 4.669333, −74.102667, 2553.0 m; `23215030`: 134.0 m), which differ from the audited values of Section 2.1. The audited source `local/station_coords_audit.csv` is not versioned. The evaluator uses Section 2.1 (J.2); the catalog is not modified, as it is shared with the Phase 3 Andean evaluation.
 3. Under the valid-year rule of J.7.1, a year with a single paired day counts as a full bootstrap block (e.g. `21205710` $T_{\min}$ 2000). The rule is retained because it predates this appendix.
 4. Draft versions of this appendix proposed quality-control filtering and an orographic-hypothesis criterion; both were withdrawn because Sections E.4.3 and 6.2 already settle data handling and the status of the elevation adjustment.
+
+---
+
+## Appendix K: Protocol Amendment v1.9 (Pre-Opening Disclosures, Descriptive Diagnostics and Deferral of the AC Provision)
+
+Status: frozen by the commit that adds this appendix; that commit and the annotated tag protocol-v1.9 are cited in the written authorization of the formal opening (Section K.8). Nothing in this appendix authorizes a validation opening. Verification status is in Section K.10.
+
+### K.1. Purpose and scope
+
+This amendment (a) supersedes the last sentence of item 4 of Section J.9 (the scope statement of J.9.4), (b) records, before the formal opening of the validation partitions of stations 21205710 (JB) and 23215030 (AC), what was learned from analyses run after v1.8 was published, and (c) pre-specifies a set of descriptive, non-decisive diagnostics that will be reported with the results of the formal opening.
+
+The amendment does not introduce any method. In particular, no method that corrects drift or level change of the calibrated residual is built, specified or evaluated here.
+
+### K.2. What this amendment does not change
+
+1. Appendix J of v1.8 (commit a83d7c0) is not edited. Where this amendment supersedes a statement of Appendix J, the v1.8 text remains in the repository and the supersession is explicit.
+2. Decisive metrics, thresholds, outcome tiers, tracks (J.6), partitions, valid-year rule of J.7 and the bootstrap settings of the decisive intervals (1,000 replicas, annual blocks, seed 42, `MIN_BOOTSTRAP_BLOCKS = 7`) are unchanged.
+3. Phase 3 (Appendix I, protocol v1.7) results and protocol are frozen and unchanged.
+4. JB and AC validation observations have not been formally opened, and no value from them has been used in any computation other than the J.5 lag audit (Section K.4.1). The official calibration loader parses the whole observation files, including validation rows, to validate formats before trimming (Section K.4.4); no value from those rows is used or inspected.
+5. No formal opening of either station (JB or AC) takes place before Amendment v1.10 is frozen (Section K.7).
+6. Section K.8 item 3 applies Section J.5 item 4 to Section I.5 item 3; it does not change the number of formal openings.
+
+### K.3. Supersession of J.9.4
+
+Item 4 of Section J.9 of v1.8 (J.9.4, "Disclosure"; `docs/science/evaluation-protocol.md`, line 1104) states:
+
+> The raw Tmax bias at the center cells in the 1990–1994 baseline analysis of Section 2.1.1 (−1.66 °C at 21205710, −5.54 °C at 23215030), the corresponding lapse-rate-adjusted biases for Tmax and Tmin reported in docs/guides/era5-extraction.md, and the calibration-partition summaries of Section J.12.1 were known when this diagnostic was specified. The direction of the change from Level 0 to Level 0-E (lower Tmax bias, higher Tmin bias at 21205710) was therefore largely predictable and is not evidence for any orographic hypothesis. This benchmark does not test whether explicit orographic information improves calibrated levels.
+
+This amendment supersedes only the last sentence ("This benchmark does not test ..."). The disclosure that precedes it remains in force. The last sentence is replaced by:
+
+> The benchmark of Appendix J evaluates Levels 0 to 3 under the decisive metrics of Section 3.4 of the protocol. It does not test whether explicit orographic information improves calibrated levels. An ERA5-only screening carried out before the formal opening (Section K.4.2) computed an upper bound on the effect that a daily free-atmosphere lapse-rate term, entering with unit coefficient, could have on the monthly bias of Level 1, and found that bound below 0.2 K in every month at all seven stations screened (primary bounds at most 0.08 K; largest sensitivity value 0.17 K). That predictor family is not continued as a candidate for the monthly-bias criterion. The screening does not cover extremes, the diurnal temperature range, Level 3, terms with free coefficients, or other forms of explicit orographic information (near-surface gradients, slopes of 2 m temperature over the surrounding grid cells, other reanalyses). The hypothesis that explicit orographic information reduces the Andean residual of calibrated levels therefore remains untested by this benchmark and by the screening. The residual is characterized descriptively by the diagnostics of Section K.5, which do not enter any outcome.
+
+### K.4. Disclosures before the formal opening
+
+All items are facts with provenance. Archive references are repository paths and commits; items K.4.3 and K.4.4 depend on the archive of the second diagnostic round (commit 4f0043a539b6e6a69fa9e19243aef0602d58f56c).
+
+#### K.4.1 Prior access to the JB and AC validation partitions
+
+- The J.5 lag audit was run once on the validation partitions of JB (2005–2020) and AC (2001–2011) with code at commit 7b1493c084bf33bba221bdc5c258d12d51388de8, after the written authorization of the author. Outputs are archived at commit 28538a3b6f03834704c49476f9ad7fab29abab9f (`docs/science/appendix_j/lag_audit/`).
+- It computes lag correlations, cross-correlation curves and timing of extremes only. No bias, error or method evaluation was computed. The sensitivity branch was not activated.
+- Each run wrote one record with `purpose="lag_audit"` to the validation ledger. The ledger has 7 records in total, 2 of them with that purpose (ledger SHA-256 `cdd854245cde277db2780d7685ed64a2c4fb3d62eaf28ba27f7ef9b5ec2439f5` at that time). Future evaluators must filter the ledger by `purpose`. On 2026-11-03, at the author's instruction, a code agent copied the ledger file to a location outside the repository by copying its bytes without parsing or reading its contents; the SHA-256 of the copy, of the original before copying and of the original after copying are identical to the value above.
+
+#### K.4.2 ERA5-only screening of the orographic predictor family (Gate 1)
+
+- Question: could a daily free-atmosphere lapse-rate term, entering with unit coefficient, change the monthly bias of Level 1? Quantity: upper bound C = |Δz|·|Γ̄_val,m − Γ̄_cal,m| per calendar month (Δz in km). The bound assumes unit coefficient; it says nothing about a term with free coefficients.
+- Primary set: the three lowest eligible pressure levels, where eligible means geopotential height at least 100 m above the ERA5 surface elevation in at least 99.9% of the time steps of the calibration partition; Tmax from the 18:00 UTC step and Tmin from the 12:00 UTC step, with the local day defined as the date of UTC time minus 5 hours. Sensitivities: each of the four hours (00, 06, 12, 18 UTC), the four-step daily mean, and the two lowest eligible levels.
+- Gate rule: continue only if C at AC is at least 2δ with δ = 0.1 K. AC was the designated decisive station of the planned method evaluation, and has the larger |Δz| of the two (628.6 m against 201.4 m), so it was the case most favourable to a detectable effect.
+- Data: ERA5 pressure-level time series (13 levels, 6-hourly) of seven stations (JB, AC and the five opened Andean stations). No observation of JB or AC was read in this screening.
+- Result: largest primary bound per station and variable (Tmax / Tmin, K): JB 0.0563 / 0.0403; AC 0.0730 / 0.0648; Berlin 0.0422 / 0.0595; Mogotes 0.0111 / 0.0162; Matecaña 0.0056 / 0.0075; Olaya Herrera 0.0766 / 0.0450; Obonuco 0.0058 / 0.0047. Largest sensitivity value 0.1746 K (AC, Tmax, two-level set). No month reached 0.2 K. The gate was not met and the predictor family is not continued as a candidate for the monthly-bias criterion. The screening does not cover extremes, the diurnal temperature range, Level 3 or free coefficients.
+- Archive: `docs/science/orographic_ceiling_screening/` (commit 21696953ddd60112ce42f4e530c4706f9ff7c668; sign-convention note in commit 69b0d707dc1052aa55f9e2f3c327ba776abb8371). The rule and parameters were fixed in the task prompt before any result was seen; the repository records them after the fact and does not prove that order.
+- Integrity note of the archive, in two lines: the SHA-256 printed by the first run of the screening script differs from that of the file now on disk, and the difference cannot be reconstructed; the extended run did not modify the file, and the JB and AC outputs of both runs are byte-identical. The first-run summary file was overwritten by the extended run; its hash is recorded in the archive (README, section 10).
+
+#### K.4.3 Andean residual diagnostic (five opened stations)
+
+- Archive: `docs/science/andean_residual_diagnostic/` (commit fc3f3a50b0aad06c1d70974c924213ce2c28c27c). Level 1 reproduces the archived Phase 3 monthly validation biases exactly (difference 0.00 K).
+- Level change between calibration and validation (validation mean of annual raw bias minus calibration mean), 95% interval by independent bootstrap of years inside each partition. With 10,000 replicas, the interval excludes zero in three of ten station–variable cases: Olaya Herrera Tmax (+0.51 K) and Tmin (+0.55 K), and Obonuco Tmin (+0.69 K). In these three cases the real maximum monthly |Bias_m| of Level 1 lies at or above the 99th percentile of a noise floor obtained by random reassignment of years (ranks 99.3%, 100%, 100%). In the other seven cases the interval includes zero and ranks lie between 25% and 90%.
+- Excluding calendar year 2020 (present in the validation partitions of Berlin, Mogotes and Obonuco) changes individual values by up to about 0.1 K in the maximum monthly |Bias_m| (Berlin Tmax 0.76 to 0.85; Mogotes Tmax 0.43 to 0.33; Obonuco Tmax 0.44 to 0.31); the three cases above keep an interval that excludes zero where applicable (Obonuco Tmin without 2020: +0.58 K).
+- Reproducibility note: the interval endpoints depend on the draw order of the random generator at 1,000 replicas (differences up to about 0.05 K between two orderings); with 10,000 replicas the two orderings agree within about 0.03 K. Matecaña Tmax includes zero at 10,000 replicas under both orderings. The script that computed the 10,000-replica intervals requires at least 6 valid months per year while the other scripts require 9; the numbers of calibration and validation years used coincide in all ten station–variable cases, so the sets of years are identical (README of the archive).
+- Reason for the second round: the first diagnostic showed level changes in three cases and an interval sensitivity to the draw order. The second round (i) repeated the Andean analysis without calendar year 2020, (ii) compared the interval sets at 1,000 and 10,000 replicas, and (iii) examined the calibration years of JB and AC, which carry no validation information, to know before the opening whether comparable patterns exist there.
+
+#### K.4.4 Calibration-years-only diagnostics of JB and AC
+
+Only calibration years (JB 1990–2004; AC 1990–2000) were used, loaded with the official calibration loader, with input hashes checked against the archived J.4 reports and the J.5 audit inputs. No value from a validation year of JB or AC was used in any computation, printed or inspected. The official calibration loader reads the whole station observation file, including rows of validation years, and validates dates, numeric values and duplicate dates over all rows before trimming to the calibration years; the loader raised no error. The loader also reads the ERA5 file of the first year after the calibration partition, because of the UTC hourly window at the year boundary; this is ERA5 only, and the series is trimmed to the calibration years immediately after aggregation. ERA5 files of later years were hashed by the diagnostic script but were not loaded. Archive: `docs/science/residual_diagnostics_round2/` (commit 4f0043a539b6e6a69fa9e19243aef0602d58f56c).
+
+Valid and included years (a month is valid with at least 10 paired days; a year is included with at least 9 valid months):
+
+| Station | Variable | Included years | Excluded years |
+|---|---|---|---|
+| JB | Tmax | 13 | 1994, 1995 |
+| JB | Tmin | 12 | 1994, 1995, 2000 |
+| AC | Tmax, Tmin | 11 of 11 | none |
+
+Under the J.7 rule (at least one day with all four values valid), JB has 14 valid calibration years (1994 has 9 such days and 2000 has 1; 1995 has none).
+
+Residual series of Level 1 fitted on the full calibration (annual mean of monthly biases minus calibration monthly bias), linear slope with 95% bootstrap interval over years (1,000 replicas, seed 42), and best single step (at least 3 included years on each side, break year chosen from the data) described by sum of squares; "rank" is the percentage of 999 random permutations of the order of the included years whose best-step reduction is not larger than the real one. The permutation reference assumes that the years are exchangeable under the hypothesis of no ordering; it is descriptive:
+
+| Series | n | Slope (K/decade) | Best step (segments) | Step (K) | SSE reduction vs constant | Rank |
+|---|---|---|---|---|---|---|
+| AC Tmax | 11 | +0.576 [+0.233, +1.181] | 1990–1994 / 1995–2000 | +0.481 | 61.8% | 97.6% |
+| AC Tmin | 11 | −0.501 [−0.809, −0.230] | 1990–1994 / 1995–2000 | −0.345 | 59.2% | 95.4% |
+| AC DTR bias | 11 | +1.071 [+0.722, +1.615] | 1990–1994 / 1995–2000 | +0.818 | 86.8% | 100.0% |
+| JB Tmax | 13 | −0.171 [−0.402, +0.182] | 1990–2001 / 2002–2004 | −0.339 | 35.6% | 83.6% |
+| JB Tmin | 12 | +0.014 [−0.387, +0.373] | 1990–1996 / 1997–2004 | +0.247 | 15.6% | 43.2% |
+| JB DTR bias | 12 | −0.166 [−0.628, +0.308] | 1990–1996 / 1997–2004 | −0.402 | 19.1% | 48.5% |
+
+DTR bias is the mean over months of the monthly mean of (ERA5 DTR − observed DTR) on days with all four values valid. The best step has two segment means and a break year chosen from the data, so its sum of squares is not comparable with that of a two-parameter linear fit; no ranking of the two descriptions is made. The cause of the AC pattern is not known. The author requested the station metadata (history of instruments, siting and observation practice) of both stations from the national meteorological service (IDEAM) on 2026-11-02, request number 20269050181324; no inference about instruments, siting or observation practice is made here.
+
+Sampling-noise floor of the maximum monthly |Bias_m| of Level 1 when years are reassigned at random within the calibration years (median [P5, P95], K). Partition sizes are those of the pseudo-split and **differ from the real benchmark partitions**:
+
+| Station | Variable | n years | Split (cal/val) | Max monthly |Bias_m| |
+|---|---|---|---|---|
+| JB | Tmax | 13 | 7/6 (999 draws) | 0.645 [0.433, 0.908] |
+| JB | Tmax | 13 | 8/5 (999 draws) | 0.664 [0.432, 0.990] |
+| JB | Tmin | 12 | 6/6 (all 924) | 0.767 [0.510, 1.166] |
+| JB | Tmin | 12 | 7/5 (all 792) | 0.781 [0.521, 1.164] |
+| AC | Tmax | 11 | 6/5 (all 462) | 0.753 [0.431, 1.133] |
+| AC | Tmin | 11 | 6/5 (all 462) | 0.429 [0.272, 0.649] |
+
+These pseudo-partitions have 5 to 6 pseudo-validation years. The real validation partitions are larger, so the floors at the real sizes are expected to be smaller than those shown; no comparison with the decisive threshold of Section 3.4 of the protocol is made from this table. The floor at the real sizes is the diagnostic D5 of Section K.5. An earlier calibration-only run used the nominal 15-year JB set (labels 8/7 and 10/5); its Tmax values coincide to four decimals with one row of the included-years run, its Tmin values coincide with none, and the cause of the coincidence was not established; the table above supersedes it (README of the archive, section 6).
+
+Integrity note of the gap-closure script, in two lines: the SHA-256 printed at the end of the run differs from that of the archived file by one trailing line feed; the archived file is the on-disk file, unmodified, and the cause of the extra byte was not established (README of the archive, section 7).
+
+#### K.4.5 Properties of the decisive bootstrap (facts from the code)
+
+`compute_annual_block_bootstrap_temperature` (`tropicor/core/protocol.py`, lines 891–986) resamples calendar years of the evaluation series passed to it, which are the validation series. The fitted correction is applied once before the bootstrap and its parameters are not re-estimated in any replica. Intervals are the 2.5th and 97.5th percentiles of the replicate metrics; non-finite replicates are discarded. Consequently the decisive intervals reflect the sampling variability of the validation years given the fitted calibration and do not include the estimation error of the calibration. The noise-floor diagnostic of Section K.5 (D5) is reported alongside for that reason and covers this property at the protocol level: no sentence is added to Section 3.4 of the protocol. The preprint will state the property explicitly. The decisive intervals are not changed by this amendment.
+
+#### K.4.6 Valid-year definitions by track
+
+| Track | Definition | Source |
+|---|---|---|
+| Andean Phase 3 | Year in the station registry `valid_years` list (at least 330 joint valid days for Tmax and Tmin); days of other years are masked to missing before any metric or bootstrap | G.7.1; I; implemented in the observation loader (`phase3_evaluator.py`, lines 1046–1050) |
+| Benchmark JB, AC | At least one paired day with all four values valid; a year with a single such day counts as a full bootstrap block | J.7.1 and J.7.2 (lines 1094–1095); J.12.3 (line 1124) |
+| General statement for non-CDD metrics | Any calendar year with at least one valid daily observation | Section 5.1 of the protocol (superseded for Phase 3 by G.7.1 and for the benchmark by J.7.1) |
+
+The helper that selects bootstrap years in `protocol.py` (lines 911–921) requires only that Tmax and Tmin observations each have some valid day in the year; it does not check model values or that the days coincide. For Phase 3 the observation pre-masking makes this check redundant, so the Phase 3 results are unaffected. The benchmark evaluator must implement J.7.1 as written and must not rely on that helper for the valid-year decision.
+
+#### K.4.7 Sign convention of Δz
+
+Δz = z_station − z_ERA5 (Table J.2; `tropicor/downscale/orography.py`; `scripts/run_benchmark_lag_audit.py`). The field `delta_h_m` of `docs/science/appendix_g/statics_g7.json` stores z_ERA5 − z_station (opposite sign). Level 0-E is not implemented in the Phase 3 evaluator and does not appear in Appendix I or in the archived Andean scorecards; no archived result depends on the sign. The benchmark evaluator uses the J.2 convention.
+
+### K.5. Pre-specified descriptive diagnostics
+
+#### K.5.1 Common rules
+
+1. The diagnostics are descriptive. They do not enter Pass / Inconclusive / Fail, the physical consistency gate or any ranking, and they cannot change an outcome.
+2. All diagnostics are computed for every station and variable (Tmax, Tmin; DTR where stated) and reported regardless of direction, in one table per station.
+3. Reference level: Level 1 only. No diagnostic is specified for Levels 2 and 3 or for the Level 3 winner.
+4. Annual quantities use a month as valid with at least 10 paired days and a year as included with at least 9 valid months. Years not included are listed with the reason and excluded from the diagnostic statistics. This rule applies only to the diagnostics and does not replace J.7. For every station, variable and partition, the number of valid years under J.7.1 and their list are always reported next to the included years.
+5. Sign convention of bias: ERA5 minus observation.
+6. Random draws use `numpy.random.default_rng(42)`, one generator per station–variable–diagnostic, with the draw order stated in each item. The calls are those of the archived scripts. Bootstrap of years: `rng.choice(x, size=len(x), replace=True)`; for level change, `rng.choice(cal_dy, size=len(cal_dy), replace=True)` first and then `rng.choice(val_dy, size=len(val_dy), replace=True)` (calibration first, as in `ci_archived_10k` of `diagnostic_gap_closure.py`, lines 290–294); for trend, `rng.choice(len(years), size=len(years), replace=True)` on year indices. Permutation reference of D4: `rng.permutation(values)`, 999 permutations (`diagnostic_calibration_jb_ac.py`, lines 203–206). Random reassignment of D5: `rng.permutation(inc_years)`, the first `k_cal` years to pseudo-calibration and the next `k_val` years to pseudo-validation, 999 draws, or full enumeration with `itertools.combinations(inc_years, k_val)` when `math.comb(n, k_val)` is at most 999 (same script, lines 94–111). Intervals are the 2.5th and 97.5th percentiles.
+7. The figures of Section K.4.4 remain as reported there. The diagnostics D1 to D7 at the formal opening are separate calculations, performed with the years specified for each item in Section K.5.2; they are not recomputations of Section K.4.4 and use no validation data until the formal opening.
+8. The code that computes D1 to D7 at the formal opening is committed before the opening and its SHA-256 is cited in the written authorization of the formal opening; any change after that hash is a deviation to be reported.
+9. Any analysis not listed here is exploratory and must be labelled as such.
+
+#### K.5.2 Diagnostics
+
+- **D1 Annual series.** Years: every calendar year of both partitions, with its inclusion status and reason. Per calendar year: partition, number of paired days, valid months, raw bias d_y (mean over valid months of the monthly mean of ERA5 − observation) and Level 1 residual r_y (d_y after subtracting, for each month, the calibration monthly bias of the official Level 1 fit used for the decisive metrics; that bias is not recomputed on the included years).
+- **D2 Level change.** Years: included calibration years and included validation years. Mean of r_y over the included validation years minus mean of r_y over the included calibration years. Interval: 10,000 replicas; each replica resamples the included calibration years with replacement first and then the included validation years, from the same generator. (The values of Section K.4.3 were computed on d_y and are not recomputed.)
+- **D3 Trend.** Years: union of the included years of both partitions. OLS slope of r_y on year (K per decade). Interval: 10,000 replicas resampling (year, r_y) pairs with replacement.
+- **D4 Step description.** Years: union of the included years of both partitions. Best single step of r_y (Tmax, Tmin) and of the DTR bias series, with at least 3 included years on each side: segments, means, step size, sum-of-squares reduction relative to the constant model, and the permutation reference of Section K.4.4 (999 permutations of the order of the included years, assuming exchangeable years). The break year is chosen from the data; the sum of squares of the step is not compared with that of the linear fit of D3 and no ranking of the two is made. Descriptive only; no test decision.
+- **D5 Noise floor.** Years: the included years of both partitions of a station and variable, pooled. 999 random reassignments (or all assignments if their number is at most 999) into pseudo-calibration and pseudo-validation sets whose sizes are the numbers of included years of the real calibration and validation partitions. In each replica, Level 1 is fitted anew on the pseudo-calibration years as the official Level 1 (additive bias of each calendar month from the pooled paired days of those years), and the monthly bias of Level 1 of each calendar month is computed on the pooled paired days of the pseudo-validation years. Report, per variable, median, P5 and P95 of the maximum monthly |Bias_m|, of |offset| and of the seasonal amplitude. The percentile rank is that of the real value recomputed with the same included years (Level 1 fitted on the included calibration years and evaluated on the included validation years). This recomputed real value is reported next to the official decisive value computed under J.7.1, with the number of years used in each.
+- **D6 Decomposition.** Years: included validation years. offset = mean of the 12 monthly validation biases of Level 1; seasonal amplitude = max over months of |b_m − offset|; the real values, recomputed as in D5, are reported next to D5.
+- **D7 Leave-one-year-out.** Years: each included validation year in turn. For each, the maximum monthly |Bias_m| of Level 1 (fitted on the unchanged calibration) computed without that year; report the range and the most influential year.
+
+### K.6. Reporting and interpretation rules
+
+1. The results of the formal opening are reported first with the decisive metrics exactly as specified in v1.8. D1 to D7 follow in a separate section.
+2. Statements about causes (station, reanalysis or climate) are not made from these diagnostics. They may be listed as hypotheses.
+3. A pre-specified negative result is reported as such. Departures from this section are listed as deviations with their reason.
+4. A decisive Fail is reported as a Fail. The rank of D5 is reported next to it and is not used to reclassify the result as a sampling artifact.
+
+### K.7. Provision for AC — deferred to Amendment v1.10
+
+Facts: Section K.4.4 (step of +0.82 K in the DTR bias of AC between 1990–1994 and 1995–2000; no comparable pattern at JB). The author requested the metadata of both stations on 2026-11-02 (request number 20269050181324). The author has decided not to choose a provision before the metadata are in hand. The 5-year blocks of the cross-validation track of J.6 for AC (1990–94, 1995–99, 2000–04, 2005–11) place the boundary between 1994 and 1995 at the edge of two blocks; that track is not changed by this amendment.
+
+This amendment does not wait for the metadata. Any provision for AC will be specified in Amendment v1.10, which will be frozen before any formal opening; no formal opening of either station (JB or AC) will take place before v1.10 is frozen. Amendment v1.10 can only select one of two options:
+
+1. Keep AC unchanged in all tracks and report D1 to D7.
+2. Keep the decisive primary track unchanged and add one pre-specified sensitivity track for AC with the calibration restricted to the years after a documented change. The activation criterion is fixed here:
+   - Qualifying events: a documented change of instrument, of shelter, of location or of observation procedure at the AC station.
+   - Date tolerance: the documented date of the event lies between 1993 and 1996 (the step of Section K.4.4 lies between the calendar years 1994 and 1995).
+   - Window: the calibration of the sensitivity track starts at the first complete calendar year after the documented date of the change and ends with the calibration partition (2000). An event dated on 1 January counts as occurring in that year, so the window starts the following year.
+   - The 5-year block cross-validation track of J.6 (Section 4.2 of the protocol) is not changed by this option.
+   - Option 2 can be selected only if an event that satisfies this criterion is documented.
+
+   With between four and seven calibration years, depending on the documented date, Level 3 (quantile mapping with 100 bins; the E.7 winner for AC is configuration 6: moving window, 100 bins, constant extrapolation) is expected to be unstable; this is declared in advance, and any Level 3 result of that track is reported with that limitation. This is a choice of calibration window, not a method that corrects drift.
+
+Freezing and default: Amendment v1.10 is frozen on receipt of the metadata or on 2027-01-15, whichever comes first. If on 2027-01-15 there are no metadata confirming a qualifying change at AC, option 1 applies and Amendment v1.10 only records that fact.
+
+### K.8. Mechanics
+
+1. This amendment is added as Appendix K (Protocol v1.9) of `docs/science/evaluation-protocol.md`, following the pattern of Appendices C to J, in a docs-only commit. The commit hash and the SHA-256 of that file at the commit are cited in the written authorization of the formal opening, as the hash of Appendix J was cited in earlier reports. Verified by a read-only check on 2026-11-03: no code, test, tag or archived report pins, computes or compares the SHA-256 of `docs/science/evaluation-protocol.md`; J.11 pins only observation files and ERA5 static files; J.10 and Sections I.3, I.5 and I.9 do not require the hash of the protocol file to be pinned in the repository. Lines 4 and 5 of the file (latest amendment and freeze date) are updated in the same docs-only commit to declare Protocol v1.9; no test depends on them. The commit is tagged with an annotated tag `protocol-v1.9` following the pattern of tags `protocol-v1.1` to `protocol-v1.7`, whose message states that it does not authorize any validation opening.
+2. The J.10 pre-opening sequence is unchanged and does not start before Amendment v1.10 is frozen (clean tree, authorization tag `phase3-benchmark-authorization`, hashes, single call of `validate_validation_access(open_validation=True)` per station, ledger record with the opening purpose).
+3. The evaluator specification (J.6 to J.11) is written after this amendment is frozen. It implements J.7.1 as written, filters the ledger by `purpose`, and computes D1 to D7 from the same loaded series as the decisive metrics. Section I.5 item 3 states that a station with a prior ledger record cannot be opened formally. Section J.10 inherits Section I.5 and, in the same sentence, requires the lag audit records of Section J.5 to be present in the ledger. Section J.5 item 4 states that the audit record "does not count as that opening and authorizes no metric other than those of item 2". This amendment applies that statement to Section I.5 item 3 as inherited by Section J.10: a "prior ledger record" is a record whose purpose is a formal opening of the station; the records with `purpose="lag_audit"` are not. The number of formal openings is unchanged (one per station). In the repository state of 2026-11-03, the prior-record check of the Phase 3 evaluator (`phase3_evaluator.py`, lines 2003–2015) counts any temperature record of the station regardless of `purpose`, and the benchmark evaluator does not exist yet. The benchmark evaluator specification therefore filters the ledger by `purpose`, does not reuse that check unmodified, and aborts the opening if a station has a record with any purpose other than `lag_audit` before the opening.
+4. Scripts and outputs of the analyses cited in Section K.4 are archived under `docs/science/orographic_ceiling_screening/`, `docs/science/andean_residual_diagnostic/` and `docs/science/residual_diagnostics_round2/` with a SHA-256 manifest and an exposure declaration. NetCDF inputs and credentials are not archived.
+
+---
+
+### K.9. Review questions and positions (2026-11-02)
+
+1. D1 to D7 for the Level 3 winner as well? Position: Level 1 only.
+2. Is 10,000 replicas with the stated draw order adequate for D2 and D3 while the decisive intervals stay at 1,000? Position: yes.
+3. Keep D7 (leave-one-year-out)? Position: keep.
+4. Is the diagnostic inclusion rule (10 days per month, 9 months per year) appropriate for JB? Position: yes, and the number and list of valid years under J.7.1 are always reported (Section K.5.1, item 4).
+5. Does the replacement text of J.9.4 state the scope without overclaiming from the screening? Position: yes after the reformulation of the external review (bound with unit coefficient; scope limits declared), the verbatim J.9.4 text is quoted in Section K.3 and only its last sentence is superseded.
+6. Is the disclosure of Section K.4.4 sufficient to judge what was known about AC before the opening? Position: yes.
+7. Section K.4.5 states that decisive intervals exclude calibration error; is a sentence needed in Section 3.4 of the protocol or in the preprint? Position: a sentence in the preprint; D5 covers the property at the protocol level.
+
+### K.10. Verification against the repository
+
+Verified on 2026-11-02 by a read-only check at commit 4f0043a: verbatim text of J.9.4 (Section K.3); document pattern (Appendices C to J of `docs/science/evaluation-protocol.md`; Appendix K for v1.9); commit hashes and their presence in `origin/main` for a83d7c0, 7b1493c, 28538a3, 21696953, fc3f3a5, 69b0d70 and 4f0043a; J.2 lines 1058–1061; J.7 lines 1093–1095; J.12.3 line 1124; `protocol.py` lines 891–986 and 911–921 and its constants (1,000 replicas, seed 42, `MIN_BOOTSTRAP_BLOCKS = 7`); `phase3_evaluator.py` lines 1046–1050; `orography.py` lines 87–88 and 113; `run_benchmark_lag_audit.py` line 195; `delta_h_m` in `statics_g7.json`; the Gate 1 values; the partitions; the bin count of Level 3 and the E.7 winners; track 2 of J.6; the NumPy calls of the archived scripts.
+
+Verified on 2026-11-03 by a read-only check at the parent commit of the commit that adds this appendix: the text of Section J.5 (lines 1076–1081) and the code of `phase3_evaluator.py` (lines 2003–2015).
+
+Verification status at freeze:
+
+1. Closed (verified 2026-11-03). See Section K.8, item 1.
+2. Closed (verified 2026-11-03). Copy of the ledger outside the repository: at the author's instruction, a code agent copied the ledger file by copying its bytes, without parsing or reading its contents; the SHA-256 of the copy, of the original before copying and of the original after copying are identical to the value in Section K.4.1. Ledger record count and purposes after the J.5 audit (7 records, 2 with `purpose="lag_audit"`): the archive README of Appendix J states the increase from 5 to 7 records; the ledger itself is not parsed or read by agents.
+3. Closed (verified by the author). Request number (radicado) of the IDEAM metadata request of 2026-11-02: 20269050181324 (Sections K.4.4 and K.7).
+
+Scope note. Not verified. The amendment makes no statement about the Level 3 grouping code (Sections D.16 and E.6.9).
+
+### K.11. Changes applied (external review of 2026-11-02 and rounds of 2026-11-03)
+
+An external review produced 15 findings; item 13 required no change. The others were applied as follows.
+
+| Item | Change | Where |
+|---|---|---|
+| 1 | The figures of Section K.4.4 stay as reported; D1 to D7 at the opening are separate calculations, with the years of each item | K.5.1 item 7; K.5.2 |
+| 2 | "and the diagnostics" removed | K.7 |
+| 3 | The evaluator is written after this amendment is frozen | K.8 item 3 |
+| 4 | The loader reads the ERA5 file of the first year after the calibration, ERA5 only, trimmed at once | K.4.4 |
+| 5 | Option 3 removed; v1.10 selects only option 1 or 2 | K.7 |
+| 6 | Activation criterion of option 2 (events, tolerance, window); freezing date | K.7 |
+| 7 | A decisive Fail is reported as Fail, with the D5 rank beside it | K.6 item 4 |
+| 8 | Comparison of the pseudo-partition floor with 0.5 °C removed; floors at real sizes expected smaller | K.4.4 |
+| 9 | Real value of D5 and D6 recomputed with the included years and reported next to the official value; Level 1 refitted in each replica | K.5.2 (D5, D6) |
+| 10 | D2 computed on r_y; the monthly bias subtracted is that of the official Level 1 | K.5.2 (D1, D2) |
+| 11 | Step-versus-linear comparison removed; the permutation assumes exchangeable years | K.4.4; K.5.2 (D4) |
+| 12 | The code of D1 to D7 is frozen by hash before the opening; NumPy calls cited | K.5.1 items 6 and 8 |
+| 14 | Replacement of J.9.4 and Section K.4.2 reformulated: bound with unit coefficient, "not continued as a candidate for the monthly-bias criterion", scope limits | K.3; K.4.2 |
+| 15 | Reason of the second round, definition of the primary set of Gate 1, reason for applying the rule at AC, summaries of the integrity notes | K.4.2; K.4.3; K.4.4 |
+
+On 2026-11-03 the following changes were applied after the external review: (1) item 4 of Section K.2, the sentence on the copy of the ledger in Section K.4.1 and item 2 of Section K.10; (2) the number of calibration years in the Level 3 paragraph of Section K.7; (3) the IDEAM request number in Sections K.4.4, K.7 and K.10; (4) the verification of the protocol-file hash in Section K.8 item 1; (5) the sentence on events dated 1 January in Section K.7; (6) the application of Section J.5 item 4 to Section I.5 item 3 in Section K.8 item 3 and item 6 of Section K.2; (7) the conversion of this text into Appendix K.
