@@ -48,6 +48,13 @@ SAMPLE_STATUS_INSUFFICIENT: str = "not_established_insufficient_sample"
 SAMPLE_STATUS_ABORTED: str = "aborted_safeguard"
 
 
+class FoldSafeguardError(ValueError):
+    """Raised inside a CV fold when fit or predict raises ValueError.
+
+    Corresponds to Protocol E.6.4 safeguard abort.
+    """
+
+
 def valid_years_j71(
     tmax_obs: pd.Series,
     tmin_obs: pd.Series,
@@ -595,6 +602,46 @@ class FittedLevels:
     winner_config_id: int
 
 
+def _require_aligned_index(**series: pd.Series) -> pd.DatetimeIndex:
+    """Validate that all provided series share an aligned DatetimeIndex.
+
+    The index must be unique, monotonic increasing, and identical across series.
+
+    Parameters
+    ----------
+    **series : pd.Series
+        Named series to validate.
+
+    Returns
+    -------
+    pd.DatetimeIndex
+        The shared DatetimeIndex.
+
+    Raises
+    ------
+    ValueError
+        If series is empty, any index is not a pd.DatetimeIndex, indices are not
+        identical, index has duplicates, or index is not monotonic increasing.
+    """
+    if not series:
+        raise ValueError("At least one series must be provided.")
+
+    first_name, first_s = next(iter(series.items()))
+    first_idx = first_s.index
+
+    for name, s in series.items():
+        if not isinstance(s.index, pd.DatetimeIndex):
+            raise ValueError(f"'{name}' index must be a pd.DatetimeIndex.")
+        if not s.index.is_unique:
+            raise ValueError(f"'{name}' index contains duplicate timestamps.")
+        if not s.index.is_monotonic_increasing:
+            raise ValueError(f"'{name}' index must be monotonic increasing.")
+        if not s.index.equals(first_idx):
+            raise ValueError(f"'{name}' index does not match '{first_name}' index.")
+
+    return cast(pd.DatetimeIndex, first_idx)
+
+
 def fit_levels(
     obs_tmax: pd.Series,
     obs_tmin: pd.Series,
@@ -626,6 +673,12 @@ def fit_levels(
     FittedLevels
         Container holding fitted models and configuration metadata.
     """
+    _require_aligned_index(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        mod_tmax=mod_tmax,
+        mod_tmin=mod_tmin,
+    )
     m1 = Level1MonthlyAdditiveTemperature()
     m1.fit(obs_tmax, obs_tmin, mod_tmax, mod_tmin)
 
@@ -686,6 +739,10 @@ def predict_levels(
         identical_to_winner) 'level3_constant', with crossing diagnostics
         read after transform.
     """
+    _require_aligned_index(
+        mod_tmax=mod_tmax,
+        mod_tmin=mod_tmin,
+    )
     l1_tmax, l1_tmin = fitted.level1.transform(mod_tmax, mod_tmin)
     pred_l1 = LevelPrediction(
         tmax=l1_tmax,
@@ -779,6 +836,13 @@ def evaluate_primary_split(
     ValueError
         If calibration and validation ranges overlap or inputs are invalid.
     """
+    base_index = _require_aligned_index(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+    )
+
     cal_start, cal_end = cal_range
     val_start, val_end = val_range
 
@@ -788,10 +852,6 @@ def evaluate_primary_split(
         raise ValueError(
             f"Calibration range {cal_range} and validation range {val_range} overlap."
         )
-
-    base_index = obs_tmax.index
-    if not isinstance(base_index, pd.DatetimeIndex):
-        raise ValueError("obs_tmax index must be a pd.DatetimeIndex.")
 
     cal_mask = base_index.year.isin(cal_years)
     val_mask = base_index.year.isin(val_years)
@@ -854,8 +914,10 @@ def _block_cv_predictions(
 
     Raises
     ------
+    FoldSafeguardError
+        If a fold's fit or predict raises ValueError (safeguard failure).
     ValueError
-        If a fold's fit or predict raises ValueError.
+        If inputs are invalid or five_year_blocks raises ValueError.
     """
     base_index = obs_tmax.index
     if not isinstance(base_index, pd.DatetimeIndex):
@@ -886,7 +948,7 @@ def _block_cv_predictions(
                 mod_tmin=raw_tmin[val_mask],
             )
         except ValueError as e:
-            raise ValueError(f"fold {first_year}-{last_year}: {e}") from e
+            raise FoldSafeguardError(f"fold {first_year}-{last_year}: {e}") from e
 
         all_fold_preds.append(fold_preds)
 
@@ -928,8 +990,9 @@ def evaluate_block_cv(
     Concatenates out-of-sample predictions across folds and evaluates with
     evaluate_track_levels on the full record.
 
-    If any fold raises ValueError (safeguard failure), returns an aborted
-    TrackEvaluation with sample_status SAMPLE_STATUS_ABORTED.
+    If any fold raises FoldSafeguardError (safeguard failure), returns an aborted
+    TrackEvaluation with sample_status SAMPLE_STATUS_ABORTED. Any other
+    ValueError propagates.
 
     Parameters
     ----------
@@ -958,11 +1021,15 @@ def evaluate_block_cv(
     Raises
     ------
     ValueError
-        If calendar years have gaps or series indexes are invalid.
+        If calendar years have gaps, series indexes are unaligned, or
+        fewer than 5 years are available.
     """
-    base_index = obs_tmax.index
-    if not isinstance(base_index, pd.DatetimeIndex):
-        raise ValueError("obs_tmax index must be a pd.DatetimeIndex.")
+    base_index = _require_aligned_index(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+    )
 
     years = sorted(set(base_index.year))
     if len(years) > 1 and any(y2 != y1 + 1 for y1, y2 in zip(years[:-1], years[1:])):
@@ -984,7 +1051,7 @@ def evaluate_block_cv(
             raw_tmin=raw_tmin,
             winner_config=winner_config,
         )
-    except ValueError as e:
+    except FoldSafeguardError as e:
         # OPEN ITEM v1.10: J.6.2 does not define the outcome of an aborted station; placeholder NOT_ESTABLISHED  # noqa: E501
         return TrackEvaluation(
             station_id=station_id,

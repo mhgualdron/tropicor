@@ -14,9 +14,11 @@ from tropicor.core.benchmark_evaluator import (
     SAMPLE_STATUS_INSUFFICIENT,
     SAMPLE_STATUS_OK,
     FittedLevels,
+    FoldSafeguardError,
     LevelPrediction,
     TrackEvaluation,
     _block_cv_predictions,
+    _require_aligned_index,
     combine_tracks,
     evaluate_block_cv,
     evaluate_primary_split,
@@ -805,6 +807,7 @@ def test_block_cv_fold_abort_safeguard(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert result.sample_status == SAMPLE_STATUS_ABORTED
     assert result.reason is not None
+    assert result.reason.startswith("fold ")
     assert "1995-1999" in result.reason
     assert all(sc is None for sc in result.scorecards.values())
     assert all(out == GlobalOutcome.NOT_ESTABLISHED for out in result.outcomes.values())
@@ -1044,3 +1047,99 @@ def test_sample_status_constants() -> None:
     assert SAMPLE_STATUS_INSUFFICIENT == "not_established_insufficient_sample"
     assert SAMPLE_STATUS_OK == "ok"
     assert SAMPLE_STATUS_ABORTED == "aborted_safeguard"
+
+
+def test_block_cv_insufficient_years_propagates_value_error() -> None:
+    """Requirement 4a: Series with < 5 years raises ValueError (not fold abort)."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(2000, 2003)
+    raw_tmax = obs_tmax + 1.0
+    raw_tmin = obs_tmin - 1.0
+    cfg = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+    with pytest.raises(ValueError, match="at least 5 years") as exc_info:
+        evaluate_block_cv(
+            station_id="TEST",
+            obs_tmax=obs_tmax,
+            obs_tmin=obs_tmin,
+            raw_tmax=raw_tmax,
+            raw_tmin=raw_tmin,
+            winner_config=cfg,
+            n_replicas=20,
+        )
+    assert not isinstance(exc_info.value, FoldSafeguardError)
+
+
+def test_shifted_dates_raises_value_error() -> None:
+    """Requirement 4c: Index shifted by one day raises ValueError."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2010)
+    shifted_idx = obs_tmax.index + pd.Timedelta(days=1)
+    raw_tmax_shifted = pd.Series(obs_tmax.to_numpy() + 1.0, index=shifted_idx)
+    raw_tmin_shifted = pd.Series(obs_tmin.to_numpy() - 1.0, index=shifted_idx)
+
+    cfg = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    with pytest.raises(ValueError, match="index does not match"):
+        fit_levels(obs_tmax, obs_tmin, raw_tmax_shifted, raw_tmin_shifted, cfg)
+
+    with pytest.raises(ValueError, match="index does not match"):
+        evaluate_primary_split(
+            station_id="TEST",
+            obs_tmax=obs_tmax,
+            obs_tmin=obs_tmin,
+            raw_tmax=raw_tmax_shifted,
+            raw_tmin=raw_tmin_shifted,
+            cal_range=(1990, 2004),
+            val_range=(2005, 2010),
+            winner_config=cfg,
+            n_replicas=20,
+        )
+
+    with pytest.raises(ValueError, match="index does not match"):
+        evaluate_block_cv(
+            station_id="TEST",
+            obs_tmax=obs_tmax,
+            obs_tmin=obs_tmin,
+            raw_tmax=raw_tmax_shifted,
+            raw_tmin=raw_tmin_shifted,
+            winner_config=cfg,
+            n_replicas=20,
+        )
+
+
+def test_duplicate_index_raises_value_error() -> None:
+    """Requirement 4d: Duplicate index raises ValueError."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 1991)
+    dates = obs_tmax.index.to_list()
+    dates[1] = dates[0]
+    dup_idx = pd.DatetimeIndex(dates)
+    obs_tmax_dup = pd.Series(obs_tmax.to_numpy(), index=dup_idx)
+    with pytest.raises(ValueError, match="duplicate"):
+        _require_aligned_index(obs_tmax=obs_tmax_dup, obs_tmin=obs_tmin)
+
+
+def test_non_monotonic_index_raises_value_error() -> None:
+    """Requirement 4e: Non-monotonic index raises ValueError."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 1991)
+    dates = obs_tmax.index.to_list()
+    dates[0], dates[1] = dates[1], dates[0]
+    swap_idx = pd.DatetimeIndex(dates)
+    obs_tmax_swapped = pd.Series(obs_tmax.to_numpy(), index=swap_idx)
+    with pytest.raises(ValueError, match="monotonic"):
+        _require_aligned_index(obs_tmax=obs_tmax_swapped, obs_tmin=obs_tmin)
+
+
+def test_require_aligned_index_success() -> None:
+    """Requirement 4f: Identical unique monotonic indices return DatetimeIndex."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 1991)
+    result_idx = _require_aligned_index(tmax=obs_tmax, tmin=obs_tmin)
+    assert isinstance(result_idx, pd.DatetimeIndex)
+    assert result_idx.equals(obs_tmax.index)
