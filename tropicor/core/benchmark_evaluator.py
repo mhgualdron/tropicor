@@ -33,6 +33,7 @@ from tropicor.core.protocol import (
     apply_weaker_of_two_concordance,
     check_temperature_physical_gate,
     compute_annual_block_bootstrap_temperature,
+    compute_temperature_decisive_metrics,
     evaluate_temperature_scorecard,
 )
 from tropicor.downscale.temperature import (
@@ -46,6 +47,8 @@ BENCHMARK_STATION_IDS: Tuple[str, str] = ("21205710", "23215030")
 SAMPLE_STATUS_OK: str = "ok"
 SAMPLE_STATUS_INSUFFICIENT: str = "not_established_insufficient_sample"
 SAMPLE_STATUS_ABORTED: str = "aborted_safeguard"
+
+LAPSE_RATE_K_PER_KM: float = 6.5
 
 
 class FoldSafeguardError(ValueError):
@@ -1150,3 +1153,231 @@ def levels_with_global_success(
             successful.append(lvl)
 
     return successful
+
+
+def apply_lapse_rate_shift(
+    tmax: pd.Series,
+    tmin: pd.Series,
+    dz_m: float,
+    lapse_rate_k_per_km: float = LAPSE_RATE_K_PER_KM,
+) -> Tuple[pd.Series, pd.Series]:
+    """Apply environmental lapse-rate temperature shift to daily temperature series.
+
+    Under Protocol J.9 and K.4.7, the elevation adjustment is:
+        T_E = T_raw - (lapse_rate_k_per_km * dz_m / 1000.0)
+
+    Sign convention (Protocol J.2, K.4.7):
+        dz_m = z_station - z_ERA5
+    dz_m is positive when the station is above the ERA5 grid cell (cooling the series),
+    and negative when the station is below the ERA5 grid cell (warming the series).
+    The dz_m value is supplied directly by the caller from audited Protocol J.2
+    constants and is never read from statics files here.
+
+    Parameters
+    ----------
+    tmax : pd.Series
+        Daily maximum temperature series.
+    tmin : pd.Series
+        Daily minimum temperature series.
+    dz_m : float
+        Elevation difference z_station - z_ERA5 in meters.
+    lapse_rate_k_per_km : float, default=LAPSE_RATE_K_PER_KM (6.5)
+        Environmental lapse rate in K/km.
+
+    Returns
+    -------
+    Tuple[pd.Series, pd.Series]
+        Copies of (tmax, tmin) shifted by -(lapse_rate_k_per_km * dz_m / 1000.0).
+
+    Raises
+    ------
+    ValueError
+        If tmax and tmin do not share an aligned DatetimeIndex.
+    """
+    _require_aligned_index(tmax=tmax, tmin=tmin)
+    shift_k = -(lapse_rate_k_per_km * dz_m / 1000.0)
+    tmax_shifted = tmax.copy() + shift_k
+    tmin_shifted = tmin.copy() + shift_k
+    return tmax_shifted, tmin_shifted
+
+
+def evaluate_level0e_descriptive(
+    obs_tmax: pd.Series,
+    obs_tmin: pd.Series,
+    raw_tmax: pd.Series,
+    raw_tmin: pd.Series,
+    dz_m: float,
+) -> Dict[str, Any]:
+    """Evaluate Level 0-E descriptive baseline under Protocol J.9.
+
+    Level 0-E is descriptive only (Protocol J.9). It is not part of the
+    evaluation hierarchy, takes no part in progression or designation, and
+    cannot change any outcome. It returns no outcome, no scorecard, and
+    nothing that can feed a GlobalOutcome.
+
+    Parameters
+    ----------
+    obs_tmax : pd.Series
+        Observed daily maximum temperature series.
+    obs_tmin : pd.Series
+        Observed daily minimum temperature series.
+    raw_tmax : pd.Series
+        Raw model daily maximum temperature series.
+    raw_tmin : pd.Series
+        Raw model daily minimum temperature series.
+    dz_m : float
+        Elevation difference z_station - z_ERA5 in meters, supplied by caller.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary containing decisive metrics for raw ('level0') and shifted
+        ('level0e') series, along with 'dz_m' and 'shift_k'.
+
+    Raises
+    ------
+    ValueError
+        If input series do not share an aligned DatetimeIndex.
+    """
+    _require_aligned_index(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+    )
+    shift_k = -(LAPSE_RATE_K_PER_KM * dz_m / 1000.0)
+    raw_e_tmax, raw_e_tmin = apply_lapse_rate_shift(raw_tmax, raw_tmin, dz_m)
+
+    valid_years = valid_years_j71(obs_tmax, obs_tmin, raw_tmax, raw_tmin)
+    m_obs_tmax, m_obs_tmin, m_raw_tmax, m_raw_tmin = mask_to_valid_years(
+        obs_tmax, obs_tmin, raw_tmax, raw_tmin, valid_years
+    )
+    _, _, m_raw_e_tmax, m_raw_e_tmin = mask_to_valid_years(
+        obs_tmax, obs_tmin, raw_e_tmax, raw_e_tmin, valid_years
+    )
+
+    metrics_raw = compute_temperature_decisive_metrics(
+        tmax_obs=m_obs_tmax,
+        tmax_mod=m_raw_tmax,
+        tmin_obs=m_obs_tmin,
+        tmin_mod=m_raw_tmin,
+    )
+    metrics_level0e = compute_temperature_decisive_metrics(
+        tmax_obs=m_obs_tmax,
+        tmax_mod=m_raw_e_tmax,
+        tmin_obs=m_obs_tmin,
+        tmin_mod=m_raw_e_tmin,
+    )
+
+    return {
+        "dz_m": float(dz_m),
+        "shift_k": float(shift_k),
+        "level0": metrics_raw,
+        "level0e": metrics_level0e,
+    }
+
+
+@dataclass(frozen=True)
+class ShiftInvarianceResult:
+    """Result of Protocol J.9.3 shift-invariance check on calibration data.
+
+    Parameters
+    ----------
+    max_abs_diff_by_level : Dict[str, float]
+        Maximum absolute prediction difference across Tmax and Tmin for each level.
+    tolerance : float
+        Numerical tolerance applied to the check.
+    passed : bool
+        True if all differences are <= tolerance.
+    """
+
+    max_abs_diff_by_level: Dict[str, float]
+    tolerance: float
+    passed: bool
+
+
+def check_shift_invariance(
+    obs_tmax: pd.Series,
+    obs_tmin: pd.Series,
+    raw_tmax: pd.Series,
+    raw_tmin: pd.Series,
+    dz_m: float,
+    winner_config: Mapping[str, Any],
+    tolerance: float = 1e-9,
+) -> ShiftInvarianceResult:
+    """Check Protocol J.9.3 shift invariance of Levels 1 through 3 on calibration data.
+
+    Fits Levels 1-3 on (obs, raw) and on (obs, E), predicts on raw and E respectively
+    over the same data, and reports per level the maximum absolute difference across
+    Tmax and Tmin predictions.
+
+    ValueError from any model's fit propagates immediately (no try/except).
+
+    Parameters
+    ----------
+    obs_tmax : pd.Series
+        Observed daily maximum temperature calibration series.
+    obs_tmin : pd.Series
+        Observed daily minimum temperature calibration series.
+    raw_tmax : pd.Series
+        Raw model daily maximum temperature calibration series.
+    raw_tmin : pd.Series
+        Raw model daily minimum temperature calibration series.
+    dz_m : float
+        Elevation difference z_station - z_ERA5 in meters.
+    winner_config : Mapping[str, Any]
+        Configuration mapping for the Level 3 winner.
+    tolerance : float, default=1e-9
+        Maximum allowable absolute difference in °C.
+
+    Returns
+    -------
+    ShiftInvarianceResult
+        Result container with per-level max absolute difference, tolerance, and passed.
+
+    Raises
+    ------
+    ValueError
+        If inputs are unaligned or model fit fails.
+    """
+    raw_e_tmax, raw_e_tmin = apply_lapse_rate_shift(raw_tmax, raw_tmin, dz_m)
+
+    fitted_raw = fit_levels(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        mod_tmax=raw_tmax,
+        mod_tmin=raw_tmin,
+        winner_config=winner_config,
+    )
+    fitted_e = fit_levels(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        mod_tmax=raw_e_tmax,
+        mod_tmin=raw_e_tmin,
+        winner_config=winner_config,
+    )
+
+    preds_raw = predict_levels(fitted_raw, raw_tmax, raw_tmin)
+    preds_e = predict_levels(fitted_e, raw_e_tmax, raw_e_tmin)
+
+    max_abs_diff_by_level: Dict[str, float] = {}
+    for lvl in preds_raw:
+        diff_tmax = float(
+            np.max(
+                np.abs(preds_raw[lvl].tmax.to_numpy() - preds_e[lvl].tmax.to_numpy())
+            )
+        )
+        diff_tmin = float(
+            np.max(
+                np.abs(preds_raw[lvl].tmin.to_numpy() - preds_e[lvl].tmin.to_numpy())
+            )
+        )
+        max_abs_diff_by_level[lvl] = max(diff_tmax, diff_tmin)
+
+    passed = bool(all(diff <= tolerance for diff in max_abs_diff_by_level.values()))
+
+    return ShiftInvarianceResult(
+        max_abs_diff_by_level=max_abs_diff_by_level,
+        tolerance=tolerance,
+        passed=passed,
+    )

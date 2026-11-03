@@ -10,17 +10,22 @@ import pytest
 import tropicor.core.benchmark_evaluator as be
 from tropicor.core.benchmark_evaluator import (
     BENCHMARK_STATION_IDS,
+    LAPSE_RATE_K_PER_KM,
     SAMPLE_STATUS_ABORTED,
     SAMPLE_STATUS_INSUFFICIENT,
     SAMPLE_STATUS_OK,
     FittedLevels,
     FoldSafeguardError,
     LevelPrediction,
+    ShiftInvarianceResult,
     TrackEvaluation,
     _block_cv_predictions,
     _require_aligned_index,
+    apply_lapse_rate_shift,
+    check_shift_invariance,
     combine_tracks,
     evaluate_block_cv,
+    evaluate_level0e_descriptive,
     evaluate_primary_split,
     evaluate_track_levels,
     fit_levels,
@@ -1143,3 +1148,136 @@ def test_require_aligned_index_success() -> None:
     result_idx = _require_aligned_index(tmax=obs_tmax, tmin=obs_tmin)
     assert isinstance(result_idx, pd.DatetimeIndex)
     assert result_idx.equals(obs_tmax.index)
+
+
+def test_apply_lapse_rate_shift_sign_convention_known_numbers() -> None:
+    """Requirement 3a: Test sign convention with Protocol J.2 known numbers."""
+    assert LAPSE_RATE_K_PER_KM == 6.5
+    tmax, tmin = _make_synthetic_temperature_series(1990, 1991)
+
+    # 1. JB: dz_m = -201.4 -> +1.3091 K
+    s_tmax_jb, s_tmin_jb = apply_lapse_rate_shift(tmax, tmin, dz_m=-201.4)
+    np.testing.assert_allclose((s_tmax_jb - tmax).to_numpy(), 1.3091, atol=1e-9)
+    np.testing.assert_allclose((s_tmin_jb - tmin).to_numpy(), 1.3091, atol=1e-9)
+
+    # 2. AC: dz_m = -628.6 -> +4.0859 K
+    s_tmax_ac, s_tmin_ac = apply_lapse_rate_shift(tmax, tmin, dz_m=-628.6)
+    np.testing.assert_allclose((s_tmax_ac - tmax).to_numpy(), 4.0859, atol=1e-9)
+    np.testing.assert_allclose((s_tmin_ac - tmin).to_numpy(), 4.0859, atol=1e-9)
+
+    # 3. Positive dz: dz_m = +100.0 -> -0.65 K
+    s_tmax_pos, s_tmin_pos = apply_lapse_rate_shift(tmax, tmin, dz_m=100.0)
+    np.testing.assert_allclose((s_tmax_pos - tmax).to_numpy(), -0.65, atol=1e-9)
+    np.testing.assert_allclose((s_tmin_pos - tmin).to_numpy(), -0.65, atol=1e-9)
+
+
+def test_level0e_direction_and_bias_reduction() -> None:
+    """Requirement 3b: Direction test with dz_m = -201.4 and obs = raw + 1.3091."""
+    raw_tmax, raw_tmin = _make_synthetic_temperature_series(1990, 2000)
+    obs_tmax = raw_tmax + 1.3091
+    obs_tmin = raw_tmin + 1.3091
+
+    res = evaluate_level0e_descriptive(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+        dz_m=-201.4,
+    )
+
+    bias_l0 = res["level0"]["max_monthly_bias"]
+    bias_l0e = res["level0e"]["max_monthly_bias"]
+
+    assert abs(bias_l0 - 1.3091) < 1e-9
+    assert abs(bias_l0e - 0.0) < 1e-9
+    assert bias_l0e < bias_l0
+
+
+def test_level0e_descriptive_no_outcome_or_scorecard() -> None:
+    """Requirement 3c: Returned dict has no outcome, scorecard or global outcome."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 1995)
+    raw_tmax = obs_tmax + 1.0
+    raw_tmin = obs_tmin - 1.0
+
+    res = evaluate_level0e_descriptive(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+        dz_m=-201.4,
+    )
+
+    for forbidden in ("outcome", "scorecard", "global_outcome"):
+        assert forbidden not in res
+        assert not any(forbidden in str(k).lower() for k in res)
+
+
+def test_check_shift_invariance_passes() -> None:
+    """Requirement 3d: Shift invariance passes on seasonal calibration data."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2004)
+    raw_tmax = obs_tmax + 1.5
+    raw_tmin = obs_tmin - 1.0
+
+    # 1. Extrapolation == "linear" (level3_constant present)
+    cfg_linear = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+    }
+    res_linear = check_shift_invariance(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+        dz_m=-201.4,
+        winner_config=cfg_linear,
+    )
+    assert isinstance(res_linear, ShiftInvarianceResult)
+    assert res_linear.passed is True
+    assert "level1" in res_linear.max_abs_diff_by_level
+    assert "level2" in res_linear.max_abs_diff_by_level
+    assert "level3_winner" in res_linear.max_abs_diff_by_level
+    assert "level3_constant" in res_linear.max_abs_diff_by_level
+    assert all(v <= 1e-9 for v in res_linear.max_abs_diff_by_level.values())
+
+    # 2. Extrapolation == "constant" (level3_constant identical, omitted from keys)
+    cfg_const = {
+        "config_id": 2,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+    res_const = check_shift_invariance(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+        dz_m=-201.4,
+        winner_config=cfg_const,
+    )
+    assert isinstance(res_const, ShiftInvarianceResult)
+    assert res_const.passed is True
+    assert "level1" in res_const.max_abs_diff_by_level
+    assert "level2" in res_const.max_abs_diff_by_level
+    assert "level3_winner" in res_const.max_abs_diff_by_level
+    assert "level3_constant" not in res_const.max_abs_diff_by_level
+    assert all(v <= 1e-9 for v in res_const.max_abs_diff_by_level.values())
+
+
+def test_source_guard_no_delta_h_or_statics() -> None:
+    """Requirement 3e: Source guard against forbidden statics references."""
+    import inspect
+
+    src = inspect.getsource(be)
+    assert "delta_h_m" not in src
+    assert "statics_g7" not in src
+
+
+def test_apply_lapse_rate_shift_misaligned_indices_raises() -> None:
+    """Requirement 3f: Misaligned indices raise ValueError in apply_lapse_rate_shift."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 1995)
+    shifted_idx = obs_tmax.index + pd.Timedelta(days=1)
+    obs_tmin_shifted = pd.Series(obs_tmin.to_numpy(), index=shifted_idx)
+    with pytest.raises(ValueError, match="index does not match"):
+        apply_lapse_rate_shift(obs_tmax, obs_tmin_shifted, dz_m=-201.4)
