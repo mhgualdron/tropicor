@@ -1,6 +1,7 @@
 """Unit tests for benchmark evaluator pure helpers (Appendix J and K)."""
 
 from pathlib import Path
+from typing import Dict, Tuple
 
 import numpy as np
 import pandas as pd
@@ -9,11 +10,22 @@ import pytest
 import tropicor.core.benchmark_evaluator as be
 from tropicor.core.benchmark_evaluator import (
     BENCHMARK_STATION_IDS,
+    SAMPLE_STATUS_ABORTED,
+    SAMPLE_STATUS_INSUFFICIENT,
+    SAMPLE_STATUS_OK,
+    FittedLevels,
     LevelPrediction,
     TrackEvaluation,
+    _block_cv_predictions,
+    combine_tracks,
+    evaluate_block_cv,
+    evaluate_primary_split,
     evaluate_track_levels,
+    fit_levels,
     five_year_blocks,
+    levels_with_global_success,
     mask_to_valid_years,
+    predict_levels,
     track_sample_status,
     valid_years_j71,
 )
@@ -208,10 +220,10 @@ def test_masking_effect_on_annual_block_bootstrap() -> None:
 
 def test_track_sample_status() -> None:
     """Requirement 2g: Test track_sample_status at 6 and 7 (and edge values)."""
-    assert track_sample_status(6) == "not_established_insufficient_sample"
-    assert track_sample_status(7) == "ok"
-    assert track_sample_status(0) == "not_established_insufficient_sample"
-    assert track_sample_status(8) == "ok"
+    assert track_sample_status(6) == SAMPLE_STATUS_INSUFFICIENT
+    assert track_sample_status(7) == SAMPLE_STATUS_OK
+    assert track_sample_status(0) == SAMPLE_STATUS_INSUFFICIENT
+    assert track_sample_status(8) == SAMPLE_STATUS_OK
 
 
 def test_index_validation_errors() -> None:
@@ -294,7 +306,7 @@ def test_track_levels_synthetic_monthly_bias_l0_fails_l1_passes() -> None:
     )
 
     assert isinstance(result, TrackEvaluation)
-    assert result.sample_status == "ok"
+    assert result.sample_status == SAMPLE_STATUS_OK
     assert result.valid_years == list(range(2010, 2017))
     assert result.reason is None
 
@@ -350,7 +362,7 @@ def test_track_levels_insufficient_sample_short_circuit(
         identical_to_winner=True,
     )
 
-    assert result.sample_status == "insufficient_blocks"
+    assert result.sample_status == SAMPLE_STATUS_INSUFFICIENT
     assert result.valid_years == [2010, 2011, 2012]
     assert all(sc is None for sc in result.scorecards.values())
     assert all(out == GlobalOutcome.NOT_ESTABLISHED for out in result.outcomes.values())
@@ -398,7 +410,7 @@ def test_track_levels_unpaired_seventh_year_short_circuit() -> None:
 
     assert len(result.valid_years) == 6
     assert result.valid_years == list(range(2010, 2016))
-    assert result.sample_status == "insufficient_blocks"
+    assert result.sample_status == SAMPLE_STATUS_INSUFFICIENT
     assert all(sc is None for sc in result.scorecards.values())
     assert all(out == GlobalOutcome.NOT_ESTABLISHED for out in result.outcomes.values())
 
@@ -578,3 +590,457 @@ def test_track_levels_determinism() -> None:
             assert ci1.point_estimate == ci2.point_estimate
             assert ci1.ci_lower == ci2.ci_lower
             assert ci1.ci_upper == ci2.ci_upper
+
+
+def _make_synthetic_temperature_series(
+    start_year: int,
+    end_year: int,
+    seed: int = 42,
+) -> Tuple[pd.Series, pd.Series]:
+    """Build deterministic synthetic daily series with seasonal cycle and noise.
+
+    Guarantees Tmin < Tmax strictly on every day.
+    """
+    dates = pd.date_range(f"{start_year}-01-01", f"{end_year}-12-31", freq="D")
+    rng = np.random.default_rng(seed)
+    n = len(dates)
+    doy = dates.dayofyear.to_numpy()
+
+    seasonal = 3.0 * np.sin(2 * np.pi * doy / 365.25)
+    noise_tmax = rng.normal(0.0, 0.5, size=n)
+    noise_dtr = rng.uniform(0.0, 0.5, size=n)
+
+    tmax = pd.Series(25.0 + seasonal + noise_tmax, index=dates, name="tmax")
+    dtr = 8.0 + noise_dtr
+    tmin = pd.Series(tmax - dtr, index=dates, name="tmin")
+
+    return tmax, tmin
+
+
+def test_fit_and_predict_levels_round_trip() -> None:
+    """Requirement 5a: fit_levels/predict_levels round trip on seasonal series.
+
+    When model = obs + 3 C, Level 1 subtracts 3 C exactly so predictions equal obs.
+    identical_to_winner is True for 'constant' extrapolation, False for 'linear'.
+    """
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2000)
+    mod_tmax = obs_tmax + 3.0
+    mod_tmin = obs_tmin + 3.0
+
+    # 1. Extrapolation == "constant"
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+    fitted_const = fit_levels(obs_tmax, obs_tmin, mod_tmax, mod_tmin, cfg_const)
+    assert isinstance(fitted_const, FittedLevels)
+    assert fitted_const.identical_to_winner is True
+    assert fitted_const.winner_config_id == 1
+    assert fitted_const.level3_constant is fitted_const.level3_winner
+
+    preds_const = predict_levels(fitted_const, mod_tmax, mod_tmin)
+    assert "level3_constant" not in preds_const
+    np.testing.assert_allclose(
+        preds_const["level1"].tmax.to_numpy(), obs_tmax.to_numpy(), atol=1e-9
+    )
+    np.testing.assert_allclose(
+        preds_const["level1"].tmin.to_numpy(), obs_tmin.to_numpy(), atol=1e-9
+    )
+
+    # 2. Extrapolation == "linear"
+    cfg_linear = {
+        "config_id": 2,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "linear",
+    }
+    fitted_linear = fit_levels(obs_tmax, obs_tmin, mod_tmax, mod_tmin, cfg_linear)
+    assert fitted_linear.identical_to_winner is False
+    assert fitted_linear.winner_config_id == 2
+    assert fitted_linear.level3_constant is not fitted_linear.level3_winner
+
+    preds_linear = predict_levels(fitted_linear, mod_tmax, mod_tmin)
+    assert "level3_constant" in preds_linear
+
+
+def test_block_cv_leakage_by_construction() -> None:
+    """Requirement 5b: Block CV leakage test by construction (1990-2011).
+
+    bias is 1.0 only in 1995-1999 and 0.0 elsewhere.
+    Out-of-sample prediction in 1995-1999 still carries +1.0 bias (it was held out).
+    Level 1 fitted on the whole record reduces the bias (differs by > 0.1).
+    """
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2011)
+    mod_tmax = obs_tmax.copy()
+    mod_tmin = obs_tmin.copy()
+
+    mask_bias = (obs_tmax.index.year >= 1995) & (obs_tmax.index.year <= 1999)
+    mod_tmax.loc[mask_bias] += 1.0
+    mod_tmin.loc[mask_bias] += 1.0
+
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    # 1. Out-of-sample block CV predictions
+    preds_cv, _ = _block_cv_predictions(
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=mod_tmax,
+        raw_tmin=mod_tmin,
+        winner_config=cfg_const,
+    )
+    diff_cv = preds_cv["level1"].tmax.loc[mask_bias] - obs_tmax.loc[mask_bias]
+    # Because training years had 0.0 bias, L1 correction was 0.0, holding +1.0 bias
+    np.testing.assert_allclose(diff_cv.to_numpy(), 1.0, atol=1e-6)
+
+    # 2. Whole-record fit
+    m1_whole = Level1MonthlyAdditiveTemperature()
+    m1_whole.fit(obs_tmax, obs_tmin, mod_tmax, mod_tmin)
+    pred_whole_tmax, _ = m1_whole.transform(mod_tmax, mod_tmin)
+    diff_whole = pred_whole_tmax.loc[mask_bias] - obs_tmax.loc[mask_bias]
+
+    # Whole-record model learned 5/22 * 1.0 bias, so diff_whole is ~0.773
+    assert float(np.abs(diff_cv.mean() - diff_whole.mean())) > 0.1
+
+
+def test_primary_split_anti_leakage() -> None:
+    """Requirement 5c: Primary split anti-leakage with contaminated validation.
+
+    Evaluating two datasets with identical calibration but different validation
+    contents produces identical Level 1 corrections and predictions.
+    """
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2010)
+    raw_tmax = obs_tmax + 2.0
+    raw_tmin = obs_tmin - 1.0
+
+    cal_range = (1990, 2004)
+    val_range = (2005, 2010)
+
+    # Dataset 1: clean
+    # Dataset 2: contaminated validation
+    raw2_tmax = raw_tmax.copy()
+    raw2_tmin = raw_tmin.copy()
+    val_mask = raw2_tmax.index.year.isin(range(val_range[0], val_range[1] + 1))
+    raw2_tmax.loc[val_mask] += 50.0
+    raw2_tmin.loc[val_mask] += 50.0
+
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    cal_mask = obs_tmax.index.year.isin(range(cal_range[0], cal_range[1] + 1))
+    fitted1 = fit_levels(
+        obs_tmax[cal_mask],
+        obs_tmin[cal_mask],
+        raw_tmax[cal_mask],
+        raw_tmin[cal_mask],
+        cfg_const,
+    )
+    fitted2 = fit_levels(
+        obs_tmax[cal_mask],
+        obs_tmin[cal_mask],
+        raw2_tmax[cal_mask],
+        raw2_tmin[cal_mask],
+        cfg_const,
+    )
+
+    pred1 = predict_levels(fitted1, raw_tmax[val_mask], raw_tmin[val_mask])
+    pred2 = predict_levels(fitted2, raw_tmax[val_mask], raw_tmin[val_mask])
+
+    np.testing.assert_allclose(
+        pred1["level1"].tmax.to_numpy(), pred2["level1"].tmax.to_numpy(), atol=1e-9
+    )
+    np.testing.assert_allclose(
+        pred1["level1"].tmin.to_numpy(), pred2["level1"].tmin.to_numpy(), atol=1e-9
+    )
+
+
+def test_block_cv_fold_abort_safeguard(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Requirement 5d: Fold abort returns SAMPLE_STATUS_ABORTED."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2011)
+    raw_tmax = obs_tmax + 2.0
+    raw_tmin = obs_tmin - 1.0
+
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    orig_fit = Level1MonthlyAdditiveTemperature.fit
+
+    def _mock_fit_fail(
+        self: Level1MonthlyAdditiveTemperature,
+        o_tmax: pd.Series,
+        o_tmin: pd.Series,
+        m_tmax: pd.Series,
+        m_tmin: pd.Series,
+    ) -> None:
+        # Fail when test fold is 1995-1999 (meaning training excludes 1995-1999)
+        if not o_tmax.index.year.isin([1995]).any():
+            raise ValueError("Safeguard triggered in fold 1995-1999")
+        orig_fit(self, o_tmax, o_tmin, m_tmax, m_tmin)
+
+    monkeypatch.setattr(Level1MonthlyAdditiveTemperature, "fit", _mock_fit_fail)
+
+    result = evaluate_block_cv(
+        station_id="TEST_STATION",
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_tmax,
+        raw_tmin=raw_tmin,
+        winner_config=cfg_const,
+        n_replicas=20,
+    )
+
+    assert result.sample_status == SAMPLE_STATUS_ABORTED
+    assert result.reason is not None
+    assert "1995-1999" in result.reason
+    assert all(sc is None for sc in result.scorecards.values())
+    assert all(out == GlobalOutcome.NOT_ESTABLISHED for out in result.outcomes.values())
+
+
+def test_block_cv_gap_in_calendar_years_raises() -> None:
+    """Requirement 5e: Gap in calendar years raises ValueError in block CV."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2011)
+    raw_tmax = obs_tmax + 2.0
+    raw_tmin = obs_tmin - 1.0
+
+    # Drop year 2000 to create a gap
+    mask_gap = obs_tmax.index.year != 2000
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    with pytest.raises(ValueError, match="gap"):
+        evaluate_block_cv(
+            station_id="TEST_STATION",
+            obs_tmax=obs_tmax[mask_gap],
+            obs_tmin=obs_tmin[mask_gap],
+            raw_tmax=raw_tmax[mask_gap],
+            raw_tmin=raw_tmin[mask_gap],
+            winner_config=cfg_const,
+            n_replicas=20,
+        )
+
+
+def test_level0_and_level3_constant_crossing_alert_internal() -> None:
+    """Requirement 5f: Crossing alert computed internally for L0 and L3 constant."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(2010, 2016)
+    n_days = len(obs_tmax)
+    cross_count = int(0.05 * n_days) + 1  # 5% crossings
+
+    # 1. Raw series with crossings gives level0 crossing alert and FALSIFIED
+    raw_cross_tmax = obs_tmax.copy()
+    raw_cross_tmin = obs_tmin.copy()
+    idx_cross = obs_tmax.index[:cross_count]
+    raw_cross_tmax.loc[idx_cross] = 10.0
+    raw_cross_tmin.loc[idx_cross] = 20.0
+
+    pred_pass = LevelPrediction(tmax=obs_tmax, tmin=obs_tmin)
+    preds = {
+        "level1": pred_pass,
+        "level2": pred_pass,
+        "level3_winner": pred_pass,
+    }
+
+    res1 = evaluate_track_levels(
+        station_id="TEST_STATION",
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=raw_cross_tmax,
+        raw_tmin=raw_cross_tmin,
+        predictions=preds,
+        identical_to_winner=True,
+        n_replicas=20,
+        seed=42,
+    )
+    sc_l0 = res1.scorecards["level0"]
+    assert sc_l0 is not None
+    assert sc_l0.crossing_diagnostic is not None
+    assert sc_l0.crossing_diagnostic.alert_triggered is True
+    assert res1.outcomes["level0"] == GlobalOutcome.FALSIFIED
+
+    # 2. Level 3 constant with crossing_diagnostic=None computes internally
+    pred_l3c = LevelPrediction(
+        tmax=raw_cross_tmax,
+        tmin=raw_cross_tmin,
+        crossing_diagnostic=None,
+    )
+    preds_l3c = dict(preds, level3_constant=pred_l3c)
+    res2 = evaluate_track_levels(
+        station_id="TEST_STATION",
+        obs_tmax=obs_tmax,
+        obs_tmin=obs_tmin,
+        raw_tmax=obs_tmax,
+        raw_tmin=obs_tmin,
+        predictions=preds_l3c,
+        identical_to_winner=False,
+        n_replicas=20,
+        seed=42,
+    )
+    sc_l3c = res2.scorecards["level3_constant"]
+    assert sc_l3c is not None
+    assert sc_l3c.crossing_diagnostic is not None
+    assert sc_l3c.crossing_diagnostic.alert_triggered is True
+    assert res2.outcomes["level3_constant"] == GlobalOutcome.FALSIFIED
+
+
+def test_combine_tracks_truth_table() -> None:
+    """Requirement 5g: combine_tracks truth table under weaker-of-the-two rule."""
+
+    def _make_eval(outcomes: Dict[str, GlobalOutcome]) -> TrackEvaluation:
+        return TrackEvaluation(
+            station_id="TEST_STATION",
+            valid_years=[2010, 2011, 2012, 2013, 2014, 2015, 2016],
+            sample_status=SAMPLE_STATUS_OK,
+            scorecards={k: None for k in outcomes},
+            outcomes=outcomes,
+            identical_to_winner=True,
+            reason=None,
+        )
+
+    # 1. SUCCESS / SUCCESS -> SUCCESS
+    p1 = _make_eval(
+        {
+            "level0": GlobalOutcome.SUCCESS,
+            "level1": GlobalOutcome.SUCCESS,
+            "level2": GlobalOutcome.SUCCESS,
+            "level3_winner": GlobalOutcome.SUCCESS,
+            "level3_constant": GlobalOutcome.SUCCESS,
+        }
+    )
+    c1 = _make_eval(
+        {
+            "level0": GlobalOutcome.SUCCESS,
+            "level1": GlobalOutcome.SUCCESS,
+            "level2": GlobalOutcome.SUCCESS,
+            "level3_winner": GlobalOutcome.SUCCESS,
+            "level3_constant": GlobalOutcome.SUCCESS,
+        }
+    )
+    assert combine_tracks(p1, c1)["level1"] == GlobalOutcome.SUCCESS
+
+    # 2. SUCCESS / NOT_ESTABLISHED -> NOT_ESTABLISHED
+    p2 = _make_eval(
+        {
+            "level0": GlobalOutcome.SUCCESS,
+            "level1": GlobalOutcome.SUCCESS,
+            "level2": GlobalOutcome.SUCCESS,
+            "level3_winner": GlobalOutcome.SUCCESS,
+            "level3_constant": GlobalOutcome.SUCCESS,
+        }
+    )
+    c2 = _make_eval(
+        {
+            "level0": GlobalOutcome.NOT_ESTABLISHED,
+            "level1": GlobalOutcome.NOT_ESTABLISHED,
+            "level2": GlobalOutcome.NOT_ESTABLISHED,
+            "level3_winner": GlobalOutcome.NOT_ESTABLISHED,
+            "level3_constant": GlobalOutcome.NOT_ESTABLISHED,
+        }
+    )
+    assert combine_tracks(p2, c2)["level1"] == GlobalOutcome.NOT_ESTABLISHED
+
+    # 3. NOT_ESTABLISHED / FALSIFIED -> FALSIFIED
+    p3 = _make_eval(
+        {
+            "level0": GlobalOutcome.NOT_ESTABLISHED,
+            "level1": GlobalOutcome.NOT_ESTABLISHED,
+            "level2": GlobalOutcome.NOT_ESTABLISHED,
+            "level3_winner": GlobalOutcome.NOT_ESTABLISHED,
+            "level3_constant": GlobalOutcome.NOT_ESTABLISHED,
+        }
+    )
+    c3 = _make_eval(
+        {
+            "level0": GlobalOutcome.FALSIFIED,
+            "level1": GlobalOutcome.FALSIFIED,
+            "level2": GlobalOutcome.FALSIFIED,
+            "level3_winner": GlobalOutcome.FALSIFIED,
+            "level3_constant": GlobalOutcome.FALSIFIED,
+        }
+    )
+    assert combine_tracks(p3, c3)["level1"] == GlobalOutcome.FALSIFIED
+
+
+def test_levels_with_global_success() -> None:
+    """Requirement 5h: Candidate levels with Global Success at every station."""
+    outcomes = {
+        "station_1": {
+            "level0": GlobalOutcome.SUCCESS,
+            "level1": GlobalOutcome.SUCCESS,
+            "level2": GlobalOutcome.SUCCESS,
+            "level3_winner": GlobalOutcome.SUCCESS,
+            "level3_constant": GlobalOutcome.SUCCESS,
+        },
+        "station_2": {
+            "level0": GlobalOutcome.SUCCESS,
+            "level1": GlobalOutcome.SUCCESS,
+            "level2": GlobalOutcome.FALSIFIED,
+            "level3_winner": GlobalOutcome.SUCCESS,
+            "level3_constant": GlobalOutcome.SUCCESS,
+        },
+    }
+
+    successful = levels_with_global_success(outcomes)
+    assert successful == ["level1", "level3_winner"]
+    assert "level0" not in successful
+    assert "level2" not in successful
+    assert "level3_constant" not in successful
+
+
+def test_primary_split_propagation_on_safeguard_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Requirement 5i: Primary split propagates ValueError immediately."""
+    obs_tmax, obs_tmin = _make_synthetic_temperature_series(1990, 2010)
+    raw_tmax = obs_tmax + 2.0
+    raw_tmin = obs_tmin - 1.0
+
+    cfg_const = {
+        "config_id": 1,
+        "grouping": "monthly",
+        "n_quantiles": 50,
+        "extrapolation": "constant",
+    }
+
+    def _mock_boom(*args: object, **kwargs: object) -> None:
+        raise ValueError("boom")
+
+    monkeypatch.setattr(Level1MonthlyAdditiveTemperature, "fit", _mock_boom)
+
+    with pytest.raises(ValueError, match="boom"):
+        evaluate_primary_split(
+            station_id="TEST_STATION",
+            obs_tmax=obs_tmax,
+            obs_tmin=obs_tmin,
+            raw_tmax=raw_tmax,
+            raw_tmin=raw_tmin,
+            cal_range=(1990, 2004),
+            val_range=(2005, 2010),
+            winner_config=cfg_const,
+            n_replicas=20,
+        )
+
+
+def test_sample_status_constants() -> None:
+    """Requirement 5j: SAMPLE_STATUS constants match track_sample_status."""
+    assert SAMPLE_STATUS_INSUFFICIENT == track_sample_status(6)
+    assert SAMPLE_STATUS_OK == track_sample_status(7)
+    assert SAMPLE_STATUS_INSUFFICIENT == "not_established_insufficient_sample"
+    assert SAMPLE_STATUS_OK == "ok"
+    assert SAMPLE_STATUS_ABORTED == "aborted_safeguard"
