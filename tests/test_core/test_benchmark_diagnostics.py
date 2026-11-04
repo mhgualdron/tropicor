@@ -24,6 +24,7 @@ from tropicor.core.benchmark_diagnostics import (
     _validation_monthly_bias,
     annual_dtr_bias_series,
     annual_series_d1,
+    leave_one_year_out_d7,
     level_change_d2,
     noise_floor_d5_d6,
     step_description_d4,
@@ -1013,6 +1014,231 @@ def test_d5_excluded_years_ignored() -> None:
 
 def test_source_guard_benchmark_diagnostics_extended_d5() -> None:
     """Test 3k: Source guard extended against read_csv and ledger imports."""
+    src = inspect.getsource(bdiag)
+    assert "read_csv" not in src
+    assert "validate_validation_access" not in src
+    assert "record_validation_opening" not in src
+
+
+def test_d7_hand_computed_example() -> None:
+    """Test 3a: Hand-computed example with 3 validation years and constant diffs."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs.copy()
+    mod[idx.year == 2001] += 1.0
+    mod[idx.year == 2002] += 2.0
+    mod[idx.year == 2003] += 4.0
+
+    b_m_zero = [0.0] * 12
+    res = leave_one_year_out_d7(obs, mod, b_m_zero, [2001, 2002, 2003])
+
+    assert abs(res["max_abs_bias_all"] - 7.0 / 3.0) < 1e-12
+    assert abs(res["per_year"][0]["max_abs_bias_without"] - 3.0) < 1e-12
+    assert abs(res["per_year"][1]["max_abs_bias_without"] - 2.5) < 1e-12
+    assert abs(res["per_year"][2]["max_abs_bias_without"] - 1.5) < 1e-12
+    assert abs(res["range_min"] - 1.5) < 1e-12
+    assert abs(res["range_max"] - 3.0) < 1e-12
+    assert res["most_influential_year"] == 2003
+    assert abs(res["per_year"][0]["delta_vs_all"] - (3.0 - 7.0 / 3.0)) < 1e-12
+    assert abs(res["per_year"][1]["delta_vs_all"] - (2.5 - 7.0 / 3.0)) < 1e-12
+    assert abs(res["per_year"][2]["delta_vs_all"] - (1.5 - 7.0 / 3.0)) < 1e-12
+    assert res["n_val_years"] == 3
+    assert res["n_nan_leave_outs"] == 0
+    assert res["status"] == DIAG_STATUS_OK
+
+
+def test_d7_month_specific_effect() -> None:
+    """Test 3b: Month-specific effect where removing outlier is most influential."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs + 1.0
+    mar_2002 = (idx.year == 2002) & (idx.month == 3)
+    mod[mar_2002] += 5.0
+
+    b_m_zero = [0.0] * 12
+    res = leave_one_year_out_d7(obs, mod, b_m_zero, [2001, 2002, 2003])
+    assert res["most_influential_year"] == 2002
+    assert abs(res["per_year"][1]["max_abs_bias_without"] - 1.0) < 1e-12
+
+
+def test_d7_calibration_bias_unchanged_and_calibration_years_ignored() -> None:
+    """Test 3c: b_m is used as given and calibration years in series are ignored."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs.copy()
+    mod[idx.year == 2001] += 1.0
+    mod[idx.year == 2002] += 2.0
+    mod[idx.year == 2003] += 4.0
+
+    b_m_shifted = [0.5] * 12
+    res = leave_one_year_out_d7(obs, mod, b_m_shifted, [2001, 2002, 2003])
+    assert abs(res["max_abs_bias_all"] - (7.0 / 3.0 - 0.5)) < 1e-12
+    assert abs(res["per_year"][0]["max_abs_bias_without"] - (3.0 - 0.5)) < 1e-12
+    assert abs(res["per_year"][1]["max_abs_bias_without"] - (2.5 - 0.5)) < 1e-12
+    assert abs(res["per_year"][2]["max_abs_bias_without"] - (1.5 - 0.5)) < 1e-12
+    assert res["most_influential_year"] == 2003
+
+    # Add calibration year in series with extreme values
+    idx_with_cal = _make_daily_index(2000, 2003)
+    obs_with_cal = pd.Series(10.0, index=idx_with_cal)
+    mod_with_cal = obs_with_cal.copy()
+    mod_with_cal.loc[obs.index] = mod
+    mod_with_cal[idx_with_cal.year == 2000] += 999.0
+    res_cal_ignored = leave_one_year_out_d7(
+        obs_with_cal, mod_with_cal, [0.0] * 12, [2001, 2002, 2003]
+    )
+    res_base = leave_one_year_out_d7(obs, mod, [0.0] * 12, [2001, 2002, 2003])
+    assert res_cal_ignored == res_base
+
+
+def test_d7_ties_resolve_to_earliest_year() -> None:
+    """Test 3d: Ties in |delta_vs_all| resolve to the earliest year."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs.copy()
+    mod[idx.year == 2001] += 2.0
+    mod[idx.year == 2002] += 0.0
+    mod[idx.year == 2003] += 1.0
+
+    res = leave_one_year_out_d7(obs, mod, [0.0] * 12, [2001, 2002, 2003])
+    assert res["most_influential_year"] == 2001
+    assert abs(res["per_year"][0]["delta_vs_all"] - (-0.5)) < 1e-12
+    assert abs(res["per_year"][1]["delta_vs_all"] - 0.5) < 1e-12
+
+
+def test_d7_excluded_and_other_years_ignored() -> None:
+    """Test 3e: Excluded and calibration years in series are ignored without error."""
+    idx_val = _make_daily_index(2001, 2003)
+    obs_val = pd.Series(10.0, index=idx_val)
+    mod_val = obs_val.copy()
+    mod_val[idx_val.year == 2001] += 1.0
+    mod_val[idx_val.year == 2002] += 2.0
+    mod_val[idx_val.year == 2003] += 4.0
+
+    idx_full = _make_daily_index(1995, 2008)
+    obs_full = pd.Series(np.nan, index=idx_full)
+    mod_full = pd.Series(np.nan, index=idx_full)
+    obs_full.loc[idx_val] = obs_val
+    mod_full.loc[idx_val] = mod_val
+    other_idx = idx_full[~idx_full.isin(idx_val)]
+    obs_full.loc[other_idx] = 999.0
+    mod_full.loc[other_idx] = -999.0
+
+    res_trimmed = leave_one_year_out_d7(
+        obs_val, mod_val, [0.0] * 12, [2001, 2002, 2003]
+    )
+    res_full = leave_one_year_out_d7(obs_full, mod_full, [0.0] * 12, [2001, 2002, 2003])
+
+    assert set(res_trimmed.keys()) == set(res_full.keys())
+    for k in res_trimmed:
+        v1, v2 = res_trimmed[k], res_full[k]
+        if isinstance(v1, list):
+            assert len(v1) == len(v2)
+            for d1, d2 in zip(v1, v2):
+                assert set(d1.keys()) == set(d2.keys())
+                for dk in d1:
+                    val1, val2 = d1[dk], d2[dk]
+                    if isinstance(val1, float) and np.isnan(val1):
+                        assert np.isnan(val2)
+                    else:
+                        assert val1 == val2 or abs(val1 - val2) < 1e-12
+        elif isinstance(v1, float):
+            if np.isnan(v1):
+                assert np.isnan(v2)
+            else:
+                assert abs(v1 - v2) < 1e-12
+        else:
+            assert v1 == v2
+
+
+@pytest.mark.filterwarnings("error")
+def test_d7_leave_out_month_exists_in_one_year_only() -> None:
+    """Test 3f: Leave-out with a month present in only one year produces NaN."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs + 1.0
+    dec_02_03 = (idx.year.isin([2002, 2003])) & (idx.month == 12)
+    obs.loc[dec_02_03] = np.nan
+
+    res = leave_one_year_out_d7(obs, mod, [0.0] * 12, [2001, 2002, 2003])
+    assert res["n_nan_leave_outs"] == 1
+    assert np.isnan(res["per_year"][0]["max_abs_bias_without"])
+    assert np.isnan(res["per_year"][0]["delta_vs_all"])
+    assert np.isfinite(res["per_year"][1]["max_abs_bias_without"])
+    assert np.isfinite(res["per_year"][2]["max_abs_bias_without"])
+    assert np.isfinite(res["range_min"])
+    assert np.isfinite(res["range_max"])
+    assert res["most_influential_year"] in (2002, 2003)
+
+
+def test_d7_insufficient_data() -> None:
+    """Test 3g: Fewer than 2 included validation years returns INSUFFICIENT."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs + 1.0
+
+    res_1yr = leave_one_year_out_d7(obs, mod, [0.0] * 12, [2001])
+    assert res_1yr["status"] == DIAG_STATUS_INSUFFICIENT
+    assert np.isnan(res_1yr["max_abs_bias_all"])
+    assert np.isnan(res_1yr["range_min"])
+    assert np.isnan(res_1yr["range_max"])
+    assert np.isnan(res_1yr["most_influential_year"])
+    assert res_1yr["per_year"] == []
+
+    res_0yr = leave_one_year_out_d7(obs, mod, [0.0] * 12, [])
+    assert res_0yr["status"] == DIAG_STATUS_INSUFFICIENT
+    assert np.isnan(res_0yr["max_abs_bias_all"])
+    assert res_0yr["per_year"] == []
+
+
+def test_d7_contract_errors() -> None:
+    """Test 3h: Contract violations raise ValueError."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs + 1.0
+
+    # Duplicated years
+    with pytest.raises(ValueError, match="duplicated"):
+        leave_one_year_out_d7(obs, mod, [0.0] * 12, [2001, 2001, 2002])
+
+    # Included year absent from data index
+    with pytest.raises(ValueError, match="no rows in data index"):
+        leave_one_year_out_d7(obs, mod, [0.0] * 12, [1990, 2001])
+
+    # calibration_monthly_bias with 11 and 13 values
+    with pytest.raises(ValueError, match="length 12"):
+        leave_one_year_out_d7(obs, mod, [0.0] * 11, [2001, 2002])
+
+    with pytest.raises(ValueError, match="length 12"):
+        leave_one_year_out_d7(obs, mod, [0.0] * 13, [2001, 2002])
+
+    # calibration_monthly_bias with NaN
+    with pytest.raises(ValueError, match="non-finite"):
+        leave_one_year_out_d7(obs, mod, [0.0] * 11 + [np.nan], [2001, 2002])
+
+    # Shifted index between obs and mod
+    shifted_mod = mod.copy()
+    shifted_mod.index = shifted_mod.index + pd.Timedelta(days=1)
+    with pytest.raises(ValueError):
+        leave_one_year_out_d7(obs, shifted_mod, [0.0] * 12, [2001, 2002])
+
+
+def test_d7_determinism_and_no_rng() -> None:
+    """Test 3i: Determinism and no RNG inside leave_one_year_out_d7."""
+    idx = _make_daily_index(2001, 2003)
+    obs = pd.Series(10.0, index=idx)
+    mod = obs + 1.0
+    b_m = [0.0] * 12
+    res1 = leave_one_year_out_d7(obs, mod, b_m, [2001, 2002, 2003])
+    res2 = leave_one_year_out_d7(obs, mod, b_m, [2001, 2002, 2003])
+    assert res1 == res2
+    fn_src = inspect.getsource(leave_one_year_out_d7)
+    assert "default_rng" not in fn_src
+    assert "rng" not in fn_src
+
+
+def test_source_guard_benchmark_diagnostics_extended_d7() -> None:
+    """Test 3j: Source guard extended against read_csv and ledger imports."""
     src = inspect.getsource(bdiag)
     assert "read_csv" not in src
     assert "validate_validation_access" not in src

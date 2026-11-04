@@ -1,4 +1,5 @@
-"""Benchmark diagnostic helpers under Protocol Appendix K.5.2 (D1, D2, D3, D4, D5, D6).
+"""Benchmark diagnostic helpers under Protocol Appendix K.5.2
+(D1, D2, D3, D4, D5, D6, D7).
 
 Provides pure diagnostic functions for Level 1 residual analysis:
 - D1: Annual bias and Level 1 residual series
@@ -7,6 +8,7 @@ Provides pure diagnostic functions for Level 1 residual analysis:
 - D4: Best single step with permutation reference
 - D5: Noise floor via random reassignment or full enumeration
 - D6: Decomposition into offset and seasonal amplitude
+- D7: Leave-one-year-out validation influence analysis
 """
 
 import itertools
@@ -1031,4 +1033,171 @@ def noise_floor_d5_d6(
         "n_cal_years": k_cal,
         "n_val_years": k_val,
         "status": real_status,
+    }
+
+
+def leave_one_year_out_d7(
+    obs: pd.Series,
+    mod: pd.Series,
+    calibration_monthly_bias: Sequence[float],
+    included_val_years: Sequence[int],
+) -> Dict[str, Any]:
+    """Compute leave-one-year-out validation diagnostic D7 for a single variable.
+
+    Under Protocol Appendix K.5.1 and K.5.2:
+    - Sign convention: ERA5 minus observation (mod - obs).
+    - Excluded and calibration years present in the series are ignored; only
+      the included validation years are analyzed.
+    - calibration_monthly_bias: exactly 12 finite values b_m, the official
+      Level 1 calibration bias, passed in and never recomputed.
+    - For each included validation year in turn, Level 1 validation bias is
+      recomputed on the pooled paired days of the other included validation
+      years (b_m unchanged), and the maximum monthly |bias_m| is evaluated.
+    - Diagnostics are descriptive: nothing here returns an outcome or can
+      feed a GlobalOutcome, and it makes no comparison with the decisive
+      threshold of Section 3.4.
+
+    Parameters
+    ----------
+    obs : pd.Series
+        Observed daily temperature series for a single variable.
+    mod : pd.Series
+        Model/reanalysis daily temperature series for a single variable.
+    calibration_monthly_bias : Sequence[float]
+        Exactly 12 finite monthly bias values b_m = mean(mod - obs) over the
+        calibration partition, starting from month 1 (January).
+    included_val_years : Sequence[int]
+        Included years from the validation partition.
+
+    Returns
+    -------
+    Dict[str, Any]
+        Dictionary with keys:
+        - per_year: list of dicts sorted by year with year,
+          max_abs_bias_without, and delta_vs_all
+        - max_abs_bias_all: max absolute validation monthly bias using all
+          included validation years
+        - range_min: minimum of finite max_abs_bias_without values
+        - range_max: maximum of finite max_abs_bias_without values
+        - most_influential_year: year with largest |delta_vs_all|, earliest on ties
+        - n_val_years: number of included validation years
+        - n_nan_leave_outs: number of leave-out draws with missing month days
+        - status: DIAG_STATUS_OK, DIAG_STATUS_INSUFFICIENT, or
+          DIAG_STATUS_MONTH_WITHOUT_DAYS
+
+    Raises
+    ------
+    ValueError
+        If obs and mod indices are not aligned, monotonic, and unique;
+        if included_val_years contains duplicated years;
+        if any included validation year is absent from the data index;
+        or if calibration_monthly_bias does not have 12 finite values.
+    """
+    idx = _require_aligned_index(obs=obs, mod=mod)
+    assert isinstance(idx, pd.DatetimeIndex)
+
+    val_list = list(included_val_years)
+    if len(set(val_list)) != len(val_list):
+        raise ValueError("duplicated years in included_val_years")
+
+    if len(calibration_monthly_bias) != 12:
+        raise ValueError(
+            f"calibration_monthly_bias must have length 12, "
+            f"got {len(calibration_monthly_bias)}."
+        )
+    b_cal = np.asarray(calibration_monthly_bias, dtype=float)
+    if not np.all(np.isfinite(b_cal)):
+        raise ValueError("calibration_monthly_bias contains non-finite values.")
+
+    data_years = set(idx.year)
+    for y in val_list:
+        if y not in data_years:
+            raise ValueError(f"included validation year {y} has no rows in data index")
+
+    k_val = len(val_list)
+
+    if k_val < 2:
+        # OPEN ITEM v1.10: K.5.2 does not specify the minimum number of included years for D2/D3; NaN returned with status  # noqa: E501
+        return {
+            "per_year": [],
+            "max_abs_bias_all": float("nan"),
+            "range_min": float("nan"),
+            "range_max": float("nan"),
+            "most_influential_year": float("nan"),
+            "n_val_years": k_val,
+            "n_nan_leave_outs": 0,
+            "status": DIAG_STATUS_INSUFFICIENT,
+        }
+
+    sorted_val_years = sorted(val_list)
+    sums, counts = _monthly_diff_sums_counts(obs, mod, sorted_val_years)
+    all_row_idx = np.arange(k_val, dtype=int)
+
+    # OPEN ITEM v1.10: K.5.2 D7 'unchanged calibration' read as the official calibration monthly bias (input, as D1); not recomputed on included years  # noqa: E501
+    v_all = _validation_monthly_bias(sums, counts, all_row_idx, b_cal)
+    if np.isnan(v_all).any():
+        return {
+            "per_year": [],
+            "max_abs_bias_all": float("nan"),
+            "range_min": float("nan"),
+            "range_max": float("nan"),
+            "most_influential_year": float("nan"),
+            "n_val_years": k_val,
+            "n_nan_leave_outs": 0,
+            "status": DIAG_STATUS_MONTH_WITHOUT_DAYS,
+        }
+
+    max_abs_bias_all = _decompose(v_all)["max_abs_bias"]
+
+    per_year: List[Dict[str, Any]] = []
+    finite_without: List[float] = []
+    n_nan_leave_outs = 0
+
+    for i, y in enumerate(sorted_val_years):
+        other_idx = [j for j in range(k_val) if j != i]
+        v_without = _validation_monthly_bias(sums, counts, other_idx, b_cal)
+        if np.isnan(v_without).any():
+            # OPEN ITEM v1.10: K.5.2 D5/D6 do not specify the handling of a calendar month without paired days; NaN returned with status  # noqa: E501
+            without_y = float("nan")
+            delta_vs_all = float("nan")
+            n_nan_leave_outs += 1
+        else:
+            without_y = _decompose(v_without)["max_abs_bias"]
+            delta_vs_all = float(without_y - max_abs_bias_all)
+            finite_without.append(without_y)
+        per_year.append(
+            {
+                "year": y,
+                "max_abs_bias_without": without_y,
+                "delta_vs_all": delta_vs_all,
+            }
+        )
+
+    if len(finite_without) > 0:
+        range_min = float(np.min(finite_without))
+        range_max = float(np.max(finite_without))
+    else:
+        range_min = float("nan")
+        range_max = float("nan")
+
+    # OPEN ITEM v1.10: K.5.2 D7 does not define 'most influential year'; largest |without - all|, earliest year on ties  # noqa: E501
+    finite_entries = [e for e in per_year if not np.isnan(e["delta_vs_all"])]
+    if len(finite_entries) > 0:
+        best_entry = min(
+            finite_entries,
+            key=lambda e: (-abs(e["delta_vs_all"]), e["year"]),
+        )
+        most_influential_year: Any = best_entry["year"]
+    else:
+        most_influential_year = float("nan")
+
+    return {
+        "per_year": per_year,
+        "max_abs_bias_all": max_abs_bias_all,
+        "range_min": range_min,
+        "range_max": range_max,
+        "most_influential_year": most_influential_year,
+        "n_val_years": k_val,
+        "n_nan_leave_outs": n_nan_leave_outs,
+        "status": DIAG_STATUS_OK,
     }
