@@ -40,6 +40,55 @@ class ObservationRecord:
     approval: Optional[pd.Series] = field(default=None, repr=False)
 
 
+def _normalize_station_id(station_id: str) -> str:
+    """Normalize a station identifier by stripping whitespace and .0 suffix."""
+    return re.sub(r"\.0$", "", str(station_id).strip())
+
+
+def _enforce_opening_guard(
+    station_id: str,
+    last_year: int,
+    calibration_last_year: int,
+    opening_records: Optional[Sequence[Mapping[str, Any]]],
+    opening_purpose: Optional[str],
+) -> None:
+    """Enforce authorization guard before any validation-period data access.
+
+    Shared by every loader of this module that can read validation-period data;
+    the caller (orchestrator) has read the ledger and verified the records are
+    in it. Performs no file access.
+    """
+    clean_id = _normalize_station_id(station_id)
+
+    if last_year > calibration_last_year:
+        if (
+            opening_purpose is None
+            or not isinstance(opening_purpose, str)
+            or not opening_purpose.strip()
+        ):
+            raise ValueError(
+                "opening_purpose must be a non-empty string when validation "
+                "years are requested."
+            )
+
+        # OPEN ITEM v1.10: K.8.2 and J.10 do not name the ledger purpose label of the benchmark formal opening  # noqa: E501
+        authorized = False
+        if opening_records is not None:
+            for rec in opening_records:
+                if isinstance(rec, Mapping):
+                    rec_st = _normalize_station_id(str(rec.get("station_id", "")))
+                    rec_purpose = rec.get("purpose")
+                    if rec_st == clean_id and rec_purpose == opening_purpose:
+                        authorized = True
+                        break
+
+        if not authorized:
+            raise PermissionError(
+                f"Validation loading blocked for station '{clean_id}': "
+                f"no matching opening record found for purpose '{opening_purpose}'."
+            )
+
+
 def read_observation_record(
     path: Union[str, Path],
     station_id: str,
@@ -89,35 +138,15 @@ def read_observation_record(
             f"Invalid year range: first_year ({first_year}) > last_year ({last_year})."
         )
 
-    clean_id = re.sub(r"\.0$", "", str(station_id).strip())
+    _enforce_opening_guard(
+        station_id=station_id,
+        last_year=last_year,
+        calibration_last_year=calibration_last_year,
+        opening_records=opening_records,
+        opening_purpose=opening_purpose,
+    )
 
-    if last_year > calibration_last_year:
-        if (
-            opening_purpose is None
-            or not isinstance(opening_purpose, str)
-            or not opening_purpose.strip()
-        ):
-            raise ValueError(
-                "opening_purpose must be a non-empty string when validation "
-                "years are requested."
-            )
-
-        # OPEN ITEM v1.10: K.8.2 and J.10 do not name the ledger purpose label of the benchmark formal opening  # noqa: E501
-        authorized = False
-        if opening_records is not None:
-            for rec in opening_records:
-                if isinstance(rec, Mapping):
-                    rec_st = re.sub(r"\.0$", "", str(rec.get("station_id", "")).strip())
-                    rec_purpose = rec.get("purpose")
-                    if rec_st == clean_id and rec_purpose == opening_purpose:
-                        authorized = True
-                        break
-
-        if not authorized:
-            raise PermissionError(
-                f"Validation loading blocked for station '{clean_id}': "
-                f"no matching opening record found for purpose '{opening_purpose}'."
-            )
+    clean_id = _normalize_station_id(station_id)
 
     path_obj = Path(path)
     if not path_obj.exists():
