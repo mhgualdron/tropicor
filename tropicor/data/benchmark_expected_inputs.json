@@ -1,0 +1,8 @@
+{
+  "local/newFiles/TempMaxima_JardinBotanico.csv": "d5c5a1e78205299f1022071974653e47d5846b12f5e4de5bec13de0f1439936c",
+  "local/newFiles/TempMinima_JardinBotanico.csv": "41e6a8df65e5282c33d60c4a3a0907d0b0a034d98982fe4faef99ed3f9b550f1",
+  "local/newFiles/TempMaxima_AguasClaras.csv": "46a44e5b2f45068a5fafcd37688f21c2279aa70392ee79f682258953686c7056",
+  "local/newFiles/TempMinima_AguasClaras.csv": "5e0c3d22d63868e63e6e581557dfc03376c7da26ece5e8baa13631e1544d9ea3",
+  "local/era5_hourly/21205710/era5_static.nc": "f22a17f169c1897430faf5819f42f1958df24fd535ba731d90810f75b50d70a1",
+  "local/era5_hourly/23215030/era5_static.nc": "4b2ffbdf5c8dd674c00f405fed62288e2d4ffd34b8e228d5eda17f10aa69c7f9"
+}

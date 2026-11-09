@@ -5,13 +5,15 @@ including validation years; it never reads the ledger file and never imports or
 calls any ledger function; the orchestrator reads the ledger, verifies that the
 records are in it, and passes them in.
 
-Includes Section J.2 station constants, ERA5 static-file verification, byte-level
-SHA-256 file hashing, file discovery, and daily ERA5 aggregation mirroring Phase 3.
-The Section E.6.1 plausibility check is applied to the requested years (J.3.1),
-and J.3.3 screening counts are computed elsewhere.
+Includes Section J.2 station constants, ERA5 static-file verification, Section
+J.11 frozen expected inputs loader, byte-level SHA-256 file hashing, file
+discovery, and daily ERA5 aggregation mirroring Phase 3. The Section E.6.1
+plausibility check is applied to the requested years (J.3.1), and J.3.3 screening
+counts are computed elsewhere.
 """
 
 import hashlib
+import json
 import re
 import warnings
 from collections.abc import Mapping, Sequence
@@ -407,6 +409,7 @@ def list_era5_files(
     if not dir_path.is_dir():
         raise FileNotFoundError(f"ERA5 directory not found: {dir_path}")
 
+    # OPEN ITEM v1.10: Section J.11 and I.3.5 do not name the hourly ERA5 files (name pattern or directory); the glob "*2m_temperature*.nc" is inherited from Phase 3  # noqa: E501
     all_nc_files = sorted(dir_path.glob("*2m_temperature*.nc"))
 
     matched_files: set[Path] = set()
@@ -698,3 +701,87 @@ def verify_era5_static(
         abs_difference_m=float(abs_diff_m),
         delta_z_m=float(constants.delta_z_m),
     )
+
+
+BENCHMARK_EXPECTED_INPUTS_PATH: Path = (
+    Path(__file__).resolve().parent.parent / "data" / "benchmark_expected_inputs.json"
+)
+
+BENCHMARK_EXPECTED_INPUT_PATHS: frozenset[str] = frozenset(
+    {
+        "local/newFiles/TempMaxima_JardinBotanico.csv",
+        "local/newFiles/TempMinima_JardinBotanico.csv",
+        "local/newFiles/TempMaxima_AguasClaras.csv",
+        "local/newFiles/TempMinima_AguasClaras.csv",
+        "local/era5_hourly/21205710/era5_static.nc",
+        "local/era5_hourly/23215030/era5_static.nc",
+    }
+)
+
+
+def load_benchmark_expected_inputs(
+    path: Optional[Union[str, Path]] = None,
+) -> dict[str, str]:
+    """Load and validate the benchmark expected inputs configuration.
+
+    Reads Section J.11 frozen file paths and their SHA-256 digests from a JSON
+    file. If path is None, loads the packaged benchmark_expected_inputs.json.
+
+    Args:
+        path: Optional path to benchmark expected inputs JSON file.
+
+    Returns:
+        Dictionary mapping relative file paths to SHA-256 hex strings.
+
+    Raises:
+        FileNotFoundError: If the specified configuration file does not exist.
+        ValueError: If configuration fails validation: not a dict, not exactly 6
+            entries, keys are not valid relative POSIX paths, hashes are not
+            64-character lowercase hex strings, or keys do not match the expected
+            Section J.11 file set.
+    """
+    target = BENCHMARK_EXPECTED_INPUTS_PATH if path is None else Path(path)
+    if not target.is_file():
+        raise FileNotFoundError(
+            f"Benchmark expected inputs file not found: {target.name}"
+        )
+
+    try:
+        with open(target, "r", encoding="utf-8") as f:
+            raw_data = json.load(f)
+    except Exception as exc:
+        raise ValueError(f"Failed to parse expected inputs JSON: {exc}") from exc
+
+    if not isinstance(raw_data, dict):
+        raise ValueError("Expected inputs JSON root must be an object (dict)")
+
+    if len(raw_data) != 6:
+        raise ValueError(f"Expected exactly 6 entries, got {len(raw_data)}")
+
+    result: dict[str, str] = {}
+    hex_pattern = re.compile(r"[0-9a-f]{64}")
+
+    for k, v in raw_data.items():
+        if not isinstance(k, str) or not isinstance(v, str):
+            raise ValueError(f"Key and value must be strings: {k!r} -> {v!r}")
+
+        # Path validation: must be relative, forward slashes, no .., no drive
+        if "\\" in k:
+            raise ValueError(f"Path must use forward slashes only: {k!r}")
+        if ".." in k.split("/"):
+            raise ValueError(f"Path cannot contain parent traversal '..': {k!r}")
+        if ":" in k or k.startswith("/") or Path(k).is_absolute():
+            raise ValueError(f"Path must be relative with no drive letter: {k!r}")
+
+        # Hash validation: 64 lowercase hex
+        if not hex_pattern.fullmatch(v):
+            raise ValueError(f"Hash must be 64-char lowercase hex for {k}: {v!r}")
+
+        result[k] = v
+
+    if set(result.keys()) != BENCHMARK_EXPECTED_INPUT_PATHS:
+        diff_keys = set(result.keys()) ^ BENCHMARK_EXPECTED_INPUT_PATHS
+        msg = f"Expected paths do not match Section J.11 (diff: {diff_keys})"
+        raise ValueError(msg)
+
+    return result
