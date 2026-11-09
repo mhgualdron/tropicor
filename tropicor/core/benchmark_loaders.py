@@ -5,10 +5,10 @@ including validation years; it never reads the ledger file and never imports or
 calls any ledger function; the orchestrator reads the ledger, verifies that the
 records are in it, and passes them in.
 
-Includes Section J.2 station constants, byte-level SHA-256 file hashing,
-file discovery, and daily ERA5 aggregation mirroring Phase 3. The Section E.6.1
-plausibility check is applied to the requested years (J.3.1), and J.3.3 screening
-counts are computed elsewhere.
+Includes Section J.2 station constants, ERA5 static-file verification, byte-level
+SHA-256 file hashing, file discovery, and daily ERA5 aggregation mirroring Phase 3.
+The Section E.6.1 plausibility check is applied to the requested years (J.3.1),
+and J.3.3 screening counts are computed elsewhere.
 """
 
 import hashlib
@@ -21,6 +21,7 @@ from typing import Any, Optional, Union, cast
 
 import numpy as np
 import pandas as pd
+import xarray as xr
 
 from tropicor.downscale.temperature import (
     MAX_PLAUSIBLE_TEMP_C,
@@ -30,6 +31,24 @@ from tropicor.io.era5 import (
     ERA5Adapter,
     aggregate_hourly_to_daily_temperature,
 )
+
+# Section J.2 verification tolerances and physical constants
+J2_Z_ERA5_TOLERANCE_M: float = 0.1
+J2_CELL_ATOL_DEG: float = 1e-3
+GRAVITY_M_S2: float = 9.80665
+
+
+@dataclass(frozen=True)
+class StaticVerification:
+    """Result of Section J.2 ERA5 static-file coordinate and elevation verification."""
+
+    station_id: str
+    grid_lat: float
+    grid_lon: float
+    z_era5_m: float
+    table_z_era5_m: float
+    abs_difference_m: float
+    delta_z_m: float
 
 
 @dataclass(frozen=True)
@@ -577,4 +596,105 @@ def read_era5_daily(
         tmax=mod_tmax,
         tmin=mod_tmin,
         files_used=files_used,
+    )
+
+
+def verify_era5_static(
+    static_path: Union[str, Path],
+    station_id: str,
+) -> StaticVerification:
+    """Verify ERA5 static geopotential and cell coordinates against Section J.2.
+
+    Recomputes grid cell coordinates using nearest-neighbor selection and calculates
+    surface elevation from geopotential (z / 9.80665). Verifies that the extracted
+    cell matches Table J.2 coordinates and that recomputed elevation matches
+    Table J.2 within 0.1 m tolerance.
+
+    Args:
+        static_path: Path to the ERA5 static NetCDF file (era5_static.nc).
+        station_id: Station identifier (e.g. '21205710').
+
+    Returns:
+        StaticVerification containing extracted coordinates, recomputed and table
+        elevation, difference, and fixed delta_z_m from BENCHMARK_STATION_CONSTANTS.
+
+    Raises:
+        FileNotFoundError: If static_path does not exist or is not a file.
+        ValueError: If station_id is unregistered, coordinates are unrecognized,
+            extracted cell mismatches Table J.2, geopotential variable is missing,
+            or recomputed elevation differs from Table J.2 by > 0.1 m.
+    """
+    clean_id = _normalize_station_id(station_id)
+    if clean_id not in BENCHMARK_STATION_CONSTANTS:
+        raise ValueError(f"Station '{clean_id}' is not in BENCHMARK_STATION_CONSTANTS.")
+    constants = BENCHMARK_STATION_CONSTANTS[clean_id]
+
+    path_obj = Path(static_path)
+    if not path_obj.is_file():
+        raise FileNotFoundError(
+            f"Static NetCDF file not found for station '{clean_id}': {path_obj.name}"
+        )
+
+    with xr.open_dataset(path_obj) as ds_static:
+        lat_target = constants.latitude
+        lon_target = constants.longitude
+
+        # OPEN ITEM v1.10: J.2 does not define the tie rule for equidistant ERA5 cells; same behavior as scripts/run_benchmark_lag_audit.py  # noqa: E501
+        if "latitude" in ds_static.coords and "longitude" in ds_static.coords:
+            pt = ds_static.sel(
+                latitude=lat_target, longitude=lon_target, method="nearest"
+            )
+            cell_lat = float(pt["latitude"].values)
+            cell_lon = float(pt["longitude"].values)
+        elif "lat" in ds_static.coords and "lon" in ds_static.coords:
+            pt = ds_static.sel(lat=lat_target, lon=lon_target, method="nearest")
+            cell_lat = float(pt["lat"].values)
+            cell_lon = float(pt["lon"].values)
+        else:
+            raise ValueError(
+                f"Static dataset coordinates not recognized in {path_obj.name}: "
+                f"{list(ds_static.coords.keys())}"
+            )
+
+        if not (
+            np.isclose(cell_lat, constants.cell_lat, atol=J2_CELL_ATOL_DEG)
+            and np.isclose(cell_lon, constants.cell_lon, atol=J2_CELL_ATOL_DEG)
+        ):
+            raise ValueError(
+                f"Extracted cell ({cell_lat:.2f}, {cell_lon:.2f}) does not match "
+                f"Table J.2 expected cell ({constants.cell_lat:.2f}, "
+                f"{constants.cell_lon:.2f}) for station '{clean_id}'."
+            )
+
+        z_var_name: Optional[str] = None
+        for cand in ["z", "Z", "geopotential"]:
+            if cand in pt.data_vars:
+                z_var_name = cand
+                break
+        if z_var_name is None:
+            raise ValueError(
+                f"Geopotential variable 'z' not found in static file {path_obj.name}. "
+                f"Variables: {list(pt.data_vars.keys())}"
+            )
+
+        z_val = float(np.squeeze(pt[z_var_name].values))
+        z_era5_m = z_val / GRAVITY_M_S2
+        table_z_era5_m = constants.z_era5_m
+        abs_diff_m = abs(z_era5_m - table_z_era5_m)
+
+        if abs_diff_m > J2_Z_ERA5_TOLERANCE_M:
+            raise ValueError(
+                f"Computed z_era5 ({z_era5_m:.2f} m) differs from Table J.2 value "
+                f"({table_z_era5_m:.2f} m) by {abs_diff_m:.2f} m > "
+                f"{J2_Z_ERA5_TOLERANCE_M} m for station '{clean_id}'."
+            )
+
+    return StaticVerification(
+        station_id=clean_id,
+        grid_lat=cell_lat,
+        grid_lon=cell_lon,
+        z_era5_m=float(z_era5_m),
+        table_z_era5_m=float(table_z_era5_m),
+        abs_difference_m=float(abs_diff_m),
+        delta_z_m=float(constants.delta_z_m),
     )
