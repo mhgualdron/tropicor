@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- GitHub Actions workflow with ruff, mypy, pytest and a PII/path check (commit ddef46a).
+- Protocol Appendix J (v1.8; specification of the primary benchmark evaluator; commit a83d7c0; no tag) and Appendix K (v1.9; pre-opening disclosures, pre-specified descriptive diagnostics D1-D7, deferral of the AC provision; annotated tag `protocol-v1.9` on commit 21b2e4f).
+- Benchmark evaluator modules under `tropicor/core`:
+  - `benchmark_evaluator.py` (tracks, levels, Level 0-E, shift invariance).
+  - `benchmark_diagnostics.py` (D1-D7).
+  - `benchmark_loaders.py` (full-record observation reader with opening guard, ERA5 daily reader, J.2 constants and static-file verification, J.11 frozen inputs).
+  - `benchmark_screening.py` (J.3.3 screening counts, J.3.4 approval masking).
+- Frozen benchmark inputs configuration: `tropicor/data/benchmark_expected_inputs.json`.
+- Archived analyses under `docs/science`: `andean_residual_diagnostic/`, `appendix_j/`, `orographic_ceiling_screening/`, and `residual_diagnostics_round2/`.
+
+### Notes
+- The benchmark evaluator is not yet wired to a runner.
+- No formal validation opening of the primary benchmark stations has been performed, other than the J.5 lag audit disclosed in Appendix K.
+- Amendment v1.10 is pending.
+
 ## [0.1.5] - 2026-10-27
 
 ### Added
