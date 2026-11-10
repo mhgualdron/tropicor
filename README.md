@@ -14,9 +14,9 @@
 
 ## Overview
 
-Global atmospheric reanalyses like **ECMWF ERA5** represent topography on smoothed grid scales ($\sim 31\,\text{km}$). In steep mountainous regions such as the Colombian Andes, this horizontal averaging introduces severe vertical discrepancies ($\Delta z$ up to $\pm 1,500\,\text{m}$) between the model surface and ground-truth stations. 
+Global atmospheric reanalyses like **ECMWF ERA5** represent topography on smoothed grid scales (~31 km). In steep mountainous regions such as the Colombian Andes, this horizontal averaging introduces severe vertical discrepancies (Δz up to ±1,500 m) between the model surface and ground-truth stations. 
 
-Because temperature decreases with altitude at the environmental lapse rate ($\approx 6.5\,^\circ\text{C}/\text{km}$), smoothed model elevations report temperatures with systemic errors exceeding $8^\circ\text{C}$ in intramontane valleys.
+Because temperature decreases with altitude at the environmental lapse rate (≈ 6.5 °C/km), smoothed model elevations report temperatures with systemic errors exceeding 8 °C in intramontane valleys.
 
 **TROPICOR** operationalizes physical downscaling methods and validation engines into a modular, production-ready Python package.
 
@@ -24,11 +24,11 @@ Because temperature decreases with altitude at the environmental lapse rate ($\a
 
 ## Core Features
  
-- **Topographic Lapse-Rate Downscaling (`tropicor.downscale`)**: Physics-based vertical temperature adjustment resolving elevation discrepancies ($\Delta z = z_{\text{station}} - z_{\text{model}}$) using standard, dry, or moist adiabatic lapse rates.
-- **ERA5 NetCDF Adapter (`tropicor.io.era5`)**: Memory-efficient spatial extraction from multi-file NetCDF reanalyses with automated unit harmonization (Kelvin $\to$ °C, meters $\to$ mm) and geopotential elevation extraction.
+- **Topographic Lapse-Rate Downscaling (`tropicor.downscale`)**: Physics-based vertical temperature adjustment resolving elevation discrepancies (Δz = z_station − z_model) using standard, dry, or moist adiabatic lapse rates.
+- **ERA5 NetCDF Adapter (`tropicor.io.era5`)**: Memory-efficient spatial extraction from multi-file NetCDF reanalyses with automated unit harmonization (Kelvin → °C, meters → mm) and geopotential elevation extraction.
 - **In-Situ Meteorological Ingestion (`tropicor.io.ideam`)**: Native parser for Colombian IDEAM DHIME meteorological time series.
 - **Station Catalog (`tropicor.io.stations`)**: Built-in catalog of 48 georeferenced Colombian stations across all 6 natural regions (Andina, Caribe, Pacífico, Orinoquía, Amazonía, Insular), including the core benchmark network of 40 stations with continuous 30-year observation records evaluated in the original UNAL thesis.
-- **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson $r$, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), Euclidean curve distance, and `TaylorStatistics` with geometric closure.
+- **Comprehensive Validation Suite (`tropicor.core.metrics`)**: Immutable `ValidationReport` computing Pearson r, RMSE, MAE, Mean Bias, PBIAS, Kling-Gupta Efficiency (KGE), Euclidean curve distance, and `TaylorStatistics` with geometric closure.
 - **Annual Climatology & Seasonal Geometry (`tropicor.core.climatology`)**: 12-month annual climatological normal profiles, normalized Euclidean curve separation metrics, circular boundary peak detection, and autonomous tropical rainfall regime classification (bimodal vs. unimodal).
 - **Publication Visualizations & Station Maps (`tropicor.viz`)**: High-contrast, colorblind-safe (Okabe-Ito) static and interactive cartography with automatic dual insets (San Andrés and Malpelo), 12-month small multiples, and polar-Cartesian Taylor diagrams with zero heavy GIS dependencies.
 
