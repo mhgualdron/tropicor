@@ -873,11 +873,26 @@ def noise_floor_d5_d6(
     ------
     ValueError
         If obs and mod indices are not aligned, monotonic, and unique;
+        if included_cal_years or included_val_years contains duplicated years;
         if included_cal_years and included_val_years overlap;
         or if any included year is absent from the data index.
     """
     idx = _require_aligned_index(obs=obs, mod=mod)
     assert isinstance(idx, pd.DatetimeIndex)
+
+    cal_list = list(included_cal_years)
+    seen_cal: set[int] = set()
+    for y in cal_list:
+        if y in seen_cal:
+            raise ValueError(f"duplicated years in included_cal_years: {y}")
+        seen_cal.add(y)
+
+    val_list = list(included_val_years)
+    seen_val: set[int] = set()
+    for y in val_list:
+        if y in seen_val:
+            raise ValueError(f"duplicated years in included_val_years: {y}")
+        seen_val.add(y)
 
     cal_set = set(included_cal_years)
     val_set = set(included_val_years)
@@ -1135,6 +1150,7 @@ def leave_one_year_out_d7(
 
     # OPEN ITEM v1.10: K.5.2 D7 'unchanged calibration' read as the official calibration monthly bias (input, as D1); not recomputed on included years  # noqa: E501
     v_all = _validation_monthly_bias(sums, counts, all_row_idx, b_cal)
+    # OPEN ITEM v1.10: K.5.2 D7 does not define the output when the all-years bias is undefined (month without paired days); NaN returned with status month_without_paired_days  # noqa: E501
     if np.isnan(v_all).any():
         return {
             "per_year": [],

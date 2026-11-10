@@ -960,6 +960,26 @@ def test_d5_contract_errors() -> None:
         noise_floor_d5_d6(obs, shifted_mod, [2000, 2001], [2002, 2003])
 
 
+def test_noise_floor_rejects_duplicate_years() -> None:
+    """Contract check: duplicate years in cal or val lists raise ValueError."""
+    idx = _make_daily_index(2000, 2005)
+    obs = pd.Series(25.5, index=idx)
+    mod = obs + 1.0
+
+    # (a) Duplicated year in included_cal_years -> ValueError
+    with pytest.raises(ValueError) as exc_cal:
+        noise_floor_d5_d6(obs, mod, [2000, 2000, 2001], [2002, 2003])
+
+    # (b) Duplicated year in included_val_years -> ValueError
+    with pytest.raises(ValueError, match="duplicated years in included_val_years"):
+        noise_floor_d5_d6(obs, mod, [2000, 2001], [2002, 2002, 2003])
+
+    # (c) Sentinel check: message contains duplicated year and no observation value
+    msg = str(exc_cal.value)
+    assert "2000" in msg
+    assert "25.5" not in msg
+
+
 def test_d5_excluded_years_ignored() -> None:
     """Test 3j: Excluded years present in series are ignored without error."""
     inc_11 = list(range(2000, 2011))
