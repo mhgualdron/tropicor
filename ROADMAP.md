@@ -99,7 +99,7 @@ graph TD
 │ Sprints 1–3  │ MVP Phase (v0.1.1)            │ October 2026 (Completed & Released)     │
 │ Sprints 4–6  │ Foundation & Dataviz Phase    │ October 2026 (Completed & Released)     │
 │ Sprint 7     │ Residual Diagnostics & Drift  │ October 2026 (Completed & Released)     │
-│ Sprint 8     │ Statistical Bias Correction   │ January 2027 (v0.2.0 Milestone)         │
+│ Sprint 8     │ Statistical Bias Correction   │ TBC (v0.2.0 Milestone)                  │
 │ Sprints 9–11 │ ML Downscaling & Suite Phase  │ February – June 2027 (v0.3.0 Milestone) │
 └──────────────┴───────────────────────────────┴─────────────────────────────────────────┘
 ```
@@ -116,6 +116,7 @@ graph TD
 | **6** | Oct – Nov 2026<br/>✅ Completed | Data Visualization & Station Maps | `tropicor/viz/profiles.py`<br/>`tropicor/viz/maps.py`<br/>`tests/test_viz/` | Station maps of Colombia showing station markers colored by natural region, station markers colored by error metrics (no filled polygons), 12-month climatology comparison profiles, DTR multi-panels. Official PyPI Release at sprint conclusion. | **v0.1.3** |
 | **7** | Oct 2026<br/>✅ Completed | Residual diagnostics & drift | `tropicor/core/diagnostics.py`<br/>`tests/test_core/test_diagnostics.py` | Standardized residual moments (variance, skewness, kurtosis); Shapiro normality test; deseasonalized anomalies; Hamed-Rao Mann-Kendall with max_lags=3 and lag-1 serial autocorrelation. | `v0.1.4` |
 | **7b** | Oct 2026<br/>✅ Completed | Pre-specified evaluation & Andean temperature baseline | `tropicor/core/protocol.py`<br/>`tropicor/core/phase3_evaluator.py`<br/>`tropicor/downscale/temperature.py`<br/>`docs/science/evaluation-protocol.md`<br/>`docs/science/appendix_g/` | Pre-specified evaluation protocol (v1.0 to v1.7), daily temperature correction Levels 0 to 3, Andean station registry, single formal validation opening on five IDEAM stations, archived scorecards. Results are reported separately in a preprint. | **v0.1.5** |
+| **7c** | Nov 2026<br/>🔄 In progress | Primary benchmark evaluator (Protocol v1.8-v1.9) | `tropicor/core/benchmark_evaluator.py`<br/>`tropicor/core/benchmark_diagnostics.py`<br/>`tropicor/core/benchmark_loaders.py`<br/>`tropicor/core/benchmark_screening.py`<br/>`tropicor/data/benchmark_expected_inputs.json`<br/>`docs/science/evaluation-protocol.md` (Appendices J-K) | Evaluator for the primary benchmark temperature opening (Appendix J) with the v1.9 amendment (Appendix K). Pure evaluation modules, loaders, screening counts and descriptive diagnostics D1-D7 are implemented; report assembler, runner and dry-run are pending, as is Amendment v1.10. No formal validation opening has been performed. | unreleased |
 | **8** | Jan 2027<br/>Upcoming | Statistical bias correction | `tropicor/core/bias.py`<br/>`tests/test_core/test_bias.py` | Empirical Quantile Mapping (EQM) and Linear Scaling are implemented in `tropicor/core/bias.py` as of v0.1.5; the Andean baseline uses the daily temperature levels of `tropicor.downscale.temperature`. This sprint consolidates their public API and documentation; its scope will be confirmed after the second pre-registered benchmark round. | **v0.2.0** |
 | **9** | Feb – Mar 2027<br/>Upcoming | DEM terrain feature extraction | `tropicor/downscale/features.py`<br/>`tests/test_downscale/test_features.py` | Elevation, slope, aspect, and roughness (TRI) extracted from synthetic and raster DEM grids. A second pre-registered benchmark round precedes this sprint. | `v0.2.1` |
 | **10** | Apr – May 2027<br/>Upcoming | Machine learning regressors | `tropicor/downscale/models.py`<br/>`tests/test_downscale/test_models.py` | `OrographicRegressor` (Gradient Boosting / Random Forest) evaluated under the pre-specified criteria of the evaluation protocol (fixed thresholds, bootstrap intervals), against baselines that include a statistical model using elevation as a predictor; vertical gradients estimated by season and variable instead of a fixed 6.5 K/km. | `v0.2.2` |
@@ -425,7 +426,7 @@ Every key empirical discovery from the thesis must have a corresponding test tha
 ### Release Roadmap Summary
 
 ```
-v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 – Jan 2027)
+v0.1.1 MVP (October 2026 ✅)   v0.2.0 (TBC)                  v0.3.0 (Dec 2026 – Jan 2027)
 ├── ERA5 Point Extraction     ├── 48 Stations (40 Benchmark)├── Topographic Feature Eng
 ├── IDEAM CSV Parsing         ├── Climatology Curves        ├── RandomForest Downscaler
 ├── Validation Metrics        ├── DTR & Double Difference   ├── GBDT Downscaler
@@ -461,7 +462,7 @@ v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 �
   uv publish --token $PYPI_API_TOKEN
   ```
 
-### Version 0.2.0 (Full Research Suite — Target: November 2026)
+### Version 0.2.0 (Full Research Suite — Target: date to be confirmed)
 * **Required Functionality**:
   - Pre-packaged `StationCatalog` containing 48 georeferenced Colombian stations across all 6 natural regions, including the core benchmark network of 40 stations.
   - Climatological 12-month annual cycle profiles and geometric curve distance.
@@ -474,7 +475,7 @@ v0.1.1 MVP (October 2026 ✅)   v0.2.0 (November 2026)        v0.3.0 (Dec 2026 �
   - Publication gallery showcasing generated Cartopy maps and climatology curves.
 * **CHANGELOG Entry**:
   ```markdown
-  ## [0.2.0] - 2026-11-15
+  ## [0.2.0] - YYYY-MM-DD (set at release)
   ### Added
   - Built-in StationCatalog with 48 georeferenced Colombian stations (including 40 core benchmark stations) categorized across 6 natural regions.
   - Annual climatology curve extraction and Euclidean curve separation metrics.
